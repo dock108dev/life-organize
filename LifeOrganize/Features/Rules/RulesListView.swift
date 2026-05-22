@@ -29,6 +29,11 @@ struct RulesListView: View {
                 }
             } else {
                 List {
+                    LedgerContextPanel(content: .rules)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 8, trailing: 12))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+
                     ForEach(ReminderContinuityLane.allCases, id: \.title) { lane in
                         let laneRules = rules(in: lane)
                         if !laneRules.isEmpty {

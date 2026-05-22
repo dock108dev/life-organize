@@ -75,6 +75,8 @@ struct ChatView: View {
                             .frame(maxWidth: .infinity, minHeight: 300)
                     } else {
                         LazyVStack(alignment: .leading, spacing: LedgerFeedTimelineLayout.sectionSpacing) {
+                            LedgerContextPanel(content: .timeline)
+
                             ForEach(visibleFeedSections) { section in
                                 LedgerFeedSectionView(
                                     section: section,

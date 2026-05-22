@@ -7,18 +7,29 @@ final class FirstRunEmptyStateTests: XCTestCase {
         XCTAssertEqual(LedgerEmptyStateContent.chat.title, "Timeline")
         XCTAssertEqual(
             LedgerEmptyStateContent.chat.body,
-            "Tell me what happened or ask what is due."
+            "Type anything worth remembering. LifeOrganize will turn it into history, Things, and follow-up reminders."
         )
-        XCTAssertNil(LedgerEmptyStateContent.chat.secondaryBody)
+        XCTAssertEqual(
+            LedgerEmptyStateContent.chat.secondaryBody,
+            "Try a note, a task, a receipt, or “what is due today?”"
+        )
         XCTAssertEqual(LedgerEmptyStateContent.things.title, "No saved things yet")
         XCTAssertEqual(
             LedgerEmptyStateContent.things.body,
-            "Add one directly or start from the timeline."
+            "Things are people, pets, projects, places, and accounts collected from your timeline."
+        )
+        XCTAssertEqual(
+            LedgerEmptyStateContent.things.secondaryBody,
+            "Start by capturing something, or add one directly."
         )
         XCTAssertEqual(LedgerEmptyStateContent.rules.title, "Nothing to carry forward yet")
         XCTAssertEqual(
             LedgerEmptyStateContent.rules.body,
-            "Add a reminder or capture something that should resurface."
+            "Carry Forward keeps ongoing work and reminders from getting lost."
+        )
+        XCTAssertEqual(
+            LedgerEmptyStateContent.rules.secondaryBody,
+            "Add a reminder, or capture something that should resurface later."
         )
         XCTAssertEqual(LedgerEmptyStateContent.settingsNoDeviceToken.title, "AI service token")
         XCTAssertEqual(
@@ -36,26 +47,35 @@ final class FirstRunEmptyStateTests: XCTestCase {
         XCTAssertNil(LedgerEmptyStateContent.noSearchResults.secondaryBody)
     }
 
+    func testPrimarySurfaceContextExplainsAppModel() {
+        XCTAssertEqual(LedgerContextPanelContent.timeline.title, "LifeOrganize starts here")
+        XCTAssertEqual(LedgerContextPanelContent.timeline.chips, ["Capture", "Recall", "Follow up"])
+        XCTAssertEqual(LedgerContextPanelContent.things.title, "Your organized subjects")
+        XCTAssertEqual(LedgerContextPanelContent.things.chips, ["History", "Notes", "Reminders"])
+        XCTAssertEqual(LedgerContextPanelContent.rules.title, "What should resurface")
+        XCTAssertEqual(LedgerContextPanelContent.rules.chips, ["Now", "Upcoming", "Paused"])
+    }
+
     @MainActor
     func testFirstRunChatSuggestionsOnlyFillDraftText() {
         let viewModel = ChatViewModel()
 
         XCTAssertEqual(
             ChatSuggestion.allCases.map(\.title),
-            ["Log something", "Due today", "Check later", "Save note"]
+            ["Save note", "Ask today", "Set reminder", "Log something"]
         )
-
-        viewModel.applySuggestion(.logEvent)
-        XCTAssertEqual(viewModel.draft, "I ")
-
-        viewModel.applySuggestion(.logPurchase)
-        XCTAssertEqual(viewModel.draft, "What do I have to do today?")
-
-        viewModel.applySuggestion(.addReminder)
-        XCTAssertEqual(viewModel.draft, "I want to check this in a month: ")
 
         viewModel.applySuggestion(.addNote)
         XCTAssertEqual(viewModel.draft, "Note: ")
+
+        viewModel.applySuggestion(.askToday)
+        XCTAssertEqual(viewModel.draft, "What do I have to do today?")
+
+        viewModel.applySuggestion(.addReminder)
+        XCTAssertEqual(viewModel.draft, "Remind me to ")
+
+        viewModel.applySuggestion(.logEvent)
+        XCTAssertEqual(viewModel.draft, "I ")
     }
 
     @MainActor

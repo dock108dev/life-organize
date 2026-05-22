@@ -18,19 +18,22 @@ extension LedgerEmptyStateContent {
     static let chat = LedgerEmptyStateContent(
         symbolName: "clock",
         title: "Timeline",
-        body: "Tell me what happened or ask what is due."
+        body: "Type anything worth remembering. LifeOrganize will turn it into history, Things, and follow-up reminders.",
+        secondaryBody: "Try a note, a task, a receipt, or “what is due today?”"
     )
 
     static let things = LedgerEmptyStateContent(
         symbolName: "tray",
         title: "No saved things yet",
-        body: "Add one directly or start from the timeline."
+        body: "Things are people, pets, projects, places, and accounts collected from your timeline.",
+        secondaryBody: "Start by capturing something, or add one directly."
     )
 
     static let rules = LedgerEmptyStateContent(
         symbolName: "checklist",
         title: "Nothing to carry forward yet",
-        body: "Add a reminder or capture something that should resurface."
+        body: "Carry Forward keeps ongoing work and reminders from getting lost.",
+        secondaryBody: "Add a reminder, or capture something that should resurface later."
     )
 
     static let settingsNoDeviceToken = LedgerEmptyStateContent(

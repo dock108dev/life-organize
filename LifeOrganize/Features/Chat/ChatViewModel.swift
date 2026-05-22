@@ -65,34 +65,34 @@ final class ChatViewModel: ObservableObject {
 }
 
 enum ChatSuggestion: CaseIterable, Equatable, Hashable {
-    case logEvent
-    case logPurchase
-    case addReminder
     case addNote
+    case askToday
+    case addReminder
+    case logEvent
 
     var title: String {
         switch self {
-        case .logEvent:
-            "Log something"
-        case .logPurchase:
-            "Due today"
-        case .addReminder:
-            "Check later"
         case .addNote:
             "Save note"
+        case .askToday:
+            "Ask today"
+        case .addReminder:
+            "Set reminder"
+        case .logEvent:
+            "Log something"
         }
     }
 
     var draftText: String {
         switch self {
-        case .logEvent:
-            "I "
-        case .logPurchase:
-            "What do I have to do today?"
-        case .addReminder:
-            "I want to check this in a month: "
         case .addNote:
             "Note: "
+        case .askToday:
+            "What do I have to do today?"
+        case .addReminder:
+            "Remind me to "
+        case .logEvent:
+            "I "
         }
     }
 }

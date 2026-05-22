@@ -55,18 +55,25 @@ struct ThingsListView: View {
                     }
                 }
             } else {
-                List(sortedThings) { thing in
-                    let reviewPresentation = reviewPresentation(for: thing)
-                    NavigationLink {
-                        ThingDetailView(thing: thing)
-                    } label: {
-                        ThingRow(thing: thing, reviewPresentation: reviewPresentation)
+                List {
+                    LedgerContextPanel(content: .things)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 8, trailing: 12))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+
+                    ForEach(sortedThings) { thing in
+                        let reviewPresentation = reviewPresentation(for: thing)
+                        NavigationLink {
+                            ThingDetailView(thing: thing)
+                        } label: {
+                            ThingRow(thing: thing, reviewPresentation: reviewPresentation)
+                        }
+                        .accessibilityIdentifier("thing-row-\(thing.id.uuidString)")
+                        .listRowInsets(EdgeInsets(top: 5, leading: 12, bottom: 5, trailing: 12))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .ledgerReviewItemContextMenu(reviewPresentation?.item, onError: { reviewItemErrorMessage = $0 })
                     }
-                    .accessibilityIdentifier("thing-row-\(thing.id.uuidString)")
-                    .listRowInsets(EdgeInsets(top: 5, leading: 12, bottom: 5, trailing: 12))
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-                    .ledgerReviewItemContextMenu(reviewPresentation?.item, onError: { reviewItemErrorMessage = $0 })
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)

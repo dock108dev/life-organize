@@ -1,0 +1,252 @@
+[
+  {
+    "topic": "launch-mode-contract",
+    "question": "What launch-argument contract should Phase 7 expose for reset, fixed time, mock extraction, screenshot mode, and seeded scenarios given the current `-ui-testing`/`-reset-store`/`-use-fake-extractor` flags?",
+    "scope": [
+      "LifeOrganize/Utilities/AppRuntimeConfiguration.swift",
+      "LifeOrganize/LifeOrganizeApp.swift",
+      "LifeOrganizeUITests/LifeOrganizeUITests.swift"
+    ]
+  },
+  {
+    "topic": "swiftdata-seed-loader-shape",
+    "question": "What is the safest shape for a named scenario seed loader that can populate the current SwiftData schema before first UI render?",
+    "scope": [
+      "LifeOrganize/Persistence/ModelContainerFactory.swift",
+      "LifeOrganize/Persistence/LifeOrganizeSchemaV3.swift",
+      "LifeOrganize/Models/Thing.swift",
+      "LifeOrganize/Models/Event.swift",
+      "LifeOrganize/Models/Rule.swift",
+      "LifeOrganize/Models/Note.swift"
+    ]
+  },
+  {
+    "topic": "scenario-fixture-format",
+    "question": "Should Phase 7 scenario fixtures be JSON files, Swift builders, exported ledger snapshots, or a hybrid, and what fields must they include to preserve relationships and chronology?",
+    "scope": [
+      "LifeOrganize/Services/LocalJSONExportService.swift",
+      "LifeOrganize/DTOs/LedgerExport.swift",
+      "LifeOrganizeTests/ContinuityScenarioRegressionTests.swift",
+      "LifeOrganizeTests/TestDoubles.swift"
+    ]
+  },
+  {
+    "topic": "mock-extraction-fixture-library",
+    "question": "How should the current hard-coded `DeterministicMessageExtractionClient` be converted or extended into deterministic message-to-payload fixtures without destabilizing existing tests?",
+    "scope": [
+      "LifeOrganize/Services/DeterministicExtractionClient.swift",
+      "LifeOrganize/Services/DeterministicExtractionFixtures.swift",
+      "LifeOrganizeTests/DeterministicExtractionClientTests.swift",
+      "LifeOrganizeTests/ExtractionTestFixtures.swift"
+    ]
+  },
+  {
+    "topic": "fresh-install-state-boundaries",
+    "question": "What local state besides SwiftData and API key storage can affect first-launch determinism, and how should a fresh-install test mode clear or isolate it?",
+    "scope": [
+      "LifeOrganize/Utilities/AppRuntimeConfiguration.swift",
+      "LifeOrganize/Utilities/DeveloperModeState.swift",
+      "LifeOrganize/Services/LocalDataClearService.swift",
+      "LifeOrganize/Features/Settings/SettingsClearDataFlow.swift"
+    ]
+  },
+  {
+    "topic": "simulator-walkthrough-automation",
+    "question": "What simulator walkthrough structure should cover Timeline, Things, Thing detail, Carry Forward, Search, Review queue, and Settings using current accessibility identifiers and gaps?",
+    "scope": [
+      "LifeOrganizeUITests/LifeOrganizeUITests.swift",
+      "LifeOrganize/AppRootView.swift",
+      "LifeOrganize/Features/Chat/ChatView.swift",
+      "LifeOrganize/Features/Search/UnifiedSearchView.swift",
+      "LifeOrganize/Features/Shared/LedgerReviewQueueView.swift"
+    ]
+  },
+  {
+    "topic": "screenshot-regression-stack",
+    "question": "What screenshot regression approach fits this Xcode project today: XCUITest attachments, Fastlane Snapshot, custom simulator scripts, or another baseline/diff workflow?",
+    "scope": [
+      "LifeOrganizeUITests/LifeOrganizeUITests.swift",
+      "LifeOrganize.xcodeproj/xcshareddata/xcschemes/LifeOrganize.xcscheme",
+      "LifeOrganize.xcodeproj/project.pbxproj"
+    ]
+  },
+  {
+    "topic": "screenshot-mode-determinism",
+    "question": "Which app-level and simulator-level variables must screenshot mode fix beyond `-fixed-now`, and which can be controlled in app code versus launch scripts?",
+    "scope": [
+      "LifeOrganize/Utilities/AppRuntimeConfiguration.swift",
+      "LifeOrganize/Utilities/DateProvider.swift",
+      "LifeOrganizeUITests/LifeOrganizeUITests.swift"
+    ]
+  },
+  {
+    "topic": "heavy-history-generation",
+    "question": "How should a 500+ entry heavy-history state be generated so timeline ordering, scrolling density, reminders, notes, reviews, and search remain deterministic?",
+    "scope": [
+      "LifeOrganize/Features/Chat/LedgerFeed.swift",
+      "LifeOrganize/Services/TimelineSliceProjection.swift",
+      "LifeOrganize/Services/SearchService.swift",
+      "LifeOrganizeTests/LedgerFeedProjectionTests.swift",
+      "LifeOrganizeTests/TimelineSliceProjectionTests.swift"
+    ]
+  },
+  {
+    "topic": "timeline-density-visual-contracts",
+    "question": "Which current timeline and row-density constants are load-bearing visual contracts, and where would screenshot assertions provide coverage that unit tests cannot?",
+    "scope": [
+      "LifeOrganize/Features/Chat/ChatView.swift",
+      "LifeOrganize/Features/Shared/LedgerVisualSystem.swift",
+      "LifeOrganizeTests/LedgerDensityContractTests.swift",
+      "LifeOrganizeTests/LedgerVisualSystemTests.swift"
+    ]
+  },
+  {
+    "topic": "relationship-integrity-validator",
+    "question": "What whole-store relationship-integrity checks should run against every seeded scenario to catch broken Thing, reminder, event, review, source-message, and entity-link references?",
+    "scope": [
+      "LifeOrganize/Models/EntityLink.swift",
+      "LifeOrganize/Services/EntityLinkWriter.swift",
+      "LifeOrganize/Services/DerivedFieldMaintenanceService.swift",
+      "LifeOrganize/Services/RelationshipTraversalRecords.swift",
+      "LifeOrganize/Services/RelationshipTraversalService.swift"
+    ]
+  },
+  {
+    "topic": "review-queue-scenario-contract",
+    "question": "What deterministic scenario assertions should protect review queue consistency for ambiguous extraction, duplicate Things, temporal conflicts, local recovery, and partial extraction?",
+    "scope": [
+      "LifeOrganize/Models/LedgerReviewItem.swift",
+      "LifeOrganize/Services/LedgerReviewItemGenerationService.swift",
+      "LifeOrganize/Services/LedgerReviewQueueService.swift",
+      "LifeOrganize/Features/Shared/LedgerReviewQueueView.swift",
+      "LifeOrganizeTests/LedgerReviewQueueServiceTests.swift"
+    ]
+  },
+  {
+    "topic": "temporal-ambiguity-matrix",
+    "question": "Which temporal phrases from the BRAINDUMP are already deterministic, which depend on model output, and what test matrix should cover ambiguous future and seasonal language?",
+    "scope": [
+      "LifeOrganize/Services/TemporalPriorityResolver.swift",
+      "LifeOrganize/Services/ExtractionService.swift",
+      "LifeOrganize/Services/DeterministicExtractionClient.swift",
+      "LifeOrganizeTests/TemporalPriorityResolutionTests.swift",
+      "LifeOrganizeTests/DeterministicExtractionClientTests.swift"
+    ]
+  },
+  {
+    "topic": "search-power-feature-coverage",
+    "question": "What gaps remain between current local substring/date search coverage and the BRAINDUMP's desired fragments, aliases, fuzzy matches, date slices, Things, reminders, notes, and recall QA?",
+    "scope": [
+      "LifeOrganize/Services/SearchService.swift",
+      "LifeOrganize/Services/SearchService+Ranking.swift",
+      "LifeOrganize/Services/LocalSearchTimingParser.swift",
+      "LifeOrganizeTests/TimelineAwareSearchTests.swift",
+      "LifeOrganizeTests/SearchRecallServiceTests.swift"
+    ]
+  },
+  {
+    "topic": "thing-duplicate-drift-prevention",
+    "question": "How should scenario tests distinguish acceptable new Things from duplicate Thing drift under the current seed, normalization, automatic-merge, and review-candidate rules?",
+    "scope": [
+      "LifeOrganize/Utilities/ThingNormalizer.swift",
+      "LifeOrganize/Utilities/ThingNormalizationCandidate.swift",
+      "LifeOrganize/Services/ThingResolver.swift",
+      "LifeOrganize/Services/LedgerReviewItemGenerationService.swift",
+      "LifeOrganizeTests/ThingIdentityContinuityTests.swift"
+    ]
+  },
+  {
+    "topic": "internal-qa-mode-surface",
+    "question": "What hidden QA mode surface should exist beyond current developer extraction diagnostics, and how should it route fixture loading, DB reset, fake date, reprocess entry, and graph inspection?",
+    "scope": [
+      "LifeOrganize/Utilities/DeveloperModeState.swift",
+      "LifeOrganize/Features/Settings/SettingsView.swift",
+      "LifeOrganize/Features/Debug/ExtractionDebugListView.swift",
+      "LifeOrganize/Features/Debug/ExtractionAttemptDebugView.swift"
+    ]
+  },
+  {
+    "topic": "extraction-quality-dashboard-model",
+    "question": "What internal quality metrics can be derived from existing `ChatMessage`, `ExtractionAttempt`, `LedgerReviewItem`, and `EntityLink` data, and what new counters would be needed?",
+    "scope": [
+      "LifeOrganize/Models/ChatMessage.swift",
+      "LifeOrganize/Models/ExtractionAttempt.swift",
+      "LifeOrganize/Models/LedgerReviewItem.swift",
+      "LifeOrganize/Models/EntityLink.swift",
+      "LifeOrganize/Features/Debug/ExtractionDebugListView.swift"
+    ]
+  },
+  {
+    "topic": "local-json-export-as-baseline",
+    "question": "Can local JSON export serve as a scenario baseline or regression artifact, and what import/compare semantics would be required?",
+    "scope": [
+      "LifeOrganize/Services/LocalJSONExportService.swift",
+      "LifeOrganize/Services/LocalJSONExportValidation.swift",
+      "LifeOrganize/DTOs/LedgerExport.swift",
+      "LifeOrganize/Features/Settings/SettingsView.swift"
+    ]
+  },
+  {
+    "topic": "operational-home-scenario-shape",
+    "question": "What records, intervals, reminders, and review assertions should define the operational-home scenario from the current home filters, dog food, garage, Costco/purchase, and maintenance logic?",
+    "scope": [
+      "LifeOrganizeTests/ContinuityScenarioRegressionTests.swift",
+      "LifeOrganize/Services/OperationalIntervalInferenceService.swift",
+      "LifeOrganize/Services/OperationalIntervalInferenceTypes.swift",
+      "LifeOrganize/Services/DeterministicExtractionClient.swift"
+    ]
+  },
+  {
+    "topic": "work-continuity-scenario-shape",
+    "question": "How should the work continuity scenario model AWS, Sonar, vulnerabilities, monorepo, migrations, aliases, relationship traversal, and recall under current normalization rules?",
+    "scope": [
+      "LifeOrganizeTests/ContinuityScenarioRegressionTests.swift",
+      "LifeOrganizeTests/RelationshipTraversalServiceTests.swift",
+      "LifeOrganize/Utilities/ThingNormalizer.swift",
+      "LifeOrganize/Services/RelationshipTraversalService.swift"
+    ]
+  },
+  {
+    "topic": "ambiguous-human-entry-review-flow",
+    "question": "How should an ambiguous entry like 'I think bogey needs a haircut in a week or two' flow through extraction, review state, suggested interpretation, and Thing linking today?",
+    "scope": [
+      "LifeOrganize/Services/ExtractionService.swift",
+      "LifeOrganize/Services/ChatSendService.swift",
+      "LifeOrganize/Services/LedgerReviewItemGenerationService.swift",
+      "LifeOrganize/Services/ThingResolver.swift",
+      "LifeOrganize/Services/DeterministicExtractionClient.swift"
+    ]
+  },
+  {
+    "topic": "first-launch-visual-state",
+    "question": "What exact first-launch UI state should be asserted for an empty store, missing API key, Timeline empty state, suggestions, composer focus, tabs, and toolbar controls?",
+    "scope": [
+      "LifeOrganize/Features/Chat/ChatView.swift",
+      "LifeOrganize/Features/Shared/LedgerEmptyStateView.swift",
+      "LifeOrganize/Features/Chat/ChatInputBar.swift",
+      "LifeOrganizeTests/FirstRunEmptyStateTests.swift",
+      "LifeOrganizeUITests/LifeOrganizeUITests.swift"
+    ]
+  },
+  {
+    "topic": "timeline-replay-and-search-interaction",
+    "question": "How do timeline slices, search date parsing, linked-Thing filtering, and replay destinations interact, and what cross-feature scenario tests should lock that behavior?",
+    "scope": [
+      "LifeOrganize/Services/SearchService+TimelineSlices.swift",
+      "LifeOrganize/Services/TimelineSliceProjection.swift",
+      "LifeOrganize/Features/Timeline/TimelineSliceReplayView.swift",
+      "LifeOrganizeTests/TimelineAwareSearchTests.swift",
+      "LifeOrganizeTests/TimelineSliceReplayTests.swift"
+    ]
+  },
+  {
+    "topic": "scenario-test-runner-output",
+    "question": "What artifact output should deterministic scenario runs produce for planner/CI consumption: XCTest results, screenshots, exported JSON, relationship audit reports, or all of them?",
+    "scope": [
+      "LifeOrganizeUITests/LifeOrganizeUITests.swift",
+      "LifeOrganizeTests/ContinuityScenarioRegressionTests.swift",
+      "LifeOrganize/Services/LocalJSONExportService.swift",
+      "LifeOrganize.xcodeproj/xcshareddata/xcschemes/LifeOrganize.xcscheme"
+    ]
+  }
+]

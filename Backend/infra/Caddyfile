@@ -1,0 +1,16 @@
+# Merge this site block into the host Caddyfile.
+
+life.dock108.dev {
+	encode gzip
+
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+		Content-Security-Policy "default-src 'none'; frame-ancestors 'none'"
+	}
+
+	reverse_proxy localhost:8000
+}

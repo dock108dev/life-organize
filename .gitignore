@@ -1,0 +1,20 @@
+# AIDLC working directory
+.aidlc/runs/
+.aidlc/reports/
+.aidlc/_archive/
+
+# Xcode local build output
+.build/
+.derivedData/
+.deriveddata/
+BuildArtifacts/
+
+# Backend local state
+Backend/.venv/
+Backend/.pytest_cache/
+Backend/.ruff_cache/
+Backend/__pycache__/
+Backend/**/__pycache__/
+
+# macOS
+.DS_Store

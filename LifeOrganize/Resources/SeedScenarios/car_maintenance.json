@@ -1,0 +1,253 @@
+{
+  "clock": {
+    "calendar": "gregorian",
+    "now": "2026-05-20T12:00:00Z",
+    "timeZone": "America/New_York"
+  },
+  "description": "A car oil change produces a vehicle Thing, maintenance event, reminder, provenance links, and replay/search expectations.",
+  "expectations": {
+    "relationshipChecks": [
+      {
+        "fromId": "10000000-0000-4000-8000-000000000101",
+        "fromType": "thing",
+        "kind": "thingHasEvent",
+        "toId": "10000000-0000-4000-8000-000000000201",
+        "toType": "event"
+      },
+      {
+        "fromId": "10000000-0000-4000-8000-000000000101",
+        "fromType": "thing",
+        "kind": "thingHasRule",
+        "toId": "10000000-0000-4000-8000-000000000301",
+        "toType": "rule"
+      }
+    ],
+    "replayExpectations": [
+      {
+        "expectedTargets": [
+          {
+            "id": "10000000-0000-4000-8000-000000000201",
+            "type": "event"
+          },
+          {
+            "id": "10000000-0000-4000-8000-000000000301",
+            "type": "rule"
+          }
+        ],
+        "requiredText": ["oil", "mileage", "reminder"],
+        "sourceId": "10000000-0000-4000-8000-000000000101",
+        "sourceType": "thing"
+      }
+    ],
+    "requiredCounts": {
+      "chatMessages": 1,
+      "entityLinks": 2,
+      "events": 1,
+      "extractionRuns": 1,
+      "ledgerReviewItems": 0,
+      "notes": 0,
+      "rules": 1,
+      "things": 1
+    },
+    "requiredVisibleSurfaces": [
+      {
+        "requiredRecordIds": ["10000000-0000-4000-8000-000000000201"],
+        "surface": "log"
+      },
+      {
+        "requiredRecordIds": ["10000000-0000-4000-8000-000000000301"],
+        "surface": "reminders"
+      }
+    ],
+    "reviewQueueExpectations": [],
+    "searchExpectations": [
+      {
+        "disallowedText": ["dog", "grooming"],
+        "expectedTargets": [
+          {
+            "id": "10000000-0000-4000-8000-000000000201",
+            "type": "event"
+          }
+        ],
+        "query": "oil change mileage"
+      }
+    ]
+  },
+  "fixtureSchemaVersion": 1,
+  "id": "car_maintenance",
+  "ledgerSchemaVersion": 3,
+  "records": {
+    "chatMessages": [
+      {
+        "createdAt": "2026-05-19T14:30:00Z",
+        "extractionRunId": "10000000-0000-4000-8000-000000000002",
+        "extractionRunIds": ["10000000-0000-4000-8000-000000000002"],
+        "extractionState": {
+          "attemptCount": 1,
+          "errorCode": null,
+          "errorMessage": null,
+          "extractionVersion": 3,
+          "lastAttemptAt": "2026-05-19T14:30:05Z",
+          "latestAttemptErrorCode": null,
+          "latestAttemptStatus": "succeeded",
+          "nextRetryAt": null,
+          "recoveryAction": null,
+          "status": "succeeded"
+        },
+        "id": "10000000-0000-4000-8000-000000000001",
+        "latestExtractionRunId": "10000000-0000-4000-8000-000000000002",
+        "linkedEntityIds": [
+          "10000000-0000-4000-8000-000000000101",
+          "10000000-0000-4000-8000-000000000201",
+          "10000000-0000-4000-8000-000000000301"
+        ],
+        "role": "user",
+        "successfulExtractionRunIds": ["10000000-0000-4000-8000-000000000002"],
+        "text": "Changed oil on the Blue Wagon at 42000 miles. Remind me in 90 days."
+      }
+    ],
+    "entityLinks": [
+      {
+        "createdAt": "2026-05-19T14:30:07Z",
+        "fromEntityId": "10000000-0000-4000-8000-000000000001",
+        "fromEntityType": "chatMessage",
+        "id": "10000000-0000-4000-8000-000000000501",
+        "relationship": "created_from",
+        "source": {
+          "chatMessageId": "10000000-0000-4000-8000-000000000001",
+          "extractionRunId": null,
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "toEntityId": "10000000-0000-4000-8000-000000000201",
+        "toEntityType": "event"
+      },
+      {
+        "createdAt": "2026-05-19T14:30:08Z",
+        "fromEntityId": "10000000-0000-4000-8000-000000000201",
+        "fromEntityType": "event",
+        "id": "10000000-0000-4000-8000-000000000502",
+        "relationship": "linked_to",
+        "source": {
+          "chatMessageId": "10000000-0000-4000-8000-000000000001",
+          "extractionRunId": null,
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "toEntityId": "10000000-0000-4000-8000-000000000101",
+        "toEntityType": "thing"
+      }
+    ],
+    "events": [
+      {
+        "createdAt": "2026-05-19T14:30:06Z",
+        "eventType": "maintenance",
+        "id": "10000000-0000-4000-8000-000000000201",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "mileage",
+            "numberValue": 42000,
+            "sourceText": "42000 miles",
+            "stringValue": null,
+            "unit": "mi",
+            "valueKind": "number"
+          }
+        ],
+        "note": "Use full synthetic next time.",
+        "occurredAt": "2026-05-19",
+        "rawText": "Changed oil on the Blue Wagon at 42000 miles.",
+        "source": {
+          "chatMessageId": "10000000-0000-4000-8000-000000000001",
+          "extractionRunId": "10000000-0000-4000-8000-000000000002",
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "thingId": "10000000-0000-4000-8000-000000000101",
+        "title": "Changed Blue Wagon oil",
+        "updatedAt": "2026-05-19T14:30:06Z"
+      }
+    ],
+    "extractionRuns": [
+      {
+        "chatMessageId": "10000000-0000-4000-8000-000000000001",
+        "completedAt": "2026-05-19T14:30:06Z",
+        "createdEntities": {
+          "events": ["10000000-0000-4000-8000-000000000201"],
+          "notes": [],
+          "rules": ["10000000-0000-4000-8000-000000000301"],
+          "things": ["10000000-0000-4000-8000-000000000101"]
+        },
+        "createdEntityIds": [
+          "10000000-0000-4000-8000-000000000101",
+          "10000000-0000-4000-8000-000000000201",
+          "10000000-0000-4000-8000-000000000301"
+        ],
+        "error": null,
+        "extractionSchemaVersion": 3,
+        "id": "10000000-0000-4000-8000-000000000002",
+        "input": {
+          "referenceNow": "2026-05-19T14:30:00Z",
+          "timeZone": "America/New_York",
+          "userText": "Changed oil on the Blue Wagon at 42000 miles. Remind me in 90 days."
+        },
+        "model": "deterministic-extractor",
+        "normalizedJSONText": "{}",
+        "parsedResponse": null,
+        "promptVersion": "scenario-fixture",
+        "provider": "openai",
+        "purpose": "extraction",
+        "rawResponseText": "{}",
+        "requestJSON": "{\"mode\":\"fixture\"}",
+        "requestedAt": "2026-05-19T14:30:05Z",
+        "status": "succeeded"
+      }
+    ],
+    "ledgerReviewItems": [],
+    "notes": [],
+    "rules": [
+      {
+        "continuityBehavior": "date_based_reminder",
+        "createdAt": "2026-05-19T14:30:06Z",
+        "expiresAt": null,
+        "id": "10000000-0000-4000-8000-000000000301",
+        "isActive": true,
+        "lifecycleState": "open",
+        "manuallyDeactivatedAt": null,
+        "rawText": "Remind me in 90 days.",
+        "reason": "Oil change cadence",
+        "ruleType": "reminder",
+        "source": {
+          "chatMessageId": "10000000-0000-4000-8000-000000000001",
+          "extractionRunId": "10000000-0000-4000-8000-000000000002",
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "startsAt": "2026-08-17",
+        "thingId": "10000000-0000-4000-8000-000000000101",
+        "title": "Change Blue Wagon oil",
+        "updatedAt": "2026-05-19T14:30:06Z"
+      }
+    ],
+    "things": [
+      {
+        "aliases": ["Blue Wagon"],
+        "category": "vehicle",
+        "createdAt": "2026-05-19T14:30:06Z",
+        "eventCount": 1,
+        "id": "10000000-0000-4000-8000-000000000101",
+        "lastEventAt": "2026-05-19",
+        "name": "Blue Wagon",
+        "source": {
+          "chatMessageId": "10000000-0000-4000-8000-000000000001",
+          "extractionRunId": "10000000-0000-4000-8000-000000000002",
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-05-19T14:30:06Z"
+      }
+    ]
+  },
+  "title": "Car maintenance with reminder"
+}

@@ -1,0 +1,39 @@
+{
+  "clock": {
+    "calendar": "gregorian",
+    "now": "2026-05-20T12:00:00Z",
+    "timeZone": "America/New_York"
+  },
+  "description": "Fresh launch has no ledger records and no pending review work.",
+  "expectations": {
+    "relationshipChecks": [],
+    "replayExpectations": [],
+    "requiredCounts": {
+      "chatMessages": 0,
+      "entityLinks": 0,
+      "events": 0,
+      "extractionRuns": 0,
+      "ledgerReviewItems": 0,
+      "notes": 0,
+      "rules": 0,
+      "things": 0
+    },
+    "requiredVisibleSurfaces": [],
+    "reviewQueueExpectations": [],
+    "searchExpectations": []
+  },
+  "fixtureSchemaVersion": 1,
+  "id": "first_launch_empty",
+  "ledgerSchemaVersion": 3,
+  "records": {
+    "chatMessages": [],
+    "entityLinks": [],
+    "events": [],
+    "extractionRuns": [],
+    "ledgerReviewItems": [],
+    "notes": [],
+    "rules": [],
+    "things": []
+  },
+  "title": "First launch empty state"
+}

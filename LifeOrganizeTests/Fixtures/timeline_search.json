@@ -1,0 +1,174 @@
+{
+  "clock": {
+    "calendar": "gregorian",
+    "now": "2026-05-20T12:00:00Z",
+    "timeZone": "America/New_York"
+  },
+  "description": "Timeline and search expectations cover a registration renewal, a note, and a related thing.",
+  "expectations": {
+    "relationshipChecks": [
+      {
+        "fromId": "40000000-0000-4000-8000-000000000101",
+        "fromType": "thing",
+        "kind": "thingHasRule",
+        "toId": "40000000-0000-4000-8000-000000000301",
+        "toType": "rule"
+      }
+    ],
+    "replayExpectations": [
+      {
+        "expectedTargets": [
+          {
+            "id": "40000000-0000-4000-8000-000000000201",
+            "type": "event"
+          },
+          {
+            "id": "40000000-0000-4000-8000-000000000301",
+            "type": "rule"
+          }
+        ],
+        "requiredText": ["registration", "renewal"],
+        "sourceId": "40000000-0000-4000-8000-000000000101",
+        "sourceType": "thing"
+      }
+    ],
+    "requiredCounts": {
+      "chatMessages": 0,
+      "entityLinks": 0,
+      "events": 1,
+      "extractionRuns": 0,
+      "ledgerReviewItems": 0,
+      "notes": 1,
+      "rules": 1,
+      "things": 1
+    },
+    "requiredVisibleSurfaces": [
+      {
+        "requiredRecordIds": [
+          "40000000-0000-4000-8000-000000000201",
+          "40000000-0000-4000-8000-000000000601"
+        ],
+        "surface": "log"
+      },
+      {
+        "requiredRecordIds": ["40000000-0000-4000-8000-000000000301"],
+        "surface": "reminders"
+      }
+    ],
+    "reviewQueueExpectations": [],
+    "searchExpectations": [
+      {
+        "disallowedText": ["proposal", "dog"],
+        "expectedTargets": [
+          {
+            "id": "40000000-0000-4000-8000-000000000301",
+            "type": "rule"
+          },
+          {
+            "id": "40000000-0000-4000-8000-000000000601",
+            "type": "note"
+          }
+        ],
+        "query": "registration renewal"
+      }
+    ]
+  },
+  "fixtureSchemaVersion": 1,
+  "id": "timeline_search",
+  "ledgerSchemaVersion": 3,
+  "records": {
+    "chatMessages": [],
+    "entityLinks": [],
+    "events": [
+      {
+        "createdAt": "2026-04-10T10:00:00Z",
+        "eventType": "renewal",
+        "id": "40000000-0000-4000-8000-000000000201",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": "2026-04-10",
+            "key": "due_date",
+            "numberValue": null,
+            "sourceText": "April registration renewal",
+            "stringValue": null,
+            "unit": null,
+            "valueKind": "date"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-04-10",
+        "rawText": "Renewed vehicle registration online.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "40000000-0000-4000-8000-000000000101",
+        "title": "Renewed vehicle registration",
+        "updatedAt": "2026-04-10T10:00:00Z"
+      }
+    ],
+    "extractionRuns": [],
+    "ledgerReviewItems": [],
+    "notes": [
+      {
+        "createdAt": "2026-04-10T10:05:00Z",
+        "id": "40000000-0000-4000-8000-000000000601",
+        "linkedThingIds": ["40000000-0000-4000-8000-000000000101"],
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "text": "Registration receipt is saved in the glove box folder.",
+        "updatedAt": "2026-04-10T10:05:00Z"
+      }
+    ],
+    "rules": [
+      {
+        "continuityBehavior": "date_based_reminder",
+        "createdAt": "2026-04-10T10:10:00Z",
+        "expiresAt": null,
+        "id": "40000000-0000-4000-8000-000000000301",
+        "isActive": true,
+        "lifecycleState": "open",
+        "manuallyDeactivatedAt": null,
+        "rawText": "Renew vehicle registration next April.",
+        "reason": "Annual registration",
+        "ruleType": "reminder",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "startsAt": "2027-04-01",
+        "thingId": "40000000-0000-4000-8000-000000000101",
+        "title": "Renew vehicle registration",
+        "updatedAt": "2026-04-10T10:10:00Z"
+      }
+    ],
+    "things": [
+      {
+        "aliases": ["registration", "vehicle documents"],
+        "category": "admin",
+        "createdAt": "2026-04-10T10:00:00Z",
+        "eventCount": 1,
+        "id": "40000000-0000-4000-8000-000000000101",
+        "lastEventAt": "2026-04-10",
+        "name": "Vehicle Registration",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-04-10T10:10:00Z"
+      }
+    ]
+  },
+  "title": "Timeline search"
+}

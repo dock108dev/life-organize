@@ -1,0 +1,498 @@
+import SwiftData
+import XCTest
+@testable import LifeOrganize
+
+final class ChatSendServiceTests: XCTestCase {
+    @MainActor
+    func testChatSendCommitsMessageAndPendingAttemptBeforeExtraction() async throws {
+        let context = makeInMemoryModelContext()
+        let extractor = InspectingExtractionClient { text, _ in
+            XCTAssertEqual(text, "Changed oil today.")
+
+            let messages = try context.fetch(FetchDescriptor<ChatMessage>())
+            let attempts = try context.fetch(FetchDescriptor<ExtractionAttempt>())
+
+            XCTAssertEqual(messages.count, 1)
+            XCTAssertEqual(messages.first?.text, "Changed oil today.")
+            XCTAssertEqual(messages.first?.extractionStatus, .extracting)
+            XCTAssertEqual(attempts.count, 1)
+            XCTAssertEqual(attempts.first?.status, .pending)
+            XCTAssertFalse(attempts.first?.normalizedJSONText.isEmpty ?? true)
+
+            return ExtractionResponsePayload(
+                rawResponseText: canonicalExtractionJSON(
+                    things: [canonicalThing("thing_1", name: "Oil Change", category: "vehicle")],
+                    events: [
+                        canonicalEvent("event_1", title: "Changed oil", thingRef: "thing_1", occurredAt: "2027-01-15"),
+                    ]
+                ),
+                requestJSON: #"{"model":"test"}"#,
+                modelName: "test-model"
+            )
+        }
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: extractor,
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+
+        _ = try await service.send("  Changed oil today.  ")
+
+        let messages = try context.fetch(FetchDescriptor<ChatMessage>())
+        let userMessage = try XCTUnwrap(messages.first { $0.role == .user })
+        let assistantMessage = try XCTUnwrap(messages.first { $0.role == .assistant })
+        let attempt = try XCTUnwrap(try context.fetch(FetchDescriptor<ExtractionAttempt>()).first)
+
+        XCTAssertEqual(userMessage.extractionStatus, .succeeded)
+        XCTAssertEqual(userMessage.extractionAttempts.first?.id, attempt.id)
+        XCTAssertEqual(attempt.status, .succeeded)
+        XCTAssertEqual(attempt.createdEventIDs.count, 1)
+        XCTAssertEqual(attempt.createdThingIDs.count, 1)
+        XCTAssertEqual(assistantMessage.text, "Event saved:\nChanged oil for Oil Change on January 15, 2027.")
+    }
+
+    @MainActor
+    func testChatSendNotifiesAfterRawMessagePersistenceBeforeExtraction() async throws {
+        let context = makeInMemoryModelContext()
+        var persistedMessageID: UUID?
+        let extractor = InspectingExtractionClient { _, _ in
+            XCTAssertNotNil(persistedMessageID)
+            return ExtractionResponsePayload(rawResponseText: canonicalExtractionJSON())
+        }
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: extractor,
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+
+        _ = try await service.send("Changed oil today.") { message in
+            persistedMessageID = message.id
+            XCTAssertEqual(message.text, "Changed oil today.")
+            XCTAssertEqual(message.extractionStatus, .pending)
+            XCTAssertEqual((try? context.fetch(FetchDescriptor<ChatMessage>()).count), 1)
+            XCTAssertEqual((try? context.fetch(FetchDescriptor<ExtractionAttempt>()).count), 1)
+        }
+
+        XCTAssertNotNil(persistedMessageID)
+    }
+
+    @MainActor
+    func testMissingAPIKeyKeepsRawMessageAndRecordsAttemptFailure() async throws {
+        let context = makeInMemoryModelContext()
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: ThrowingMessageExtractionClient(error: AppError.missingAPIKey),
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+
+        _ = try await service.send("No buying domains for 30 days.")
+
+        let userMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .user })
+        let attempt = try XCTUnwrap(try context.fetch(FetchDescriptor<ExtractionAttempt>()).first)
+
+        XCTAssertEqual(userMessage.text, "No buying domains for 30 days.")
+        XCTAssertEqual(userMessage.extractionStatus, .pendingKey)
+        XCTAssertEqual(userMessage.extractionErrorCode, .missingAPIKey)
+        XCTAssertEqual(attempt.status, .failed)
+        XCTAssertEqual(attempt.errorCode, .missingAPIKey)
+        XCTAssertEqual(
+            try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .assistant }?.text,
+            "Saved on this device. Connect to the AI service when you want it organized across your timeline."
+        )
+        XCTAssertTrue(attempt.normalizedJSONText.contains("missing_api_key"))
+    }
+
+    @MainActor
+    func testPendingKeyMessagesBecomeRetryableAfterKeyIsSaved() throws {
+        let context = makeInMemoryModelContext()
+        let keyStore = InMemoryAPIKeyStore()
+        let pendingMessage = ChatMessage(
+            role: .user,
+            text: "Book dentist.",
+            extractionStatus: .pendingKey,
+            extractionError: "AI service credential is missing.",
+            extractionErrorCode: .missingAPIKey
+        )
+        let assistantMessage = ChatMessage(
+            role: .assistant,
+            text: "Saved locally.",
+            extractionStatus: .notRequired
+        )
+
+        context.insert(pendingMessage)
+        context.insert(assistantMessage)
+        try context.save()
+        try keyStore.saveOpenAIAPIKey("unit-test-key")
+
+        let changedCount = try PendingExtractionRetryService(
+            modelContext: context,
+            apiKeyStore: keyStore,
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+        .markPendingKeyMessagesRetryable()
+
+        XCTAssertEqual(changedCount, 1)
+        XCTAssertEqual(pendingMessage.extractionStatus, .pendingRetry)
+        XCTAssertNil(pendingMessage.extractionErrorCode)
+        XCTAssertNil(pendingMessage.extractionError)
+        XCTAssertEqual(pendingMessage.nextExtractionRetryAt, fixedTestNow)
+        XCTAssertEqual(assistantMessage.extractionStatus, .notRequired)
+    }
+
+    @MainActor
+    func testRetryRecentPendingMessagesDoesNotAttemptWithoutSavedKey() async throws {
+        let context = makeInMemoryModelContext()
+        let message = ChatMessage(role: .user, text: "Changed filter.", extractionStatus: .pendingRetry)
+
+        context.insert(message)
+        try context.save()
+
+        try await PendingExtractionRetryService(
+            modelContext: context,
+            apiKeyStore: InMemoryAPIKeyStore(),
+            extractorFactory: { _ in
+                XCTFail("Extraction should not start without a saved key.")
+                return StaticMessageExtractionClient(
+                    payload: ExtractionResponsePayload(rawResponseText: #"{"events":[]}"#)
+                )
+            }
+        )
+        .retryRecentPendingMessages()
+
+        XCTAssertEqual(try context.fetch(FetchDescriptor<ExtractionAttempt>()).count, 0)
+        XCTAssertEqual(message.extractionStatus, .pendingRetry)
+    }
+
+    @MainActor
+    func testInvalidJSONStoresRawResponseAndReviewableEnvelope() async throws {
+        let context = makeInMemoryModelContext()
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: StaticMessageExtractionClient(
+                payload: ExtractionResponsePayload(
+                    rawResponseText: "not json",
+                    requestJSON: #"{"model":"test"}"#,
+                    modelName: "test-model"
+                )
+            ),
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+
+        _ = try await service.send("Replaced HVAC filter.")
+
+        let userMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .user })
+        let attempt = try XCTUnwrap(try context.fetch(FetchDescriptor<ExtractionAttempt>()).first)
+        let events = try context.fetch(FetchDescriptor<LedgerEvent>())
+        let rules = try context.fetch(FetchDescriptor<LedgerRule>())
+        let notes = try context.fetch(FetchDescriptor<LedgerNote>())
+        let things = try context.fetch(FetchDescriptor<Thing>())
+        let assistantMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .assistant })
+
+        XCTAssertEqual(userMessage.rawLLMResponse, "not json")
+        XCTAssertEqual(userMessage.extractionStatus, .failedNeedsReview)
+        XCTAssertEqual(userMessage.extractionErrorCode, .invalidJSON)
+        XCTAssertEqual(attempt.errorCode, .invalidJSON)
+        XCTAssertEqual(events.count, 0)
+        XCTAssertEqual(rules.count, 0)
+        XCTAssertEqual(notes.count, 0)
+        XCTAssertEqual(things.count, 0)
+        XCTAssertEqual(assistantMessage.text, "Saved for review.\nOpen the timeline entry to review the saved text.")
+        XCTAssertTrue(attempt.normalizedJSONText.contains("invalid_json"))
+    }
+
+    @MainActor
+    func testSingleMessageCreatesMultipleRecordsLinkedToSameSourceAndAttempt() async throws {
+        let context = makeInMemoryModelContext()
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: StaticMessageExtractionClient(
+                payload: ExtractionResponsePayload(
+                    rawResponseText: canonicalExtractionJSON(
+                        things: [
+                            canonicalThing("thing_1", name: "Oil Change", category: "vehicle"),
+                            canonicalThing("thing_2", name: "Domains", category: "purchase"),
+                            canonicalThing("thing_3", name: "Garage Filter", category: "home_maintenance"),
+                        ],
+                        events: [
+                            canonicalEvent("event_1", title: "Changed oil", thingRef: "thing_1", occurredAt: "2027-01-15"),
+                            canonicalEvent("event_2", title: "Replaced filter", thingRef: "thing_3", occurredAt: "2027-01-15"),
+                        ],
+                        rules: [
+                            canonicalRule("rule_1", title: "No buying domains", thingRef: "thing_2", startsAt: "2027-01-15", expiresAt: "2027-02-14"),
+                            canonicalRule("rule_2", title: "No new hardware", thingRef: nil, startsAt: "2027-01-15", expiresAt: "2027-07-01"),
+                        ],
+                        notes: [
+                            canonicalNote("note_1", text: "Garage filter is in the cabinet.", linkedThingRefs: ["thing_3"]),
+                            canonicalNote("note_2", text: "Oil change receipt is in the glove box.", linkedThingRefs: ["thing_1"]),
+                        ]
+                    )
+                )
+            ),
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+
+        _ = try await service.send("Changed oil, replaced the garage filter, no domains, and remember the receipt.")
+
+        let userMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .user })
+        let attempt = try XCTUnwrap(try context.fetch(FetchDescriptor<ExtractionAttempt>()).first)
+        let events = try context.fetch(FetchDescriptor<LedgerEvent>())
+        let rules = try context.fetch(FetchDescriptor<LedgerRule>())
+        let notes = try context.fetch(FetchDescriptor<LedgerNote>())
+        let things = try context.fetch(FetchDescriptor<Thing>())
+        let assistantMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .assistant })
+
+        XCTAssertEqual(events.count, 2)
+        XCTAssertEqual(rules.count, 2)
+        XCTAssertEqual(notes.count, 2)
+        XCTAssertEqual(things.count, 3)
+        XCTAssertTrue(events.allSatisfy { $0.sourceMessage?.id == userMessage.id && $0.sourceExtractionRunID == attempt.id })
+        XCTAssertTrue(rules.allSatisfy { $0.sourceMessage?.id == userMessage.id && $0.sourceExtractionRunID == attempt.id })
+        XCTAssertTrue(notes.allSatisfy { $0.sourceMessage?.id == userMessage.id && $0.sourceExtractionRunID == attempt.id })
+        XCTAssertTrue(things.allSatisfy { $0.sourceMessageIDs.contains(userMessage.id) })
+        XCTAssertTrue(things.allSatisfy { $0.sourceExtractionAttemptIDs.contains(attempt.id) })
+        XCTAssertEqual(attempt.createdEventIDs.count, 2)
+        XCTAssertEqual(attempt.createdRuleIDs.count, 2)
+        XCTAssertEqual(attempt.createdNoteIDs.count, 2)
+        XCTAssertEqual(attempt.createdThingIDs.count, 3)
+        XCTAssertEqual(
+            assistantMessage.text,
+            """
+            Events saved:
+            Changed oil for Oil Change on January 15, 2027.
+            Replaced filter for Garage Filter on January 15, 2027.
+
+            Restrictions saved:
+            No buying domains until February 14, 2027.
+            No new hardware until July 1, 2027.
+
+            Notes saved:
+            - "Garage filter is in the cabinet."
+            - "Oil change receipt is in the glove box."
+            """
+        )
+    }
+
+    @MainActor
+    func testExtractedEventPersistsTypeSpanAndMetadata() async throws {
+        let context = makeInMemoryModelContext()
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: StaticMessageExtractionClient(
+                payload: ExtractionResponsePayload(
+                    rawResponseText: canonicalExtractionJSON(
+                        things: [
+                            canonicalThing("thing_1", name: "Honda", category: "vehicle"),
+                        ],
+                        events: [
+                            canonicalEvent(
+                                "event_1",
+                                title: "Logged Honda mileage",
+                                thingRef: "thing_1",
+                                occurredAt: "2027-01-15",
+                                eventType: "measurement",
+                                metadata: [
+                                    canonicalEventMetadata(
+                                        key: "mileage",
+                                        valueKind: "number",
+                                        numberValue: 48231,
+                                        unit: "mi",
+                                        sourceText: "48,231 miles"
+                                    ),
+                                    canonicalEventMetadata(
+                                        key: "location",
+                                        valueKind: "string",
+                                        stringValue: "garage",
+                                        sourceText: "in the garage"
+                                    ),
+                                ],
+                                rawText: "Honda is at 48,231 miles in the garage."
+                            ),
+                        ]
+                    )
+                )
+            ),
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+
+        _ = try await service.send("Honda is at 48,231 miles in the garage. Also remember no domains.")
+
+        let event = try XCTUnwrap(try context.fetch(FetchDescriptor<LedgerEvent>()).first)
+        let assistantMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .assistant })
+
+        XCTAssertEqual(event.rawText, "Honda is at 48,231 miles in the garage.")
+        XCTAssertEqual(event.eventType, .measurement)
+        XCTAssertEqual(event.metadataKeyRawValues, ["mileage", "location"])
+        XCTAssertEqual(event.metadataEntries.count, 2)
+        XCTAssertEqual(event.metadataEntries.first?.key, .mileage)
+        XCTAssertEqual(event.metadataEntries.first?.numberValue, 48231)
+        XCTAssertEqual(event.metadataEntries.first?.unit, "mi")
+        XCTAssertEqual(event.metadataEntries.first?.sourceText, "48,231 miles")
+        XCTAssertEqual(
+            assistantMessage.text,
+            """
+            Event saved:
+            Logged Honda mileage for Honda on January 15, 2027. Mileage was 48,231 mi. Location was garage.
+            """
+        )
+    }
+
+    @MainActor
+    func testPartialExtractionCreatesValidEntitiesAndLinksSourceAttempt() async throws {
+        let context = makeInMemoryModelContext()
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: StaticMessageExtractionClient(
+                payload: ExtractionResponsePayload(
+                    rawResponseText: canonicalExtractionJSON(
+                        things: [
+                            canonicalThing("thing_1", name: "Oil Change", category: "vehicle"),
+                            canonicalThing("thing_2", name: "Domains", category: "purchase"),
+                        ],
+                        events: [
+                            canonicalEvent("event_1", title: "Changed oil", thingRef: "thing_1", occurredAt: "2027-01-15"),
+                            canonicalEvent("event_2", title: "", thingRef: "thing_1", occurredAt: "soon"),
+                        ],
+                        rules: [
+                            canonicalRule(
+                                "rule_1",
+                                title: "No buying domains",
+                                thingRef: "thing_2",
+                                startsAt: "2027-01-15",
+                                expiresAt: "2027-02-14"
+                            ),
+                        ]
+                    ),
+                    requestJSON: #"{"model":"test"}"#,
+                    modelName: "test-model"
+                )
+            ),
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+
+        _ = try await service.send("Changed oil today. No buying domains for 30 days.")
+
+        let userMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .user })
+        let attempt = try XCTUnwrap(try context.fetch(FetchDescriptor<ExtractionAttempt>()).first)
+        let events = try context.fetch(FetchDescriptor<LedgerEvent>())
+        let rules = try context.fetch(FetchDescriptor<LedgerRule>())
+        let things = try context.fetch(FetchDescriptor<Thing>())
+        let assistantMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .assistant })
+
+        XCTAssertEqual(userMessage.extractionStatus, .partiallySucceeded)
+        XCTAssertEqual(userMessage.extractionErrorCode, .partialValidationFailed)
+        XCTAssertEqual(attempt.status, .partiallySucceeded)
+        XCTAssertEqual(events.count, 1)
+        XCTAssertEqual(rules.count, 1)
+        XCTAssertEqual(rules.first?.ruleType, .restriction)
+        XCTAssertEqual(rules.first?.continuityBehavior, .timeLimitedWindow)
+        XCTAssertEqual(things.count, 2)
+        XCTAssertEqual(events.first?.sourceMessage?.id, userMessage.id)
+        XCTAssertEqual(events.first?.sourceExtractionRunID, attempt.id)
+        XCTAssertEqual(rules.first?.sourceMessage?.id, userMessage.id)
+        XCTAssertEqual(rules.first?.sourceExtractionRunID, attempt.id)
+        XCTAssertTrue(things.allSatisfy { $0.sourceMessageIDs.contains(userMessage.id) })
+        XCTAssertTrue(things.allSatisfy { $0.sourceExtractionAttemptIDs.contains(attempt.id) })
+        XCTAssertEqual(
+            assistantMessage.text,
+            """
+            Event saved:
+            Changed oil for Oil Change on January 15, 2027.
+
+            Restriction saved:
+            No buying domains until February 14, 2027.
+
+            Some saved details need review.
+            """
+        )
+        XCTAssertTrue(attempt.normalizedJSONText.contains("validation_failed"))
+    }
+
+    @MainActor
+    func testNoteOnlyConfirmationPreservesQuotedText() async throws {
+        let context = makeInMemoryModelContext()
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: StaticMessageExtractionClient(
+                payload: ExtractionResponsePayload(
+                    rawResponseText: canonicalExtractionJSON(
+                        notes: [
+                            canonicalNote("note_1", text: "Garage filter should be replaced every 3 months."),
+                        ]
+                    )
+                )
+            ),
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+
+        _ = try await service.send("Remember garage filter should be replaced every 3 months.")
+
+        let assistantMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .assistant })
+
+        XCTAssertEqual(
+            assistantMessage.text,
+            """
+            Note saved:
+            "Garage filter should be replaced every 3 months."
+            """
+        )
+    }
+
+    @MainActor
+    func testEmptyExtractionUsesRawOnlyCopy() async throws {
+        let context = makeInMemoryModelContext()
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: StaticMessageExtractionClient(
+                payload: ExtractionResponsePayload(rawResponseText: canonicalExtractionJSON())
+            ),
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+
+        _ = try await service.send("Changed oil today.")
+
+        let userMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .user })
+        let assistantMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .assistant })
+        let feedItems = LedgerFeedProjection(calendar: Calendar(identifier: .gregorian), now: fixedTestNow).items(
+            messages: [userMessage, assistantMessage],
+            events: try context.fetch(FetchDescriptor<LedgerEvent>()),
+            reminders: try context.fetch(FetchDescriptor<LedgerRule>()),
+            notes: try context.fetch(FetchDescriptor<LedgerNote>())
+        )
+
+        XCTAssertEqual(userMessage.extractionStatus, .failedNeedsReview)
+        XCTAssertEqual(assistantMessage.text, "Saved for review.\nOpen the timeline entry to review the saved text.")
+        XCTAssertEqual(
+            Set(feedItems.map(\.id)),
+            Set([LedgerFeedItem.messageID(for: userMessage.id)])
+        )
+    }
+
+    @MainActor
+    func testStaleExtractionResultDoesNotWriteAfterGenerationInvalidation() async throws {
+        let context = makeInMemoryModelContext()
+        let generation = UUID()
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: StaticMessageExtractionClient(
+                payload: ExtractionResponsePayload(
+                    rawResponseText: canonicalExtractionJSON(
+                        events: [
+                            canonicalEvent("event_1", title: "Changed oil", thingRef: nil, occurredAt: "2027-01-15"),
+                        ]
+                    )
+                )
+            ),
+            dataGeneration: generation,
+            isDataGenerationCurrent: { _ in false }
+        )
+
+        _ = try await service.send("Changed oil.")
+
+        let messages = try context.fetch(FetchDescriptor<ChatMessage>())
+        let userMessage = try XCTUnwrap(messages.first { $0.role == .user })
+
+        XCTAssertNil(userMessage.rawLLMResponse)
+        XCTAssertEqual(messages.filter { $0.role == .assistant }.count, 0)
+        XCTAssertEqual(try context.fetch(FetchDescriptor<LedgerEvent>()).count, 0)
+    }
+}

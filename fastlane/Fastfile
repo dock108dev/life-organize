@@ -1,0 +1,13 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Run deterministic screenshot capture and visual comparison"
+  lane :screenshots do
+    sh("Scripts/screenshots/run-screenshot-tests.sh compare")
+  end
+
+  desc "Refresh deterministic screenshot baselines after an intentional visual change"
+  lane :update_screenshots do
+    sh("Scripts/screenshots/run-screenshot-tests.sh update")
+  end
+end

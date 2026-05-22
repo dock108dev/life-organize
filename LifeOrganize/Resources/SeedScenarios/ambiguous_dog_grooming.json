@@ -1,0 +1,175 @@
+{
+  "clock": {
+    "calendar": "gregorian",
+    "now": "2026-05-20T12:00:00Z",
+    "timeZone": "America/New_York"
+  },
+  "description": "An ambiguous Bogey haircut entry links the known Thing and creates a concrete review queue item without committing an exact reminder date.",
+  "expectations": {
+    "relationshipChecks": [
+      {
+        "fromId": "20000000-0000-4000-8000-000000000001",
+        "fromType": "chatMessage",
+        "kind": "messageLinksEntity",
+        "toId": "20000000-0000-4000-8000-000000000101",
+        "toType": "thing"
+      }
+    ],
+    "replayExpectations": [],
+    "requiredCounts": {
+      "chatMessages": 1,
+      "entityLinks": 1,
+      "events": 0,
+      "extractionRuns": 0,
+      "ledgerReviewItems": 1,
+      "notes": 0,
+      "rules": 0,
+      "things": 1
+    },
+    "requiredVisibleSurfaces": [
+      {
+        "requiredRecordIds": ["20000000-0000-4000-8000-000000000401"],
+        "surface": "reviewQueue"
+      }
+    ],
+    "reviewQueueExpectations": [
+      {
+        "kind": "extraction_review",
+        "requiredEvidenceIds": [
+          "20000000-0000-4000-8000-000000000001",
+          "20000000-0000-4000-8000-000000000101"
+        ],
+        "state": "candidate",
+        "targetId": "20000000-0000-4000-8000-000000000001",
+        "targetType": "chat_message"
+      }
+    ],
+    "searchExpectations": [
+      {
+        "disallowedText": ["oil", "work"],
+        "expectedTargets": [
+          {
+            "id": "20000000-0000-4000-8000-000000000001",
+            "type": "chatMessage"
+          },
+          {
+            "id": "20000000-0000-4000-8000-000000000101",
+            "type": "thing"
+          }
+        ],
+        "query": "bogey haircut"
+      }
+    ]
+  },
+  "fixtureSchemaVersion": 1,
+  "id": "ambiguous_dog_grooming",
+  "ledgerSchemaVersion": 3,
+  "records": {
+    "chatMessages": [
+      {
+        "createdAt": "2026-05-20T12:00:00Z",
+        "extractionRunId": null,
+        "extractionRunIds": [],
+        "extractionState": {
+          "attemptCount": 1,
+          "errorCode": "partial_validation_failed",
+          "errorMessage": "Haircut for Bogey has an ambiguous due window; choose a date before saving a reminder.",
+          "extractionVersion": 3,
+          "lastAttemptAt": "2026-05-20T12:00:10Z",
+          "latestAttemptErrorCode": null,
+          "latestAttemptStatus": null,
+          "nextRetryAt": null,
+          "recoveryAction": "Choose a date in the review queue before creating a reminder.",
+          "status": "needs_review"
+        },
+        "id": "20000000-0000-4000-8000-000000000001",
+        "latestExtractionRunId": null,
+        "linkedEntityIds": [],
+        "role": "user",
+        "successfulExtractionRunIds": [],
+        "text": "I think Bogey needs a haircut in a week or two."
+      }
+    ],
+    "entityLinks": [
+      {
+        "createdAt": "2026-05-20T12:00:10Z",
+        "fromEntityId": "20000000-0000-4000-8000-000000000001",
+        "fromEntityType": "chatMessage",
+        "id": "20000000-0000-4000-8000-000000000501",
+        "relationship": "mentions",
+        "source": {
+          "chatMessageId": "20000000-0000-4000-8000-000000000001",
+          "extractionRunId": null,
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "toEntityId": "20000000-0000-4000-8000-000000000101",
+        "toEntityType": "thing"
+      }
+    ],
+    "events": [],
+    "extractionRuns": [],
+    "ledgerReviewItems": [
+      {
+        "actionTitle": "Choose Date",
+        "confidence": 1,
+        "createdAt": "2026-05-20T12:01:00Z",
+        "dedupeKey": "extraction_review|20000000-0000-4000-8000-000000000001|needs_review",
+        "detail": "This sounds like a tentative haircut reminder for Bogey. The date phrase \"in a week or two\" means sometime from May 27 to June 3, 2026, so no exact reminder date was saved.",
+        "evidence": [
+          {
+            "detail": "needs_review",
+            "sourceId": "20000000-0000-4000-8000-000000000001",
+            "sourceType": "chat_message",
+            "summary": "I think Bogey needs a haircut in a week or two."
+          },
+          {
+            "detail": "Date window: May 27 to June 3, 2026 from \"in a week or two\"",
+            "sourceId": "20000000-0000-4000-8000-000000000001",
+            "sourceType": "chat_message",
+            "summary": "Suggested reminder: Haircut for Bogey"
+          },
+          {
+            "detail": "Existing Thing linked from the ambiguous entry.",
+            "sourceId": "20000000-0000-4000-8000-000000000101",
+            "sourceType": "thing",
+            "summary": "Linked Thing: Bogey"
+          }
+        ],
+        "expiresAt": null,
+        "failureReason": null,
+        "id": "20000000-0000-4000-8000-000000000401",
+        "kind": "extraction_review",
+        "presentedAt": null,
+        "resolvedAt": null,
+        "snoozedUntil": null,
+        "state": "candidate",
+        "targetId": "20000000-0000-4000-8000-000000000001",
+        "targetType": "chat_message",
+        "title": "Review reminder for Bogey",
+        "updatedAt": "2026-05-20T12:01:00Z"
+      }
+    ],
+    "notes": [],
+    "rules": [],
+    "things": [
+      {
+        "aliases": [],
+        "category": "pet",
+        "createdAt": "2026-05-01T12:00:00Z",
+        "eventCount": 0,
+        "id": "20000000-0000-4000-8000-000000000101",
+        "lastEventAt": null,
+        "name": "Bogey",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-05-01T12:00:00Z"
+      }
+    ]
+  },
+  "title": "Ambiguous Bogey Haircut Review"
+}

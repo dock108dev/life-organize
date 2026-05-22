@@ -1,0 +1,104 @@
+import SwiftData
+import XCTest
+@testable import LifeOrganize
+
+@MainActor
+final class ManualExtractionRetryServiceTests: XCTestCase {
+    func testRetryRequiresUserMessage() throws {
+        let context = makeInMemoryModelContext()
+        let message = ChatMessage(role: .assistant, text: "Saved.", extractionStatus: .failed)
+        context.insert(message)
+
+        let service = ManualExtractionRetryService(modelContext: context, apiKeyStore: InMemoryAPIKeyStore(key: "test-key"))
+
+        XCTAssertEqual(try service.canRetry(message), .assistantOrSystemMessage)
+    }
+
+    func testRetryCreatesServiceTokenBeforeRetry() async throws {
+        let context = makeInMemoryModelContext()
+        let message = ChatMessage(role: .user, text: "Changed oil.", extractionStatus: .failed)
+        context.insert(message)
+
+        let keyStore = InMemoryAPIKeyStore()
+        var service = ManualExtractionRetryService(modelContext: context, apiKeyStore: keyStore)
+        service.extractorFactory = { store in
+            XCTAssertNotNil(try? store.loadOpenAIAPIKey())
+            return StaticMessageExtractionClient(payload: ExtractionResponsePayload(rawResponseText: canonicalExtractionJSON()))
+        }
+
+        try await service.retry(message)
+
+        XCTAssertNotNil(try keyStore.loadOpenAIAPIKey())
+    }
+
+    func testBlockedReasonCopyUsesSavedEntryLanguage() {
+        XCTAssertEqual(
+            ManualExtractionRetryBlockedReason.alreadyExtracting.message,
+            "This entry is already being updated."
+        )
+        XCTAssertEqual(
+            ManualExtractionRetryBlockedReason.alreadySucceeded.message,
+            "This entry is already connected across your timeline."
+        )
+        XCTAssertEqual(
+            ManualExtractionRetryBlockedReason.notRequired.message,
+            "This entry is already saved as local text."
+        )
+        XCTAssertEqual(
+            ManualExtractionRetryBlockedReason.createdRecordsExist.message,
+            "This entry already created saved records. Review or edit those records instead."
+        )
+    }
+
+    func testRetryBlocksMessagesWithCreatedRecords() throws {
+        let context = makeInMemoryModelContext()
+        let message = ChatMessage(role: .user, text: "Changed oil.", extractionStatus: .needsReview)
+        let attempt = ExtractionAttempt(status: .failed, createdEventIDs: [UUID()], sourceMessage: message)
+        context.insert(message)
+        context.insert(attempt)
+
+        let service = ManualExtractionRetryService(modelContext: context, apiKeyStore: InMemoryAPIKeyStore(key: "test-key"))
+
+        XCTAssertEqual(try service.canRetry(message), .createdRecordsExist)
+    }
+
+    func testRetryCreatesNewAttemptAndKeepsPriorAttemptAudit() async throws {
+        let context = makeInMemoryModelContext()
+        let keyStore = InMemoryAPIKeyStore(key: "test-key")
+        let message = ChatMessage(
+            role: .user,
+            text: "Changed oil.",
+            extractionStatus: .failed,
+            extractionError: "Network failed.",
+            extractionErrorCode: .networkUnavailable,
+            extractionAttemptCount: 1
+        )
+        let priorAttempt = ExtractionAttempt(
+            status: .failed,
+            rawResponseText: "prior raw response",
+            errorCode: .networkUnavailable,
+            errorMessage: "Network failed.",
+            sourceMessage: message
+        )
+        context.insert(message)
+        context.insert(priorAttempt)
+        try context.save()
+
+        var service = ManualExtractionRetryService(
+            modelContext: context,
+            apiKeyStore: keyStore,
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+        service.extractorFactory = { _ in
+            ThrowingMessageExtractionClient(error: AppError.networkUnavailable)
+        }
+
+        try await service.retry(message)
+
+        let attempts = try context.fetch(FetchDescriptor<ExtractionAttempt>())
+        XCTAssertEqual(attempts.count, 2)
+        XCTAssertEqual(priorAttempt.rawResponseText, "prior raw response")
+        XCTAssertEqual(message.extractionAttemptCount, 2)
+        XCTAssertEqual(message.lastExtractionAttemptAt, fixedTestNow)
+    }
+}

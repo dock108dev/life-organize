@@ -1,0 +1,6 @@
+excluded:
+  - .aidlc
+  - .build
+  - .derivedData
+  - .deriveddata
+  - BuildArtifacts

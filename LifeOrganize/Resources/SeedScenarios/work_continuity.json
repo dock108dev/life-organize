@@ -1,0 +1,617 @@
+{
+  "clock": {
+    "calendar": "gregorian",
+    "now": "2026-05-20T12:00:00Z",
+    "timeZone": "America/New_York"
+  },
+  "description": "A work continuity scenario keeps cloud-function, scanner, vulnerability, migration, shorthand alias, reminder, note, event, review, and source-message relationships intact.",
+  "expectations": {
+    "relationshipChecks": [
+      {
+        "fromId": "30000000-0000-4000-8000-000000000301",
+        "fromType": "rule",
+        "kind": "entityLinkExists",
+        "toId": "30000000-0000-4000-8000-000000000104",
+        "toType": "thing"
+      },
+      {
+        "fromId": "30000000-0000-4000-8000-000000000301",
+        "fromType": "rule",
+        "kind": "entityLinkExists",
+        "toId": "30000000-0000-4000-8000-000000000601",
+        "toType": "note"
+      }
+    ],
+    "replayExpectations": [
+      {
+        "expectedTargets": [
+          {
+            "id": "30000000-0000-4000-8000-000000000301",
+            "type": "rule"
+          },
+          {
+            "id": "30000000-0000-4000-8000-000000000601",
+            "type": "note"
+          },
+          {
+            "id": "30000000-0000-4000-8000-000000000201",
+            "type": "event"
+          }
+        ],
+        "requiredText": ["monorepo", "quality gate", "vulns", "auth"],
+        "sourceId": "30000000-0000-4000-8000-000000000301",
+        "sourceType": "rule"
+      }
+    ],
+    "requiredCounts": {
+      "chatMessages": 1,
+      "entityLinks": 8,
+      "events": 2,
+      "extractionRuns": 1,
+      "ledgerReviewItems": 1,
+      "notes": 2,
+      "rules": 2,
+      "things": 6
+    },
+    "requiredVisibleSurfaces": [
+      {
+        "requiredRecordIds": [
+          "30000000-0000-4000-8000-000000000201",
+          "30000000-0000-4000-8000-000000000202",
+          "30000000-0000-4000-8000-000000000301",
+          "30000000-0000-4000-8000-000000000601"
+        ],
+        "surface": "log"
+      }
+    ],
+    "reviewQueueExpectations": [
+      {
+        "actionTitle": "Review Thing",
+        "kind": "normalization_candidate",
+        "requiredEvidenceIds": [
+          "30000000-0000-4000-8000-000000000202",
+          "30000000-0000-4000-8000-000000000302",
+          "30000000-0000-4000-8000-000000000102",
+          "30000000-0000-4000-8000-000000000101"
+        ],
+        "state": "candidate",
+        "targetId": "30000000-0000-4000-8000-000000000102",
+        "targetType": "thing",
+        "title": "Thing match needs review"
+      }
+    ],
+    "searchExpectations": [
+      {
+        "disallowedText": ["grooming"],
+        "expectedTargets": [
+          {
+            "id": "30000000-0000-4000-8000-000000000301",
+            "type": "rule"
+          },
+          {
+            "id": "30000000-0000-4000-8000-000000000601",
+            "type": "note"
+          }
+        ],
+        "query": "quality gate monorepo"
+      },
+      {
+        "disallowedText": ["grooming"],
+        "expectedTargets": [
+          {
+            "id": "30000000-0000-4000-8000-000000000202",
+            "type": "event"
+          }
+        ],
+        "query": "NWS auth"
+      }
+    ]
+  },
+  "fixtureSchemaVersion": 1,
+  "id": "work_continuity",
+  "ledgerSchemaVersion": 3,
+  "records": {
+    "chatMessages": [
+      {
+        "createdAt": "2026-05-20T12:00:00Z",
+        "extractionRunId": "30000000-0000-4000-8000-000000000011",
+        "extractionRunIds": ["30000000-0000-4000-8000-000000000011"],
+        "extractionState": {
+          "attemptCount": 1,
+          "errorCode": null,
+          "errorMessage": null,
+          "extractionVersion": 1,
+          "lastAttemptAt": "2026-05-20T12:00:00Z",
+          "latestAttemptErrorCode": null,
+          "latestAttemptStatus": "succeeded",
+          "nextRetryAt": null,
+          "recoveryAction": null,
+          "status": "succeeded"
+        },
+        "id": "30000000-0000-4000-8000-000000000001",
+        "latestExtractionRunId": "30000000-0000-4000-8000-000000000011",
+        "linkedEntityIds": [
+          "30000000-0000-4000-8000-000000000102",
+          "30000000-0000-4000-8000-000000000103",
+          "30000000-0000-4000-8000-000000000104",
+          "30000000-0000-4000-8000-000000000105",
+          "30000000-0000-4000-8000-000000000106",
+          "30000000-0000-4000-8000-000000000201",
+          "30000000-0000-4000-8000-000000000202",
+          "30000000-0000-4000-8000-000000000301",
+          "30000000-0000-4000-8000-000000000302",
+          "30000000-0000-4000-8000-000000000601",
+          "30000000-0000-4000-8000-000000000602"
+        ],
+        "role": "user",
+        "successfulExtractionRunIds": ["30000000-0000-4000-8000-000000000011"],
+        "text": "NWS migration prep: ACF quality gate found vulns in auth before the monorepo move."
+      }
+    ],
+    "entityLinks": [
+      {
+        "createdAt": "2026-05-20T12:00:02Z",
+        "fromEntityId": "30000000-0000-4000-8000-000000000001",
+        "fromEntityType": "chatMessage",
+        "id": "30000000-0000-4000-8000-000000000501",
+        "relationship": "mentions",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": null,
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "toEntityId": "30000000-0000-4000-8000-000000000103",
+        "toEntityType": "thing"
+      },
+      {
+        "createdAt": "2026-05-20T12:00:02Z",
+        "fromEntityId": "30000000-0000-4000-8000-000000000001",
+        "fromEntityType": "chatMessage",
+        "id": "30000000-0000-4000-8000-000000000502",
+        "relationship": "mentions",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": null,
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "toEntityId": "30000000-0000-4000-8000-000000000105",
+        "toEntityType": "thing"
+      },
+      {
+        "createdAt": "2026-05-20T12:00:02Z",
+        "fromEntityId": "30000000-0000-4000-8000-000000000001",
+        "fromEntityType": "chatMessage",
+        "id": "30000000-0000-4000-8000-000000000503",
+        "relationship": "mentions",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": null,
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "toEntityId": "30000000-0000-4000-8000-000000000106",
+        "toEntityType": "thing"
+      },
+      {
+        "createdAt": "2026-05-20T12:00:02Z",
+        "fromEntityId": "30000000-0000-4000-8000-000000000301",
+        "fromEntityType": "rule",
+        "id": "30000000-0000-4000-8000-000000000504",
+        "relationship": "linked_to",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": null,
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "toEntityId": "30000000-0000-4000-8000-000000000104",
+        "toEntityType": "thing"
+      },
+      {
+        "createdAt": "2026-05-20T12:00:02Z",
+        "fromEntityId": "30000000-0000-4000-8000-000000000301",
+        "fromEntityType": "rule",
+        "id": "30000000-0000-4000-8000-000000000505",
+        "relationship": "related_to",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": null,
+          "kind": "system",
+          "sourceClientId": null
+        },
+        "toEntityId": "30000000-0000-4000-8000-000000000601",
+        "toEntityType": "note"
+      },
+      {
+        "createdAt": "2026-05-20T12:00:02Z",
+        "fromEntityId": "30000000-0000-4000-8000-000000000201",
+        "fromEntityType": "event",
+        "id": "30000000-0000-4000-8000-000000000506",
+        "relationship": "linked_to",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": null,
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "toEntityId": "30000000-0000-4000-8000-000000000106",
+        "toEntityType": "thing"
+      },
+      {
+        "createdAt": "2026-05-20T12:00:02Z",
+        "fromEntityId": "30000000-0000-4000-8000-000000000602",
+        "fromEntityType": "note",
+        "id": "30000000-0000-4000-8000-000000000507",
+        "relationship": "linked_to",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": null,
+          "kind": "system",
+          "sourceClientId": null
+        },
+        "toEntityId": "30000000-0000-4000-8000-000000000102",
+        "toEntityType": "thing"
+      },
+      {
+        "createdAt": "2026-05-20T12:00:02Z",
+        "fromEntityId": "30000000-0000-4000-8000-000000000302",
+        "fromEntityType": "rule",
+        "id": "30000000-0000-4000-8000-000000000508",
+        "relationship": "linked_to",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": null,
+          "kind": "system",
+          "sourceClientId": null
+        },
+        "toEntityId": "30000000-0000-4000-8000-000000000102",
+        "toEntityType": "thing"
+      }
+    ],
+    "events": [
+      {
+        "createdAt": "2026-05-20T12:00:01Z",
+        "eventType": "project",
+        "id": "30000000-0000-4000-8000-000000000201",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "other",
+            "numberValue": null,
+            "sourceText": "auth migration vulns",
+            "stringValue": "auth migration vulns",
+            "unit": null,
+            "valueKind": "string"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-05-20",
+        "rawText": "Reviewed vulnerability backlog for auth migration.",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": "30000000-0000-4000-8000-000000000011",
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "thingId": "30000000-0000-4000-8000-000000000106",
+        "title": "Reviewed vulnerability backlog",
+        "updatedAt": "2026-05-20T12:00:01Z"
+      },
+      {
+        "createdAt": "2026-05-20T12:00:01Z",
+        "eventType": "project",
+        "id": "30000000-0000-4000-8000-000000000202",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "other",
+            "numberValue": null,
+            "sourceText": "NWS auth",
+            "stringValue": "NWS auth",
+            "unit": null,
+            "valueKind": "string"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-05-20",
+        "rawText": "Security review for NWS auth notes.",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": "30000000-0000-4000-8000-000000000011",
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "thingId": "30000000-0000-4000-8000-000000000102",
+        "title": "Security review",
+        "updatedAt": "2026-05-20T12:00:01Z"
+      }
+    ],
+    "extractionRuns": [
+      {
+        "chatMessageId": "30000000-0000-4000-8000-000000000001",
+        "completedAt": "2026-05-20T12:00:02Z",
+        "createdEntities": {
+          "events": [
+            "30000000-0000-4000-8000-000000000201",
+            "30000000-0000-4000-8000-000000000202"
+          ],
+          "notes": [
+            "30000000-0000-4000-8000-000000000601",
+            "30000000-0000-4000-8000-000000000602"
+          ],
+          "rules": [
+            "30000000-0000-4000-8000-000000000301",
+            "30000000-0000-4000-8000-000000000302"
+          ],
+          "things": [
+            "30000000-0000-4000-8000-000000000102",
+            "30000000-0000-4000-8000-000000000103",
+            "30000000-0000-4000-8000-000000000104",
+            "30000000-0000-4000-8000-000000000105",
+            "30000000-0000-4000-8000-000000000106"
+          ]
+        },
+        "createdEntityIds": [
+          "30000000-0000-4000-8000-000000000102",
+          "30000000-0000-4000-8000-000000000103",
+          "30000000-0000-4000-8000-000000000104",
+          "30000000-0000-4000-8000-000000000105",
+          "30000000-0000-4000-8000-000000000106",
+          "30000000-0000-4000-8000-000000000201",
+          "30000000-0000-4000-8000-000000000202",
+          "30000000-0000-4000-8000-000000000301",
+          "30000000-0000-4000-8000-000000000302",
+          "30000000-0000-4000-8000-000000000601",
+          "30000000-0000-4000-8000-000000000602"
+        ],
+        "error": null,
+        "extractionSchemaVersion": 1,
+        "id": "30000000-0000-4000-8000-000000000011",
+        "input": {
+          "referenceNow": "2026-05-20T12:00:00Z",
+          "timeZone": "America/New_York",
+          "userText": "NWS migration prep: ACF quality gate found vulns in auth before the monorepo move."
+        },
+        "model": "deterministic-fixture",
+        "normalizedJSONText": "{}",
+        "parsedResponse": {},
+        "promptVersion": "scenario-fixture",
+        "provider": "openai",
+        "purpose": "extraction",
+        "rawResponseText": "{}",
+        "requestedAt": "2026-05-20T12:00:00Z",
+        "requestJSON": "{\"mode\":\"fixture\"}",
+        "status": "succeeded"
+      }
+    ],
+    "ledgerReviewItems": [
+      {
+        "actionTitle": "Review Thing",
+        "confidence": 0.72,
+        "createdAt": "2026-05-20T12:00:03Z",
+        "dedupeKey": "normalization_candidate|work_continuity|30000000-0000-4000-8000-000000000102",
+        "detail": "NWS may match Nimbus Web Services. No records have been merged.",
+        "evidence": [
+          {
+            "detail": null,
+            "sourceId": "30000000-0000-4000-8000-000000000202",
+            "sourceType": "event",
+            "summary": "Security review"
+          },
+          {
+            "detail": null,
+            "sourceId": "30000000-0000-4000-8000-000000000302",
+            "sourceType": "rule",
+            "summary": "Review NWS auth notes"
+          },
+          {
+            "detail": "Records currently attached to shorthand.",
+            "sourceId": "30000000-0000-4000-8000-000000000102",
+            "sourceType": "thing",
+            "summary": "NWS"
+          },
+          {
+            "detail": null,
+            "sourceId": "30000000-0000-4000-8000-000000000101",
+            "sourceType": "thing",
+            "summary": "Nimbus Web Services"
+          }
+        ],
+        "expiresAt": null,
+        "failureReason": null,
+        "id": "30000000-0000-4000-8000-000000000701",
+        "kind": "normalization_candidate",
+        "presentedAt": null,
+        "resolvedAt": null,
+        "snoozedUntil": null,
+        "state": "candidate",
+        "targetId": "30000000-0000-4000-8000-000000000102",
+        "targetType": "thing",
+        "title": "Thing match needs review",
+        "updatedAt": "2026-05-20T12:00:03Z"
+      }
+    ],
+    "notes": [
+      {
+        "createdAt": "2026-05-20T12:00:01Z",
+        "id": "30000000-0000-4000-8000-000000000601",
+        "linkedThingIds": [
+          "30000000-0000-4000-8000-000000000103",
+          "30000000-0000-4000-8000-000000000104",
+          "30000000-0000-4000-8000-000000000105",
+          "30000000-0000-4000-8000-000000000106"
+        ],
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": "30000000-0000-4000-8000-000000000011",
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "text": "SignalScan quality gate flagged Aster Cloud Functions findings before the monorepo move.",
+        "updatedAt": "2026-05-20T12:00:01Z"
+      },
+      {
+        "createdAt": "2026-05-20T12:00:01Z",
+        "id": "30000000-0000-4000-8000-000000000602",
+        "linkedThingIds": ["30000000-0000-4000-8000-000000000102"],
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": "30000000-0000-4000-8000-000000000011",
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "text": "NWS should point to Nimbus Web Services for this security migration thread.",
+        "updatedAt": "2026-05-20T12:00:01Z"
+      }
+    ],
+    "rules": [
+      {
+        "continuityBehavior": "date_based_reminder",
+        "createdAt": "2026-05-20T12:00:01Z",
+        "expiresAt": null,
+        "id": "30000000-0000-4000-8000-000000000301",
+        "isActive": true,
+        "lifecycleState": "open",
+        "manuallyDeactivatedAt": null,
+        "rawText": "Prepare monorepo migration after the quality gate.",
+        "reason": "Migration prep",
+        "ruleType": "reminder",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": "30000000-0000-4000-8000-000000000011",
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "startsAt": "2026-05-21",
+        "thingId": "30000000-0000-4000-8000-000000000104",
+        "title": "Prepare monorepo migration",
+        "updatedAt": "2026-05-20T12:00:01Z"
+      },
+      {
+        "continuityBehavior": "date_based_reminder",
+        "createdAt": "2026-05-20T12:00:01Z",
+        "expiresAt": null,
+        "id": "30000000-0000-4000-8000-000000000302",
+        "isActive": true,
+        "lifecycleState": "open",
+        "manuallyDeactivatedAt": null,
+        "rawText": "Review NWS auth notes after the security review.",
+        "reason": "Security migration follow-up",
+        "ruleType": "reminder",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": "30000000-0000-4000-8000-000000000011",
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "startsAt": "2026-05-21",
+        "thingId": "30000000-0000-4000-8000-000000000102",
+        "title": "Review NWS auth notes",
+        "updatedAt": "2026-05-20T12:00:01Z"
+      }
+    ],
+    "things": [
+      {
+        "aliases": ["Nimbus infra"],
+        "category": "work",
+        "createdAt": "2026-05-20T11:55:00Z",
+        "eventCount": 0,
+        "id": "30000000-0000-4000-8000-000000000101",
+        "lastEventAt": null,
+        "name": "Nimbus Web Services",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-05-20T11:55:00Z"
+      },
+      {
+        "aliases": [],
+        "category": "work",
+        "createdAt": "2026-05-20T12:00:01Z",
+        "eventCount": 1,
+        "id": "30000000-0000-4000-8000-000000000102",
+        "lastEventAt": "2026-05-20",
+        "name": "NWS",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": "30000000-0000-4000-8000-000000000011",
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-05-20T12:00:01Z"
+      },
+      {
+        "aliases": ["ACF", "cloud functions", "functions runtime"],
+        "category": "work",
+        "createdAt": "2026-05-20T12:00:01Z",
+        "eventCount": 0,
+        "id": "30000000-0000-4000-8000-000000000103",
+        "lastEventAt": null,
+        "name": "Aster Cloud Functions",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": "30000000-0000-4000-8000-000000000011",
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-05-20T12:00:01Z"
+      },
+      {
+        "aliases": ["migration", "repo move"],
+        "category": "work",
+        "createdAt": "2026-05-20T12:00:01Z",
+        "eventCount": 0,
+        "id": "30000000-0000-4000-8000-000000000104",
+        "lastEventAt": null,
+        "name": "Monorepo Migration",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": "30000000-0000-4000-8000-000000000011",
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-05-20T12:00:01Z"
+      },
+      {
+        "aliases": ["scanner", "static scan", "quality gate"],
+        "category": "work",
+        "createdAt": "2026-05-20T12:00:01Z",
+        "eventCount": 0,
+        "id": "30000000-0000-4000-8000-000000000105",
+        "lastEventAt": null,
+        "name": "SignalScan",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": "30000000-0000-4000-8000-000000000011",
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-05-20T12:00:01Z"
+      },
+      {
+        "aliases": ["security issues", "findings"],
+        "category": "work",
+        "createdAt": "2026-05-20T12:00:01Z",
+        "eventCount": 1,
+        "id": "30000000-0000-4000-8000-000000000106",
+        "lastEventAt": "2026-05-20",
+        "name": "Vulnerabilities",
+        "source": {
+          "chatMessageId": "30000000-0000-4000-8000-000000000001",
+          "extractionRunId": "30000000-0000-4000-8000-000000000011",
+          "kind": "extracted",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-05-20T12:00:01Z"
+      }
+    ]
+  },
+  "title": "Work Continuity"
+}

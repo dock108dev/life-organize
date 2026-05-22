@@ -1,0 +1,1071 @@
+{
+  "clock": {
+    "calendar": "gregorian",
+    "now": "2026-07-05T12:00:00Z",
+    "timeZone": "America/New_York"
+  },
+  "description": "Household continuity records cover air filters, dog food, vehicle oil service, warehouse purchases, garage cleaning, and home maintenance without creating unsupported reminders.",
+  "expectations": {
+    "relationshipChecks": [
+      {
+        "fromId": "70000000-0000-4000-8000-000000000101",
+        "fromType": "thing",
+        "kind": "thingHasEvent",
+        "toId": "70000000-0000-4000-8000-000000000203",
+        "toType": "event"
+      },
+      {
+        "fromId": "70000000-0000-4000-8000-000000000102",
+        "fromType": "thing",
+        "kind": "thingHasEvent",
+        "toId": "70000000-0000-4000-8000-000000000215",
+        "toType": "event"
+      },
+      {
+        "fromId": "70000000-0000-4000-8000-000000000101",
+        "fromType": "thing",
+        "kind": "thingHasRule",
+        "toId": "70000000-0000-4000-8000-000000000301",
+        "toType": "rule"
+      }
+    ],
+    "replayExpectations": [
+      {
+        "expectedTargets": [
+          {
+            "id": "70000000-0000-4000-8000-000000000215",
+            "type": "event"
+          }
+        ],
+        "requiredText": ["Bought dog food", "30 lb", "Corner Pet Supply"],
+        "sourceId": "70000000-0000-4000-8000-000000000102",
+        "sourceType": "thing"
+      },
+      {
+        "expectedTargets": [
+          {
+            "id": "70000000-0000-4000-8000-000000000242",
+            "type": "event"
+          }
+        ],
+        "requiredText": ["Harbor Warehouse", "$163.40", "9 items"],
+        "sourceId": "70000000-0000-4000-8000-000000000105",
+        "sourceType": "thing"
+      }
+    ],
+    "requiredCounts": {
+      "chatMessages": 0,
+      "entityLinks": 0,
+      "events": 20,
+      "extractionRuns": 0,
+      "ledgerReviewItems": 2,
+      "notes": 0,
+      "rules": 1,
+      "things": 7
+    },
+    "requiredVisibleSurfaces": [
+      {
+        "requiredRecordIds": [
+          "70000000-0000-4000-8000-000000000203",
+          "70000000-0000-4000-8000-000000000215",
+          "70000000-0000-4000-8000-000000000242"
+        ],
+        "surface": "log"
+      },
+      {
+        "requiredRecordIds": [
+          "70000000-0000-4000-8000-000000000101",
+          "70000000-0000-4000-8000-000000000102"
+        ],
+        "surface": "things"
+      },
+      {
+        "requiredRecordIds": ["70000000-0000-4000-8000-000000000301"],
+        "surface": "reminders"
+      },
+      {
+        "requiredRecordIds": [
+          "70000000-0000-4000-8000-000000000401",
+          "70000000-0000-4000-8000-000000000402"
+        ],
+        "surface": "reviewQueue"
+      }
+    ],
+    "reviewQueueExpectations": [
+      {
+        "kind": "interval_reminder",
+        "requiredEvidenceIds": [
+          "70000000-0000-4000-8000-000000000211",
+          "70000000-0000-4000-8000-000000000215"
+        ],
+        "state": "candidate",
+        "targetId": "70000000-0000-4000-8000-000000000102",
+        "targetType": "thing"
+      },
+      {
+        "kind": "interval_reminder",
+        "requiredEvidenceIds": [
+          "70000000-0000-4000-8000-000000000221",
+          "70000000-0000-4000-8000-000000000223"
+        ],
+        "state": "candidate",
+        "targetId": "70000000-0000-4000-8000-000000000103",
+        "targetType": "thing"
+      }
+    ],
+    "searchExpectations": [
+      {
+        "disallowedText": [],
+        "expectedTargets": [
+          {
+            "id": "70000000-0000-4000-8000-000000000101",
+            "type": "thing"
+          },
+          {
+            "id": "70000000-0000-4000-8000-000000000203",
+            "type": "event"
+          },
+          {
+            "id": "70000000-0000-4000-8000-000000000301",
+            "type": "rule"
+          }
+        ],
+        "query": "air filters"
+      },
+      {
+        "disallowedText": [],
+        "expectedTargets": [
+          {
+            "id": "70000000-0000-4000-8000-000000000102",
+            "type": "thing"
+          },
+          {
+            "id": "70000000-0000-4000-8000-000000000215",
+            "type": "event"
+          }
+        ],
+        "query": "dog food"
+      },
+      {
+        "disallowedText": [],
+        "expectedTargets": [
+          {
+            "id": "70000000-0000-4000-8000-000000000215",
+            "type": "event"
+          }
+        ],
+        "query": "30 lb"
+      },
+      {
+        "disallowedText": [],
+        "expectedTargets": [
+          {
+            "id": "70000000-0000-4000-8000-000000000241",
+            "type": "event"
+          },
+          {
+            "id": "70000000-0000-4000-8000-000000000242",
+            "type": "event"
+          },
+          {
+            "id": "70000000-0000-4000-8000-000000000243",
+            "type": "event"
+          }
+        ],
+        "query": "Harbor Warehouse"
+      },
+      {
+        "disallowedText": [],
+        "expectedTargets": [
+          {
+            "id": "70000000-0000-4000-8000-000000000232",
+            "type": "event"
+          }
+        ],
+        "query": "donation pile"
+      },
+      {
+        "disallowedText": [],
+        "expectedTargets": [
+          {
+            "id": "70000000-0000-4000-8000-000000000262",
+            "type": "event"
+          }
+        ],
+        "query": "smoke detector"
+      }
+    ]
+  },
+  "fixtureSchemaVersion": 1,
+  "id": "operational_home",
+  "ledgerSchemaVersion": 3,
+  "records": {
+    "chatMessages": [],
+    "entityLinks": [],
+    "events": [
+      {
+        "createdAt": "2026-01-05T12:00:00Z",
+        "eventType": "replacement",
+        "id": "70000000-0000-4000-8000-000000000201",
+        "metadata": [
+          {
+            "boolValue": true,
+            "dateValue": null,
+            "key": "service_reset",
+            "numberValue": null,
+            "sourceText": "Replaced filters",
+            "stringValue": null,
+            "unit": null,
+            "valueKind": "boolean"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-01-05",
+        "rawText": "Replaced furnace air filters.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000101",
+        "title": "Replaced Home Air Filters",
+        "updatedAt": "2026-01-05T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-04-05T12:00:00Z",
+        "eventType": "replacement",
+        "id": "70000000-0000-4000-8000-000000000202",
+        "metadata": [
+          {
+            "boolValue": true,
+            "dateValue": null,
+            "key": "service_reset",
+            "numberValue": null,
+            "sourceText": "Replaced filters",
+            "stringValue": null,
+            "unit": null,
+            "valueKind": "boolean"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-04-05",
+        "rawText": "Replaced HVAC return vent filters.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000101",
+        "title": "Replaced Home Air Filters",
+        "updatedAt": "2026-04-05T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-07-04T12:00:00Z",
+        "eventType": "replacement",
+        "id": "70000000-0000-4000-8000-000000000203",
+        "metadata": [
+          {
+            "boolValue": true,
+            "dateValue": null,
+            "key": "service_reset",
+            "numberValue": null,
+            "sourceText": "Replaced filters",
+            "stringValue": null,
+            "unit": null,
+            "valueKind": "boolean"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-07-04",
+        "rawText": "Replaced Home Air Filters before the holiday weekend.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000101",
+        "title": "Replaced Home Air Filters",
+        "updatedAt": "2026-07-04T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-02-01T12:00:00Z",
+        "eventType": "purchase",
+        "id": "70000000-0000-4000-8000-000000000211",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "quantity",
+            "numberValue": 30,
+            "sourceText": "30 lb bag",
+            "stringValue": null,
+            "unit": "lb",
+            "valueKind": "number"
+          },
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "vendor",
+            "numberValue": null,
+            "sourceText": "Corner Pet Supply",
+            "stringValue": "Corner Pet Supply",
+            "unit": null,
+            "valueKind": "string"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-02-01",
+        "rawText": "Bought a 30 lb bag of dog food at Corner Pet Supply.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000102",
+        "title": "Bought dog food",
+        "updatedAt": "2026-02-01T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-02-26T12:00:00Z",
+        "eventType": "purchase",
+        "id": "70000000-0000-4000-8000-000000000212",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "quantity",
+            "numberValue": 30,
+            "sourceText": "30 lb bag",
+            "stringValue": null,
+            "unit": "lb",
+            "valueKind": "number"
+          },
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "vendor",
+            "numberValue": null,
+            "sourceText": "Corner Pet Supply",
+            "stringValue": "Corner Pet Supply",
+            "unit": null,
+            "valueKind": "string"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-02-26",
+        "rawText": "Bought a 30 lb bag of dog food at Corner Pet Supply.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000102",
+        "title": "Bought dog food",
+        "updatedAt": "2026-02-26T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-03-23T12:00:00Z",
+        "eventType": "purchase",
+        "id": "70000000-0000-4000-8000-000000000213",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "quantity",
+            "numberValue": 30,
+            "sourceText": "30 lb bag",
+            "stringValue": null,
+            "unit": "lb",
+            "valueKind": "number"
+          },
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "vendor",
+            "numberValue": null,
+            "sourceText": "Corner Pet Supply",
+            "stringValue": "Corner Pet Supply",
+            "unit": null,
+            "valueKind": "string"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-03-23",
+        "rawText": "Bought a 30 lb bag of dog food at Corner Pet Supply.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000102",
+        "title": "Bought dog food",
+        "updatedAt": "2026-03-23T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-04-17T12:00:00Z",
+        "eventType": "purchase",
+        "id": "70000000-0000-4000-8000-000000000214",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "quantity",
+            "numberValue": 30,
+            "sourceText": "30 lb bag",
+            "stringValue": null,
+            "unit": "lb",
+            "valueKind": "number"
+          },
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "vendor",
+            "numberValue": null,
+            "sourceText": "Corner Pet Supply",
+            "stringValue": "Corner Pet Supply",
+            "unit": null,
+            "valueKind": "string"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-04-17",
+        "rawText": "Bought a 30 lb bag of dog food at Corner Pet Supply.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000102",
+        "title": "Bought dog food",
+        "updatedAt": "2026-04-17T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-05-12T12:00:00Z",
+        "eventType": "purchase",
+        "id": "70000000-0000-4000-8000-000000000215",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "quantity",
+            "numberValue": 30,
+            "sourceText": "30 lb bag",
+            "stringValue": null,
+            "unit": "lb",
+            "valueKind": "number"
+          },
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "vendor",
+            "numberValue": null,
+            "sourceText": "Corner Pet Supply",
+            "stringValue": "Corner Pet Supply",
+            "unit": null,
+            "valueKind": "string"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-05-12",
+        "rawText": "Bought a 30 lb bag of dog food at Corner Pet Supply.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000102",
+        "title": "Bought dog food",
+        "updatedAt": "2026-05-12T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-01-10T12:00:00Z",
+        "eventType": "maintenance",
+        "id": "70000000-0000-4000-8000-000000000221",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "mileage",
+            "numberValue": 30000,
+            "sourceText": "30000 miles",
+            "stringValue": null,
+            "unit": "mi",
+            "valueKind": "number"
+          },
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "subtype",
+            "numberValue": null,
+            "sourceText": "oil change",
+            "stringValue": "oil_change",
+            "unit": null,
+            "valueKind": "string"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-01-10",
+        "rawText": "Changed oil on the blue sedan at 30000 miles.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000103",
+        "title": "Oil change",
+        "updatedAt": "2026-01-10T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-04-10T12:00:00Z",
+        "eventType": "maintenance",
+        "id": "70000000-0000-4000-8000-000000000222",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "mileage",
+            "numberValue": 35000,
+            "sourceText": "35000 miles",
+            "stringValue": null,
+            "unit": "mi",
+            "valueKind": "number"
+          },
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "subtype",
+            "numberValue": null,
+            "sourceText": "oil change",
+            "stringValue": "oil_change",
+            "unit": null,
+            "valueKind": "string"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-04-10",
+        "rawText": "Changed oil on the blue sedan at 35000 miles.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000103",
+        "title": "Oil change",
+        "updatedAt": "2026-04-10T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-07-01T12:00:00Z",
+        "eventType": "maintenance",
+        "id": "70000000-0000-4000-8000-000000000223",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "mileage",
+            "numberValue": 40000,
+            "sourceText": "40000 miles",
+            "stringValue": null,
+            "unit": "mi",
+            "valueKind": "number"
+          },
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "subtype",
+            "numberValue": null,
+            "sourceText": "oil change",
+            "stringValue": "oil_change",
+            "unit": null,
+            "valueKind": "string"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-07-01",
+        "rawText": "Changed oil on the blue sedan at 40000 miles.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000103",
+        "title": "Oil change",
+        "updatedAt": "2026-07-01T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-03-02T12:00:00Z",
+        "eventType": "cleaning",
+        "id": "70000000-0000-4000-8000-000000000231",
+        "metadata": [],
+        "note": null,
+        "occurredAt": "2026-03-02",
+        "rawText": "Swept floor, broke down boxes, moved winter bins to the back shelf.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000104",
+        "title": "Cleaned garage",
+        "updatedAt": "2026-03-02T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-06-15T12:00:00Z",
+        "eventType": "cleaning",
+        "id": "70000000-0000-4000-8000-000000000232",
+        "metadata": [],
+        "note": null,
+        "occurredAt": "2026-06-15",
+        "rawText": "Cleared donation pile and checked storage shelves.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000104",
+        "title": "Cleaned garage",
+        "updatedAt": "2026-06-15T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-04-03T12:00:00Z",
+        "eventType": "purchase",
+        "id": "70000000-0000-4000-8000-000000000241",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "vendor",
+            "numberValue": null,
+            "sourceText": "Harbor Warehouse",
+            "stringValue": "Harbor Warehouse",
+            "unit": null,
+            "valueKind": "string"
+          },
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "amount",
+            "numberValue": 148.72,
+            "sourceText": "$148.72",
+            "stringValue": null,
+            "unit": "USD",
+            "valueKind": "number"
+          },
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "quantity",
+            "numberValue": 8,
+            "sourceText": "8 items",
+            "stringValue": null,
+            "unit": "items",
+            "valueKind": "number"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-04-03",
+        "rawText": "Bought paper towels, trash bags, detergent, batteries, dish tabs, freezer bags, coffee, and napkins. Harbor Warehouse total $148.72.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000105",
+        "title": "Bought household supplies",
+        "updatedAt": "2026-04-03T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-05-03T12:00:00Z",
+        "eventType": "purchase",
+        "id": "70000000-0000-4000-8000-000000000242",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "vendor",
+            "numberValue": null,
+            "sourceText": "Harbor Warehouse",
+            "stringValue": "Harbor Warehouse",
+            "unit": null,
+            "valueKind": "string"
+          },
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "amount",
+            "numberValue": 163.4,
+            "sourceText": "$163.40",
+            "stringValue": null,
+            "unit": "USD",
+            "valueKind": "number"
+          },
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "quantity",
+            "numberValue": 9,
+            "sourceText": "9 items",
+            "stringValue": null,
+            "unit": "items",
+            "valueKind": "number"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-05-03",
+        "rawText": "Restocked paper towels, laundry soap, dishwasher tabs, granola bars, foil, freezer bags, light bulbs, hand soap, and napkins. Harbor Warehouse total $163.40.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000105",
+        "title": "Bought household supplies",
+        "updatedAt": "2026-05-03T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-06-02T12:00:00Z",
+        "eventType": "purchase",
+        "id": "70000000-0000-4000-8000-000000000243",
+        "metadata": [
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "vendor",
+            "numberValue": null,
+            "sourceText": "Harbor Warehouse",
+            "stringValue": "Harbor Warehouse",
+            "unit": null,
+            "valueKind": "string"
+          },
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "amount",
+            "numberValue": 137.18,
+            "sourceText": "$137.18",
+            "stringValue": null,
+            "unit": "USD",
+            "valueKind": "number"
+          },
+          {
+            "boolValue": null,
+            "dateValue": null,
+            "key": "quantity",
+            "numberValue": 7,
+            "sourceText": "7 items",
+            "stringValue": null,
+            "unit": "items",
+            "valueKind": "number"
+          }
+        ],
+        "note": null,
+        "occurredAt": "2026-06-02",
+        "rawText": "Restocked trash bags, paper towels, dish tabs, coffee, batteries, hand soap, and freezer bags. Harbor Warehouse total $137.18.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000105",
+        "title": "Bought household supplies",
+        "updatedAt": "2026-06-02T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-01-18T12:00:00Z",
+        "eventType": "cleaning",
+        "id": "70000000-0000-4000-8000-000000000251",
+        "metadata": [],
+        "note": null,
+        "occurredAt": "2026-01-18",
+        "rawText": "Vacuumed lint line and checked exterior flap.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000106",
+        "title": "Cleaned dryer vent",
+        "updatedAt": "2026-01-18T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-06-20T12:00:00Z",
+        "eventType": "cleaning",
+        "id": "70000000-0000-4000-8000-000000000252",
+        "metadata": [],
+        "note": null,
+        "occurredAt": "2026-06-20",
+        "rawText": "Cleared lint from hose and wall outlet.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000106",
+        "title": "Cleaned dryer vent",
+        "updatedAt": "2026-06-20T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-03-09T12:00:00Z",
+        "eventType": "replacement",
+        "id": "70000000-0000-4000-8000-000000000261",
+        "metadata": [],
+        "note": null,
+        "occurredAt": "2026-03-09",
+        "rawText": "Replaced hallway smoke detector battery.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000107",
+        "title": "Replaced smoke detector battery",
+        "updatedAt": "2026-03-09T12:00:00Z"
+      },
+      {
+        "createdAt": "2026-06-09T12:00:00Z",
+        "eventType": "replacement",
+        "id": "70000000-0000-4000-8000-000000000262",
+        "metadata": [],
+        "note": null,
+        "occurredAt": "2026-06-09",
+        "rawText": "Replaced basement smoke detector battery after chirping.",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "thingId": "70000000-0000-4000-8000-000000000107",
+        "title": "Replaced smoke detector battery",
+        "updatedAt": "2026-06-09T12:00:00Z"
+      }
+    ],
+    "extractionRuns": [],
+    "ledgerReviewItems": [
+      {
+        "actionTitle": "Review reminder setup",
+        "confidence": 0.9,
+        "createdAt": "2026-07-05T12:00:00Z",
+        "dedupeKey": "interval_reminder|70000000-0000-4000-8000-000000000102|dogFood|70000000-0000-4000-8000-000000000215",
+        "detail": "Saved records show about every 25 days. next date range 2026-06-05 to 2026-06-07 No reminder has been created or changed.",
+        "evidence": [
+          {
+            "detail": "30 lb · Corner Pet Supply",
+            "sourceId": "70000000-0000-4000-8000-000000000211",
+            "sourceType": "event",
+            "summary": "Bought dog food"
+          },
+          {
+            "detail": "30 lb · Corner Pet Supply",
+            "sourceId": "70000000-0000-4000-8000-000000000215",
+            "sourceType": "event",
+            "summary": "Bought dog food"
+          }
+        ],
+        "expiresAt": null,
+        "failureReason": null,
+        "id": "70000000-0000-4000-8000-000000000401",
+        "kind": "interval_reminder",
+        "presentedAt": null,
+        "resolvedAt": null,
+        "snoozedUntil": null,
+        "state": "candidate",
+        "targetId": "70000000-0000-4000-8000-000000000102",
+        "targetType": "thing",
+        "title": "Dog food purchase cadence is ready for review",
+        "updatedAt": "2026-07-05T12:00:00Z"
+      },
+      {
+        "actionTitle": "Review reminder setup",
+        "confidence": 0.9,
+        "createdAt": "2026-07-05T12:00:00Z",
+        "dedupeKey": "interval_reminder|70000000-0000-4000-8000-000000000103|oilChange|70000000-0000-4000-8000-000000000223",
+        "detail": "Saved records show about every 86 days and about every 5,000 miles. next mileage 45,000 mi; next date range 2026-09-13 to 2026-10-01 No reminder has been created or changed.",
+        "evidence": [
+          {
+            "detail": "30,000 mi · oil_change",
+            "sourceId": "70000000-0000-4000-8000-000000000221",
+            "sourceType": "event",
+            "summary": "Oil change"
+          },
+          {
+            "detail": "40,000 mi · oil_change",
+            "sourceId": "70000000-0000-4000-8000-000000000223",
+            "sourceType": "event",
+            "summary": "Oil change"
+          }
+        ],
+        "expiresAt": null,
+        "failureReason": null,
+        "id": "70000000-0000-4000-8000-000000000402",
+        "kind": "interval_reminder",
+        "presentedAt": null,
+        "resolvedAt": null,
+        "snoozedUntil": null,
+        "state": "candidate",
+        "targetId": "70000000-0000-4000-8000-000000000103",
+        "targetType": "thing",
+        "title": "Oil change cadence is ready for review",
+        "updatedAt": "2026-07-05T12:00:00Z"
+      }
+    ],
+    "notes": [],
+    "rules": [
+      {
+        "continuityBehavior": "date_based_reminder",
+        "createdAt": "2026-07-05T12:00:00Z",
+        "expiresAt": null,
+        "id": "70000000-0000-4000-8000-000000000301",
+        "isActive": true,
+        "lifecycleState": "open",
+        "manuallyDeactivatedAt": null,
+        "rawText": "Replace Home Air Filters on the calendar.",
+        "reason": "Existing scheduled reminder covers this operational cadence.",
+        "ruleType": "reminder",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "startsAt": "2026-09-30",
+        "thingId": "70000000-0000-4000-8000-000000000101",
+        "title": "Replace Home Air Filters",
+        "updatedAt": "2026-07-05T12:00:00Z"
+      }
+    ],
+    "things": [
+      {
+        "aliases": ["HVAC filters", "furnace filters", "return vent filters"],
+        "category": "home_maintenance",
+        "createdAt": "2026-01-01T00:00:00Z",
+        "eventCount": 3,
+        "id": "70000000-0000-4000-8000-000000000101",
+        "lastEventAt": "2026-07-04",
+        "name": "Home Air Filters",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-07-05T12:00:00Z"
+      },
+      {
+        "aliases": ["kibble", "pet food"],
+        "category": "food",
+        "createdAt": "2026-02-01T00:00:00Z",
+        "eventCount": 5,
+        "id": "70000000-0000-4000-8000-000000000102",
+        "lastEventAt": "2026-05-12",
+        "name": "Dog food",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-07-05T12:00:00Z"
+      },
+      {
+        "aliases": ["daily driver"],
+        "category": "vehicle",
+        "createdAt": "2026-01-10T00:00:00Z",
+        "eventCount": 3,
+        "id": "70000000-0000-4000-8000-000000000103",
+        "lastEventAt": "2026-07-01",
+        "name": "Blue sedan",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-07-05T12:00:00Z"
+      },
+      {
+        "aliases": ["attached garage", "storage bay"],
+        "category": "home_maintenance",
+        "createdAt": "2026-03-01T00:00:00Z",
+        "eventCount": 2,
+        "id": "70000000-0000-4000-8000-000000000104",
+        "lastEventAt": "2026-06-15",
+        "name": "Garage",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-07-05T12:00:00Z"
+      },
+      {
+        "aliases": ["bulk supplies", "pantry restock", "Harbor Warehouse run"],
+        "category": "purchase",
+        "createdAt": "2026-04-01T00:00:00Z",
+        "eventCount": 3,
+        "id": "70000000-0000-4000-8000-000000000105",
+        "lastEventAt": "2026-06-02",
+        "name": "Household supplies",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-07-05T12:00:00Z"
+      },
+      {
+        "aliases": ["laundry vent"],
+        "category": "home_maintenance",
+        "createdAt": "2026-01-01T00:00:00Z",
+        "eventCount": 2,
+        "id": "70000000-0000-4000-8000-000000000106",
+        "lastEventAt": "2026-06-20",
+        "name": "Dryer vent",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-07-05T12:00:00Z"
+      },
+      {
+        "aliases": ["smoke alarm batteries"],
+        "category": "home_maintenance",
+        "createdAt": "2026-01-01T00:00:00Z",
+        "eventCount": 2,
+        "id": "70000000-0000-4000-8000-000000000107",
+        "lastEventAt": "2026-06-09",
+        "name": "Smoke detector batteries",
+        "source": {
+          "chatMessageId": null,
+          "extractionRunId": null,
+          "kind": "manual",
+          "sourceClientId": null
+        },
+        "updatedAt": "2026-07-05T12:00:00Z"
+      }
+    ]
+  },
+  "title": "Operational Home Continuity"
+}

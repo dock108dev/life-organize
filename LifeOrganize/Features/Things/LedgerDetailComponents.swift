@@ -164,6 +164,47 @@ struct LedgerDetailSection<Content: View>: View {
     }
 }
 
+struct LedgerDisclosureSection<Content: View>: View {
+    let title: String
+    let summary: String?
+    @Binding var isExpanded: Bool
+    let content: Content
+
+    init(
+        title: String,
+        summary: String? = nil,
+        isExpanded: Binding<Bool>,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.title = title
+        self.summary = summary
+        _isExpanded = isExpanded
+        self.content = content()
+    }
+
+    var body: some View {
+        DisclosureGroup(isExpanded: $isExpanded) {
+            VStack(alignment: .leading, spacing: LedgerVisualSystem.Spacing.section) {
+                content
+            }
+            .padding(.top, 6)
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                LedgerSectionHeader(title: title)
+                if let summary, !summary.isEmpty {
+                    Text(summary)
+                        .font(LedgerVisualSystem.Typography.rowSecondary)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                }
+            }
+        }
+        .tint(.secondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 enum LedgerReminderRowLines {
     static func lines(for presentation: ReminderContinuityPresentation, reason: String? = nil) -> [LedgerRowLine] {
         var lines = [

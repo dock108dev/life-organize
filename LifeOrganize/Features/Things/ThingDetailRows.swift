@@ -103,6 +103,52 @@ struct LedgerRuleRow: View {
     }
 }
 
+struct ThingDetailRuleSection: View {
+    let title: String
+    let rules: [LedgerRule]
+    let startsExpanded: Bool
+    @Binding var isExpanded: Bool
+    let reviewPresentation: (LedgerRule) -> LedgerReviewItemPresentation?
+    let onSelectRule: (LedgerRule) -> Void
+    let onError: (String) -> Void
+
+    var body: some View {
+        Group {
+            if startsExpanded {
+                LedgerDetailSection(title: title) {
+                    rows
+                }
+            } else {
+                LedgerDisclosureSection(
+                    title: title,
+                    summary: LedgerDisplayFormatting.count(rules.count, singular: "reminder", plural: "reminders"),
+                    isExpanded: $isExpanded
+                ) {
+                    rows
+                }
+            }
+        }
+        .accessibilityIdentifier("thing-detail-rules-section")
+    }
+
+    private var rows: some View {
+        ForEach(Array(rules.enumerated()), id: \.element.id) { index, rule in
+            let presentation = reviewPresentation(rule)
+            Button {
+                onSelectRule(rule)
+            } label: {
+                LedgerRuleRow(rule: rule, reviewPresentation: presentation)
+            }
+            .buttonStyle(.plain)
+            .ledgerReviewItemContextMenu(presentation?.item, onError: onError)
+
+            if index < rules.count - 1 {
+                Divider()
+            }
+        }
+    }
+}
+
 struct LedgerNoteRow: View {
     let note: LedgerNote
 

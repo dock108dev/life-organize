@@ -15,6 +15,9 @@ struct EventDetailView: View {
     @State private var isConfirmingDelete = false
     @State private var isConfirmingUnlink = false
     @State private var errorMessage: String?
+    @State private var isMetadataExpanded = false
+    @State private var isRelatedRemindersExpanded = false
+    @State private var isRelatedNotesExpanded = false
 
     private let relationshipService = RelationshipTraversalService()
 
@@ -232,7 +235,11 @@ struct EventDetailView: View {
     }
 
     private var metadataSection: some View {
-        LedgerDetailSection(title: "Operational Details") {
+        LedgerDisclosureSection(
+            title: "Details",
+            summary: LedgerDisplayFormatting.count(operationalMetadataEntries.count, singular: "field", plural: "fields"),
+            isExpanded: $isMetadataExpanded
+        ) {
             ForEach(Array(operationalMetadataEntries.enumerated()), id: \.offset) { index, entry in
                 LedgerSummaryMetric(
                     label: entry.key.displayName,
@@ -256,7 +263,11 @@ struct EventDetailView: View {
     }
 
     private var relatedRemindersSection: some View {
-        LedgerDetailSection(title: "Related Reminders") {
+        LedgerDisclosureSection(
+            title: "Related Reminders",
+            summary: LedgerDisplayFormatting.count(relatedReminders.count, singular: "reminder", plural: "reminders"),
+            isExpanded: $isRelatedRemindersExpanded
+        ) {
             ForEach(Array(relatedReminders.enumerated()), id: \.element.id) { index, reminder in
                 NavigationLink {
                     RuleDetailView(rule: reminder)
@@ -273,7 +284,11 @@ struct EventDetailView: View {
     }
 
     private var relatedNotesSection: some View {
-        LedgerDetailSection(title: "Related Notes") {
+        LedgerDisclosureSection(
+            title: "Related Notes",
+            summary: LedgerDisplayFormatting.count(relatedNotes.count, singular: "note", plural: "notes"),
+            isExpanded: $isRelatedNotesExpanded
+        ) {
             RelatedContextRows(
                 results: relatedNoteResults,
                 records: traversalRecords,

@@ -391,3 +391,27 @@ struct LedgerFeedProjection {
         return reminder.startsAt < horizonEnd
     }
 }
+
+struct TimelineDefaultVisibility {
+    let calendar: Calendar
+    let now: Date
+    let pastWindowDays: Int
+
+    init(calendar: Calendar = .autoupdatingCurrent, now: Date = Date(), pastWindowDays: Int = 2) {
+        self.calendar = calendar
+        self.now = now
+        self.pastWindowDays = pastWindowDays
+    }
+
+    func isVisibleByDefault(_ section: LedgerFeedSection) -> Bool {
+        if section.group == .upcoming {
+            return true
+        }
+
+        let today = calendar.startOfDay(for: now)
+        guard let cutoff = calendar.date(byAdding: .day, value: -pastWindowDays, to: today) else {
+            return true
+        }
+        return section.day >= cutoff
+    }
+}

@@ -16,6 +16,9 @@ struct RuleDetailView: View {
     @State private var lifecycleAction: ReminderLifecycleAction?
     @State private var isConfirmingDelete = false
     @State private var errorMessage: String?
+    @State private var isSummaryDetailsExpanded = false
+    @State private var isRelatedHistoryExpanded = false
+    @State private var isConnectedContextExpanded = false
 
     private let statusService = RuleStatusService()
     private let continuityService = ReminderContinuityPresentationService()
@@ -159,22 +162,17 @@ struct RuleDetailView: View {
     private var summarySection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(summaryPresentation.title)
-                .font(.largeTitle.weight(.semibold))
+                .font(.title2.weight(.semibold))
                 .fixedSize(horizontal: false, vertical: true)
 
             badgeStack
 
             Text(summaryPresentation.stateSentence)
-                .font(.title3.weight(.semibold))
+                .font(.headline.weight(.semibold))
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            VStack(alignment: .leading, spacing: 7) {
-                Text(summaryPresentation.scheduleSentence)
-                Text(summaryPresentation.contextSentence)
-                Text(summaryPresentation.reasonSentence)
-                Text(summaryPresentation.sourceSentence)
-            }
+            Text(summaryPresentation.scheduleSentence)
             .font(.subheadline)
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
@@ -186,6 +184,17 @@ struct RuleDetailView: View {
                     .fixedSize(horizontal: false, vertical: true)
 
                 summaryActionTray
+            }
+
+            LedgerDisclosureSection(title: "Details", isExpanded: $isSummaryDetailsExpanded) {
+                VStack(alignment: .leading, spacing: 7) {
+                    Text(summaryPresentation.contextSentence)
+                    Text(summaryPresentation.reasonSentence)
+                    Text(summaryPresentation.sourceSentence)
+                }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.vertical, 4)
@@ -226,7 +235,11 @@ struct RuleDetailView: View {
     }
 
     private var relatedEventsSection: some View {
-        LedgerDetailSection(title: "Related History") {
+        LedgerDisclosureSection(
+            title: "Related History",
+            summary: LedgerDisplayFormatting.count(relatedEvents.count, singular: "event", plural: "events"),
+            isExpanded: $isRelatedHistoryExpanded
+        ) {
             if relatedEvents.isEmpty {
                 Text("No related history yet.")
                     .font(LedgerVisualSystem.Typography.rowSecondary)
@@ -240,7 +253,11 @@ struct RuleDetailView: View {
     }
 
     private var relatedContextSection: some View {
-        LedgerDetailSection(title: "Connected Context") {
+        LedgerDisclosureSection(
+            title: "Connected Context",
+            summary: LedgerDisplayFormatting.count(relatedContextRecords.count, singular: "record", plural: "records"),
+            isExpanded: $isConnectedContextExpanded
+        ) {
             RelatedContextRows(
                 results: relatedContextRecords,
                 records: traversalRecords,

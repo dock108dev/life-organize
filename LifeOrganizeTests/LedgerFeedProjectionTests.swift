@@ -239,6 +239,23 @@ final class LedgerFeedProjectionTests: XCTestCase {
         XCTAssertEqual(sections.map(\.summary.typeMixText), ["1 note", "1 event"])
     }
 
+    func testDefaultTimelineVisibilityKeepsRecentDaysAndUpcomingOnly() throws {
+        let calendar = Self.newYorkCalendar
+        let now = try Self.date(2026, 5, 21, 12, calendar: calendar)
+        let visibility = TimelineDefaultVisibility(calendar: calendar, now: now)
+        let today = try Self.section(day: Self.date(2026, 5, 21, 12, calendar: calendar), calendar: calendar, now: now)
+        let yesterday = try Self.section(day: Self.date(2026, 5, 20, 12, calendar: calendar), calendar: calendar, now: now)
+        let twoDaysAgo = try Self.section(day: Self.date(2026, 5, 19, 12, calendar: calendar), calendar: calendar, now: now)
+        let earlierThisWeek = try Self.section(day: Self.date(2026, 5, 18, 12, calendar: calendar), calendar: calendar, now: now)
+        let upcoming = try Self.section(day: Self.date(2026, 6, 1, 12, calendar: calendar), calendar: calendar, now: now)
+
+        XCTAssertTrue(visibility.isVisibleByDefault(upcoming))
+        XCTAssertTrue(visibility.isVisibleByDefault(today))
+        XCTAssertTrue(visibility.isVisibleByDefault(yesterday))
+        XCTAssertTrue(visibility.isVisibleByDefault(twoDaysAgo))
+        XCTAssertFalse(visibility.isVisibleByDefault(earlierThisWeek))
+    }
+
     func testProjectionUsesStructuredRecordsAsPrimaryRowsForSucceededMessages() throws {
         let calendar = Self.newYorkCalendar
         let now = try Self.date(2026, 5, 21, 10, calendar: calendar)
@@ -385,6 +402,24 @@ final class LedgerFeedProjectionTests: XCTestCase {
         calendar: Calendar
     ) throws -> Date {
         try XCTUnwrap(calendar.date(from: DateComponents(year: year, month: month, day: day, hour: hour)))
+    }
+
+    private static func section(day: Date, calendar: Calendar, now: Date) throws -> LedgerFeedSection {
+        LedgerFeedSection(
+            day: day,
+            items: [
+                .event(
+                    LedgerEvent(
+                        title: "Test event",
+                        occurredAt: day,
+                        rawText: "Test event",
+                        createdAt: day
+                    )
+                )
+            ],
+            calendar: calendar,
+            now: now
+        )
     }
 }
 

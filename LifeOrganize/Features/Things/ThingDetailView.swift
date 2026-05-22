@@ -17,6 +17,12 @@ struct ThingDetailView: View {
     @State private var activeSheet: ThingDetailSheet?
     @State private var isConfirmingDelete = false
     @State private var errorMessage: String?
+    @State private var isTimelineHistoryExpanded = false
+    @State private var isEventHistoryExpanded = false
+    @State private var isNotesExpanded = false
+    @State private var isPausedRemindersExpanded = false
+    @State private var isRelatedContextExpanded = false
+    @State private var isIdentityExpanded = false
 
     private let relationshipService = RelationshipTraversalService()
 
@@ -198,10 +204,6 @@ struct ThingDetailView: View {
 
             LedgerOperationalMetric(snapshot.reminderSummary)
 
-            if let recentActivitySummary = snapshot.recentActivitySummary {
-                LedgerOperationalMetric(recentActivitySummary)
-            }
-
             if !snapshot.hasHistory {
                 LedgerOperationalMetric(
                     label: "Last activity",
@@ -229,18 +231,11 @@ struct ThingDetailView: View {
             }
 
             if let reminderHistorySummary = snapshot.reminderHistorySummary {
-                LedgerOperationalMetric(reminderHistorySummary)
+                Text(reminderHistorySummary.value)
+                    .font(LedgerVisualSystem.Typography.rowSecondary)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
-
-            Text(snapshot.countSummary)
-                .font(LedgerVisualSystem.Typography.rowSecondary)
-                .foregroundStyle(.secondary)
-
-            LedgerInlineActionTray(actions: [
-                LedgerInlineAction(title: "Event", systemImage: "calendar.badge.plus") { activeSheet = .addEvent },
-                LedgerInlineAction(title: "Reminder", systemImage: "bell.badge") { activeSheet = .addRule },
-                LedgerInlineAction(title: "Note", systemImage: "note.text.badge.plus") { activeSheet = .addNote }
-            ])
         }
         .padding(.vertical, 4)
         .accessibilityIdentifier("thing-detail-title")
@@ -269,7 +264,11 @@ struct ThingDetailView: View {
     }
 
     private var timelineReplaySection: some View {
-        LedgerDetailSection(title: "Timeline Replay") {
+        LedgerDisclosureSection(
+            title: "History",
+            summary: snapshot.countSummary,
+            isExpanded: $isTimelineHistoryExpanded
+        ) {
             NavigationLink {
                 TimelineSliceReplayView(descriptor: .linkedThing(thing))
             } label: {
@@ -333,7 +332,11 @@ struct ThingDetailView: View {
     }
 
     private var eventsSection: some View {
-        LedgerDetailSection(title: "Event Chronology") {
+        LedgerDisclosureSection(
+            title: "Events",
+            summary: LedgerDisplayFormatting.count(snapshot.events.count, singular: "event", plural: "events"),
+            isExpanded: $isEventHistoryExpanded
+        ) {
             ForEach(Array(snapshot.events.enumerated()), id: \.element.id) { index, event in
                 NavigationLink {
                     EventDetailView(event: event)
@@ -351,7 +354,11 @@ struct ThingDetailView: View {
     }
 
     private var notesSection: some View {
-        LedgerDetailSection(title: "Notes") {
+        LedgerDisclosureSection(
+            title: "Notes",
+            summary: LedgerDisplayFormatting.count(snapshot.notes.count, singular: "note", plural: "notes"),
+            isExpanded: $isNotesExpanded
+        ) {
             ForEach(Array(snapshot.notes.enumerated()), id: \.element.id) { index, note in
                 Button {
                     activeSheet = .editNote(note)
@@ -368,7 +375,7 @@ struct ThingDetailView: View {
     }
 
     private var aboutSection: some View {
-        LedgerDetailSection(title: "Identity Details") {
+        LedgerDisclosureSection(title: "Details", isExpanded: $isIdentityExpanded) {
             ForEach(Array(snapshot.identityRows.enumerated()), id: \.offset) { index, row in
                 summaryMetric(row)
 
@@ -398,7 +405,11 @@ struct ThingDetailView: View {
     }
 
     private var relatedContextSection: some View {
-        LedgerDetailSection(title: "Related Context") {
+        LedgerDisclosureSection(
+            title: "Connected Context",
+            summary: LedgerDisplayFormatting.count(relatedContextRecords.count, singular: "record", plural: "records"),
+            isExpanded: $isRelatedContextExpanded
+        ) {
             RelatedContextRows(
                 results: relatedContextRecords,
                 records: relationshipRecords,
@@ -410,25 +421,17 @@ struct ThingDetailView: View {
             )
         }
     }
-
     private func rulesSection(title: String, rules: [LedgerRule]) -> some View {
-        LedgerDetailSection(title: title) {
-            ForEach(Array(rules.enumerated()), id: \.element.id) { index, rule in
-                let reviewPresentation = ruleReviewPresentation(for: rule)
-                Button {
-                    activeSheet = .editRule(rule)
-                } label: {
-                    LedgerRuleRow(rule: rule, reviewPresentation: reviewPresentation)
-                }
-                .buttonStyle(.plain)
-                .ledgerReviewItemContextMenu(reviewPresentation?.item, onError: { errorMessage = $0 })
-
-                if index < rules.count - 1 { Divider() }
-            }
-        }
-        .accessibilityIdentifier("thing-detail-rules-section")
+        ThingDetailRuleSection(
+            title: title,
+            rules: rules,
+            startsExpanded: title == "Now & Coming Up",
+            isExpanded: $isPausedRemindersExpanded,
+            reviewPresentation: ruleReviewPresentation(for:),
+            onSelectRule: { activeSheet = .editRule($0) },
+            onError: { errorMessage = $0 }
+        )
     }
-
     @ViewBuilder
     private func sheetView(for sheet: ThingDetailSheet) -> some View {
         switch sheet {
@@ -455,7 +458,6 @@ struct ThingDetailView: View {
             )
         }
     }
-
     private func deleteThing(reassigningRecordsTo target: Thing?) {
         do {
             try DerivedFieldMaintenanceService(modelContext: modelContext).deleteThing(thing, reassigningRecordsTo: target)
@@ -465,7 +467,6 @@ struct ThingDetailView: View {
             errorMessage = "The thing could not be deleted."
         }
     }
-
     private func ruleReviewPresentation(for rule: LedgerRule) -> LedgerReviewItemPresentation? {
         LedgerReviewItemPresentationService().primaryPresentation(
             for: .rule,
@@ -473,7 +474,6 @@ struct ThingDetailView: View {
             in: reviewItems
         )
     }
-
     private func detailActionTitle(for kind: LedgerReviewItemKind) -> String? {
         switch kind {
         case .intervalReminder:
@@ -484,7 +484,6 @@ struct ThingDetailView: View {
             return nil
         }
     }
-
     private func performDetailAction(for kind: LedgerReviewItemKind) {
         switch kind {
         case .intervalReminder:

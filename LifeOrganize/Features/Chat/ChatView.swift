@@ -12,6 +12,7 @@ struct ChatView: View {
     @StateObject private var viewModel = ChatViewModel()
     @FocusState private var isComposerFocused: Bool
     @State private var reviewItemErrorMessage: String?
+    @State private var showsOlderTimeline = false
     let hasAIServiceCredential: Bool
     let deviceTokenStore: any DeviceTokenStore
     let onAddKey: () -> Void
@@ -35,8 +36,20 @@ struct ChatView: View {
         )
     }
 
+    private var visibleFeedSections: [LedgerFeedSection] {
+        showsOlderTimeline ? feedSections : recentFeedSections
+    }
+
+    private var recentFeedSections: [LedgerFeedSection] {
+        feedSections.filter(isDefaultTimelineSection)
+    }
+
+    private var olderFeedSections: [LedgerFeedSection] {
+        feedSections.filter { !isDefaultTimelineSection($0) }
+    }
+
     private var feedItemIDs: [String] {
-        feedSections.flatMap { $0.items.map(\.id) }
+        visibleFeedSections.flatMap { $0.items.map(\.id) }
     }
 
     private var isFeedEmpty: Bool {
@@ -60,7 +73,7 @@ struct ChatView: View {
                             .frame(maxWidth: .infinity, minHeight: 300)
                     } else {
                         LazyVStack(alignment: .leading, spacing: LedgerFeedTimelineLayout.sectionSpacing) {
-                            ForEach(feedSections) { section in
+                            ForEach(visibleFeedSections) { section in
                                 LedgerFeedSectionView(
                                     section: section,
                                     reviewItems: reviewItems,
@@ -68,6 +81,16 @@ struct ChatView: View {
                                     onAddKey: onAddKey,
                                     onReviewItemError: { reviewItemErrorMessage = $0 }
                                 )
+                            }
+
+                            if !olderFeedSections.isEmpty {
+                                TimelineOlderHistoryToggle(
+                                    isExpanded: showsOlderTimeline,
+                                    hiddenSectionCount: olderFeedSections.count,
+                                    hiddenItemCount: olderFeedSections.reduce(0) { $0 + $1.items.count }
+                                ) {
+                                    showsOlderTimeline.toggle()
+                                }
                             }
                         }
                         .padding(.horizontal, LedgerFeedTimelineLayout.feedHorizontalPadding)
@@ -158,8 +181,51 @@ struct ChatView: View {
         }
     }
 
+    private func isDefaultTimelineSection(_ section: LedgerFeedSection) -> Bool {
+        TimelineDefaultVisibility().isVisibleByDefault(section)
+    }
+
     private enum ScrollAnchor {
         static let top = "chat-top"
+    }
+}
+
+private struct TimelineOlderHistoryToggle: View {
+    let isExpanded: Bool
+    let hiddenSectionCount: Int
+    let hiddenItemCount: Int
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: isExpanded ? "chevron.up.circle" : "archivebox")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(isExpanded ? "Hide older history" : "Show older history")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.primary)
+                    Text(summaryText)
+                        .font(LedgerVisualSystem.Typography.rowSecondary)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, LedgerFeedTimelineLayout.rowHorizontalPadding)
+            .padding(.vertical, 8)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("timeline-older-history-toggle")
+    }
+
+    private var summaryText: String {
+        let sections = LedgerDisplayFormatting.count(hiddenSectionCount, singular: "older day", plural: "older days")
+        let items = LedgerDisplayFormatting.count(hiddenItemCount, singular: "item", plural: "items")
+        return "\(sections) · \(items)"
     }
 }
 

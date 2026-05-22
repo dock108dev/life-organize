@@ -154,7 +154,6 @@ private struct ThingRow: View {
         LedgerRow(
             primary: snapshot.title,
             secondary: rowLines(snapshot),
-            footer: snapshot.footerItems.isEmpty ? nil : snapshot.footerItems.joined(separator: " · "),
             density: LedgerSurfaceDensity.thingsRow.rowDensity
         ) {
             if let categoryTitle = snapshot.categoryTitle {
@@ -170,7 +169,7 @@ private struct ThingRow: View {
     }
 
     private func rowLines(_ snapshot: ThingPreviewSnapshot) -> [LedgerRowLine] {
-        var lines = snapshot.continuityLines.map { line in
+        var lines = snapshot.continuityLines.prefix(1).map { line in
             var parts = [line.value]
             if let detail = line.detail?.nilIfEmpty {
                 parts.append(detail)

@@ -387,7 +387,7 @@ struct DerivedFieldMaintenanceService {
                 link.sourceID.uuidString,
                 link.targetType.rawValue,
                 link.targetID.uuidString,
-                link.relation.rawValue,
+                link.relation.rawValue
             ].joined(separator: "|")
             if !keptKeys.insert(key).inserted {
                 modelContext.delete(link)

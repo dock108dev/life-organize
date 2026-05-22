@@ -101,7 +101,7 @@ struct ThingDetailSnapshot {
         [
             LedgerDisplayFormatting.count(events.count, singular: "event", plural: "events"),
             LedgerDisplayFormatting.count(notes.count, singular: "note", plural: "notes"),
-            LedgerDisplayFormatting.count(activeReminders.count, singular: "active reminder", plural: "active reminders"),
+            LedgerDisplayFormatting.count(activeReminders.count, singular: "active reminder", plural: "active reminders")
         ].joined(separator: " · ")
     }
 
@@ -432,7 +432,7 @@ struct ThingDetailSnapshot {
                     plural: "records"
                 ),
                 detail: nil
-            ),
+            )
         ]
     }
 
@@ -460,7 +460,7 @@ struct ThingDetailSnapshot {
     private static func estimatedNextDetail(mileage: Int?, date: Date?) -> String? {
         let parts = [
             mileage.map { "Next mileage to review: \(LedgerDisplayFormatting.mileage($0))" },
-            date.map { "around \(DateFormatting.fullDate.string(from: $0))" },
+            date.map { "around \(DateFormatting.fullDate.string(from: $0))" }
         ].compactMap { $0 }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }

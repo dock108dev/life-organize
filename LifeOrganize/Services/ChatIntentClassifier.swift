@@ -108,7 +108,7 @@ struct ChatIntentClassifier {
                 "did i already",
                 "did we already",
                 "have i already",
-                "have we already",
+                "have we already"
             ]
         )
             || input.lowercase.hasPrefix("last ")
@@ -144,7 +144,7 @@ struct ChatIntentClassifier {
                 "is there a rule",
                 "should i still not",
                 "am i still not",
-                "what did i decide about",
+                "what did i decide about"
             ])
     }
 
@@ -156,7 +156,7 @@ struct ChatIntentClassifier {
                 "what is due today",
                 "what's due today",
                 "anything due today",
-                "what do i need to do today",
+                "what do i need to do today"
             ])
     }
 
@@ -174,7 +174,7 @@ struct ChatIntentClassifier {
                 "show me entries about",
                 "anything about",
                 "anything saved about",
-                "what do i know about",
+                "what do i know about"
             ]
         )
     }
@@ -197,7 +197,7 @@ struct ChatIntentClassifier {
             "college football games",
             "football schedule",
             "home games",
-            "schedule for",
+            "schedule for"
         ])
     }
 
@@ -258,7 +258,7 @@ struct ChatIntentClassifier {
         "what did i write", "what did i note", "what was my note",
         "did i mention ", "show me notes about ",
         "show me entries about ", "notes about ", "anything about ",
-        "anything saved about ", "what do i know about ",
+        "anything saved about ", "what do i know about "
     ]
     private let ruleLookupPrefixes = [
         "can i ",
@@ -280,7 +280,7 @@ struct ChatIntentClassifier {
         "do i have any rule about ",
         "is there a reminder about ",
         "is there a rule about ",
-        "what did i decide about ",
+        "what did i decide about "
     ]
     private let lastTimePrefixes = [
         "when did i last ",
@@ -296,7 +296,7 @@ struct ChatIntentClassifier {
         "have i already ",
         "have we already ",
         "have i ",
-        "have we ",
+        "have we "
     ]
     private let reminderRequestMarkers = [
         "reevaluate",
@@ -306,7 +306,7 @@ struct ChatIntentClassifier {
         "check again",
         "check back",
         "follow up",
-        "remind me",
+        "remind me"
     ]
     private let futureTimeMarkers = [
         " tomorrow",
@@ -326,7 +326,7 @@ struct ChatIntentClassifier {
         " this week",
         " this weekend",
         " this month",
-        " this year",
+        " this year"
     ]
     private let ruleMarkers = ["no ", "don't ", "do not ", "avoid ", "stop ", "pause ", "hold off ", "wait until ", "not buying ", "not ordering ", "not starting ", "ban "]
     private let eventMarkers = ["changed", "replaced", "cleaned", "paid", "called", "emailed", "submitted", "filed", "renewed", "bought", "ordered", "went", "visited", "started", "finished", "fixed", "installed", "checked", "scheduled", "cancelled"]
@@ -338,7 +338,7 @@ struct ChatIntentClassifier {
         "kickoff",
         "kick off",
         "college football",
-        "football",
+        "football"
     ]
 }
 
@@ -360,6 +360,6 @@ private struct NormalizedChatInput {
 
     private static let questionStarters = [
         "when ", "what ", "where ", "which ", "who ", "how ", "can i ", "am i ",
-        "did i ", "do i ", "have i ", "was i ", "is there ", "are there ", "any ",
+        "did i ", "do i ", "have i ", "was i ", "is there ", "are there ", "any "
     ]
 }

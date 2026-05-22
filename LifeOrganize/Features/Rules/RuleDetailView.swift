@@ -306,7 +306,7 @@ private struct RelatedRuleEventRow: View {
     private var rowLines: [LedgerRowLine] {
         var lines = [
             LedgerRowLine(text: DateFormatting.shortDate.string(from: relatedEvent.event.occurredAt)),
-            LedgerRowLine(text: relatedEvent.sourceLabel),
+            LedgerRowLine(text: relatedEvent.sourceLabel)
         ]
         if let detail = relatedEvent.event.note?.nilIfEmpty {
             lines.append(LedgerRowLine(text: detail, lineLimit: 2))

@@ -94,7 +94,7 @@ extension SearchService {
         let fields = [
             LocalSearchField(key: .timeline, rawValue: title, weight: 105),
             LocalSearchField(key: .body, rawValue: body, weight: 45),
-            LocalSearchField(key: .linkedThingName, rawValue: linkedThingName, weight: 80),
+            LocalSearchField(key: .linkedThingName, rawValue: linkedThingName, weight: 80)
         ].filter { !$0.normalizedValue.isEmpty }
         let record = LocalSearchRecord(
             id: Self.deterministicUUID("timeline|\(title)|\(Self.queryKey(descriptor.query))"),
@@ -134,7 +134,7 @@ extension SearchService {
             typeMixPart(kind: .event, count: counts[.event]),
             typeMixPart(kind: .rule, count: counts[.rule]),
             typeMixPart(kind: .note, count: counts[.note]),
-            typeMixPart(kind: .chatMessage, count: counts[.chatMessage]),
+            typeMixPart(kind: .chatMessage, count: counts[.chatMessage])
         ]
         .compactMap { $0 }
         .joined(separator: ", ")

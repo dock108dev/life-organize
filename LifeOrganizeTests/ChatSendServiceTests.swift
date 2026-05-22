@@ -23,7 +23,7 @@ final class ChatSendServiceTests: XCTestCase {
                 rawResponseText: canonicalExtractionJSON(
                     things: [canonicalThing("thing_1", name: "Oil Change", category: "vehicle")],
                     events: [
-                        canonicalEvent("event_1", title: "Changed oil", thingRef: "thing_1", occurredAt: "2027-01-15"),
+                        canonicalEvent("event_1", title: "Changed oil", thingRef: "thing_1", occurredAt: "2027-01-15")
                     ]
                 ),
                 requestJSON: #"{"model":"test"}"#,
@@ -211,19 +211,19 @@ final class ChatSendServiceTests: XCTestCase {
                         things: [
                             canonicalThing("thing_1", name: "Oil Change", category: "vehicle"),
                             canonicalThing("thing_2", name: "Domains", category: "purchase"),
-                            canonicalThing("thing_3", name: "Garage Filter", category: "home_maintenance"),
+                            canonicalThing("thing_3", name: "Garage Filter", category: "home_maintenance")
                         ],
                         events: [
                             canonicalEvent("event_1", title: "Changed oil", thingRef: "thing_1", occurredAt: "2027-01-15"),
-                            canonicalEvent("event_2", title: "Replaced filter", thingRef: "thing_3", occurredAt: "2027-01-15"),
+                            canonicalEvent("event_2", title: "Replaced filter", thingRef: "thing_3", occurredAt: "2027-01-15")
                         ],
                         rules: [
                             canonicalRule("rule_1", title: "No buying domains", thingRef: "thing_2", startsAt: "2027-01-15", expiresAt: "2027-02-14"),
-                            canonicalRule("rule_2", title: "No new hardware", thingRef: nil, startsAt: "2027-01-15", expiresAt: "2027-07-01"),
+                            canonicalRule("rule_2", title: "No new hardware", thingRef: nil, startsAt: "2027-01-15", expiresAt: "2027-07-01")
                         ],
                         notes: [
                             canonicalNote("note_1", text: "Garage filter is in the cabinet.", linkedThingRefs: ["thing_3"]),
-                            canonicalNote("note_2", text: "Oil change receipt is in the glove box.", linkedThingRefs: ["thing_1"]),
+                            canonicalNote("note_2", text: "Oil change receipt is in the glove box.", linkedThingRefs: ["thing_1"])
                         ]
                     )
                 )
@@ -281,7 +281,7 @@ final class ChatSendServiceTests: XCTestCase {
                 payload: ExtractionResponsePayload(
                     rawResponseText: canonicalExtractionJSON(
                         things: [
-                            canonicalThing("thing_1", name: "Honda", category: "vehicle"),
+                            canonicalThing("thing_1", name: "Honda", category: "vehicle")
                         ],
                         events: [
                             canonicalEvent(
@@ -303,10 +303,10 @@ final class ChatSendServiceTests: XCTestCase {
                                         valueKind: "string",
                                         stringValue: "garage",
                                         sourceText: "in the garage"
-                                    ),
+                                    )
                                 ],
                                 rawText: "Honda is at 48,231 miles in the garage."
-                            ),
+                            )
                         ]
                     )
                 )
@@ -346,11 +346,11 @@ final class ChatSendServiceTests: XCTestCase {
                     rawResponseText: canonicalExtractionJSON(
                         things: [
                             canonicalThing("thing_1", name: "Oil Change", category: "vehicle"),
-                            canonicalThing("thing_2", name: "Domains", category: "purchase"),
+                            canonicalThing("thing_2", name: "Domains", category: "purchase")
                         ],
                         events: [
                             canonicalEvent("event_1", title: "Changed oil", thingRef: "thing_1", occurredAt: "2027-01-15"),
-                            canonicalEvent("event_2", title: "", thingRef: "thing_1", occurredAt: "soon"),
+                            canonicalEvent("event_2", title: "", thingRef: "thing_1", occurredAt: "soon")
                         ],
                         rules: [
                             canonicalRule(
@@ -359,7 +359,7 @@ final class ChatSendServiceTests: XCTestCase {
                                 thingRef: "thing_2",
                                 startsAt: "2027-01-15",
                                 expiresAt: "2027-02-14"
-                            ),
+                            )
                         ]
                     ),
                     requestJSON: #"{"model":"test"}"#,
@@ -416,7 +416,7 @@ final class ChatSendServiceTests: XCTestCase {
                 payload: ExtractionResponsePayload(
                     rawResponseText: canonicalExtractionJSON(
                         notes: [
-                            canonicalNote("note_1", text: "Garage filter should be replaced every 3 months."),
+                            canonicalNote("note_1", text: "Garage filter should be replaced every 3 months.")
                         ]
                     )
                 )
@@ -477,7 +477,7 @@ final class ChatSendServiceTests: XCTestCase {
                 payload: ExtractionResponsePayload(
                     rawResponseText: canonicalExtractionJSON(
                         events: [
-                            canonicalEvent("event_1", title: "Changed oil", thingRef: nil, occurredAt: "2027-01-15"),
+                            canonicalEvent("event_1", title: "Changed oil", thingRef: nil, occurredAt: "2027-01-15")
                         ]
                     )
                 )

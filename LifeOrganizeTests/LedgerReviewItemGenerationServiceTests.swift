@@ -40,17 +40,17 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
         airFilters.events = [
             event("Replaced HVAC air filter", day: 1, type: .replacement, thing: airFilters),
             event("Replaced HVAC air filter", day: 91, type: .replacement, thing: airFilters),
-            event("Replaced HVAC air filter", day: 181, type: .replacement, thing: airFilters),
+            event("Replaced HVAC air filter", day: 181, type: .replacement, thing: airFilters)
         ]
         dogFood.events = [
             event("Bought dog food", day: 1, type: .purchase, thing: dogFood),
             event("Bought dog food", day: 25, type: .purchase, thing: dogFood),
-            event("Bought dog food", day: 51, type: .purchase, thing: dogFood),
+            event("Bought dog food", day: 51, type: .purchase, thing: dogFood)
         ]
         vehicle.events = [
             event("Oil change", day: 1, type: .maintenance, thing: vehicle, mileage: 30_000, subtype: "oil_change"),
             event("Oil change", day: 91, type: .maintenance, thing: vehicle, mileage: 35_000, subtype: "oil_change"),
-            event("Oil change", day: 181, type: .maintenance, thing: vehicle, mileage: 40_000, subtype: "oil_change"),
+            event("Oil change", day: 181, type: .maintenance, thing: vehicle, mileage: 40_000, subtype: "oil_change")
         ]
         let overdue = LedgerRule(
             title: "Replace smoke alarm battery",
@@ -82,7 +82,7 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
                     valueKind: .date,
                     dateValue: "2026-05-15",
                     sourceText: "May 15"
-                ),
+                )
             ]
         )
         let needsNaming = Thing(name: "changed oil", normalizedKey: "changed oil")
@@ -109,7 +109,7 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
             .extractionReview,
             .duplicateThing,
             .conflictingDate,
-            .normalizationCandidate,
+            .normalizationCandidate
         ])))
         XCTAssertTrue(items.first { $0.kind == .intervalReminder && $0.title.contains("Air filter") }?.detail.contains("90 days") == true)
         XCTAssertTrue(items.first { $0.kind == .intervalReminder && $0.title.contains("Dog food") }?.detail.contains("Saved records") == true)
@@ -241,7 +241,7 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
         filters.events = [
             event("Replaced HVAC air filter", day: 1, type: .replacement, thing: filters),
             event("Replaced HVAC air filter", day: 91, type: .replacement, thing: filters),
-            event("Replaced HVAC air filter", day: 181, type: .replacement, thing: filters),
+            event("Replaced HVAC air filter", day: 181, type: .replacement, thing: filters)
         ]
         filters.rules = [
             LedgerRule(
@@ -249,7 +249,7 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
                 ruleType: .reminder,
                 startsAt: date(day: 190),
                 thing: filters
-            ),
+            )
         ]
         context.insert(filters)
         try context.save()
@@ -309,7 +309,7 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
             eventType: type,
             metadataEntries: metadata ?? [
                 mileage.map { LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: $0, unit: "mi") },
-                subtype.map { LedgerEventMetadataEntry(key: .subtype, valueKind: .string, stringValue: $0) },
+                subtype.map { LedgerEventMetadataEntry(key: .subtype, valueKind: .string, stringValue: $0) }
             ].compactMap { $0 },
             thing: thing
         )

@@ -265,7 +265,7 @@ struct SearchService {
         var fields = [
             LocalSearchField(key: .name, rawValue: thing.name, weight: 100),
             LocalSearchField(key: .category, rawValue: thing.category?.rawValue, weight: 35),
-            LocalSearchField(key: .body, rawValue: thing.details, weight: 25),
+            LocalSearchField(key: .body, rawValue: thing.details, weight: 25)
         ]
         fields.append(contentsOf: aliasFields(for: thing, weight: 90))
 
@@ -298,7 +298,7 @@ struct SearchService {
             LocalSearchField(key: .eventType, rawValue: event.eventType.rawValue, weight: 55),
             LocalSearchField(key: .rawText, rawValue: event.rawText, weight: 45),
             LocalSearchField(key: .note, rawValue: event.note, weight: 55),
-            LocalSearchField(key: .linkedThingName, rawValue: linkedThing?.name, weight: 80),
+            LocalSearchField(key: .linkedThingName, rawValue: linkedThing?.name, weight: 80)
         ]
         fields.append(contentsOf: linkedThing.map { aliasFields(for: $0, weight: 70) } ?? [])
         fields.append(contentsOf: metadataFields(for: event))
@@ -341,7 +341,7 @@ struct SearchService {
             LocalSearchField(key: .reminderBehavior, rawValue: rule.continuityBehavior.rawValue, weight: 65),
             LocalSearchField(key: .reminderStatus, rawValue: presentation.lane.title, weight: 75),
             LocalSearchField(key: .reminderStatus, rawValue: presentation.badge, weight: 70),
-            LocalSearchField(key: .reminderStatus, rawValue: presentation.primaryLine, weight: 65),
+            LocalSearchField(key: .reminderStatus, rawValue: presentation.primaryLine, weight: 65)
         ]
         fields.append(contentsOf: ruleDateFields(for: rule))
         fields.append(contentsOf: linkedThing.map { aliasFields(for: $0, weight: 70) } ?? [])
@@ -369,7 +369,7 @@ struct SearchService {
     func record(for note: LedgerNote) -> LocalSearchRecord {
         let primaryThing = note.linkedThings.first
         var fields = [
-            LocalSearchField(key: .body, rawValue: note.text, weight: 65),
+            LocalSearchField(key: .body, rawValue: note.text, weight: 65)
         ]
         fields.append(contentsOf: note.linkedThings.map { LocalSearchField(key: .linkedThingName, rawValue: $0.name, weight: 75) })
         fields.append(contentsOf: note.linkedThings.flatMap { aliasFields(for: $0, weight: 65) })
@@ -402,7 +402,7 @@ struct SearchService {
             subtitle: DateFormatting.shortDate.string(from: message.createdAt),
             body: message.text,
             searchableFields: [
-                LocalSearchField(key: .chatText, rawValue: message.text, weight: 40),
+                LocalSearchField(key: .chatText, rawValue: message.text, weight: 40)
             ].filter { !$0.normalizedValue.isEmpty },
             createdAt: message.createdAt,
             occurredAt: nil,
@@ -435,7 +435,7 @@ struct SearchService {
                 LocalSearchField(key: .metadata, rawValue: entry.numberValue.flatMap(compactThousandsText), weight: 50),
                 LocalSearchField(key: .metadata, rawValue: entry.dateValue, weight: 60),
                 LocalSearchField(key: .metadata, rawValue: entry.unit, weight: 50),
-                LocalSearchField(key: .metadata, rawValue: entry.sourceText, weight: 50),
+                LocalSearchField(key: .metadata, rawValue: entry.sourceText, weight: 50)
             ]
         }
     }
@@ -477,7 +477,7 @@ struct SearchService {
     private func reminderSubtitle(behaviorDisplay: String, statusDisplay: String) -> String? {
         [
             behaviorDisplay,
-            statusDisplay,
+            statusDisplay
         ]
         .compactMap { $0?.nilIfEmpty }
         .joined(separator: " · ")

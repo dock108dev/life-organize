@@ -59,10 +59,10 @@ func singleEventResponse(
 ) -> String {
     canonicalResponse(
         things: [
-            thing(thingRef, name: thingName, category: thingCategory),
+            thing(thingRef, name: thingName, category: thingCategory)
         ],
         events: [
-            event(eventRef, title: title, thingRef: thingRef, occurredAt: occurredAt, eventType: eventType, metadata: metadata),
+            event(eventRef, title: title, thingRef: thingRef, occurredAt: occurredAt, eventType: eventType, metadata: metadata)
         ]
     )
 }
@@ -149,7 +149,7 @@ private func resolvedDate(_ date: String?, sourceText: String?, confidence: Doub
 private func jsonLiteral(_ value: String?) -> String {
     guard let value else { return "null" }
     let data = (try? JSONEncoder().encode(value)) ?? Data(#""""#.utf8)
-    return String(decoding: data, as: UTF8.self)
+    return String(data: data, encoding: .utf8) ?? #""""#
 }
 
 private func jsonNumberLiteral(_ value: Double?) -> String {

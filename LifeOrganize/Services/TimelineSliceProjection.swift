@@ -76,7 +76,7 @@ struct TimelineSliceProjection {
                     linkedThings: contexts,
                     relationshipContext: relationshipIndex.relationshipContext(for: .thing(thing.id)),
                     textValues: [thing.name, thing.details, thing.category?.displayName].compactMap { $0 } + thing.aliases
-                ),
+                )
             ]
 
             if thing.updatedAt != thing.createdAt {
@@ -134,7 +134,7 @@ struct TimelineSliceProjection {
                     dateKind: .dueStart,
                     timelineDate: reminder.startsAt,
                     relationshipIndex: relationshipIndex
-                ),
+                )
             ]
 
             if let manuallyDeactivatedAt = reminder.manuallyDeactivatedAt {
@@ -180,7 +180,7 @@ struct TimelineSliceProjection {
                         linkedThings: relationshipIndex.thingContexts(for: .note(note.id), fallback: note.linkedThings),
                         relationshipContext: relationshipIndex.relationshipContext(for: .note(note.id)),
                     textValues: sharedValues
-                ),
+                )
             ]
 
             if note.updatedAt != note.createdAt {
@@ -251,7 +251,7 @@ struct TimelineSliceProjection {
             summaryText,
             sourceKind.displayName,
             dateKind.displayName,
-            relationshipContext?.sourceLabel,
+            relationshipContext?.sourceLabel
         ].compactMap { $0 }
         let linkedThingTextValues = linkedThings.flatMap { context in
             [context.name] + context.aliases + [context.relationshipSourceLabel].compactMap { $0 }

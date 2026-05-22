@@ -66,7 +66,7 @@ final class RelationshipTraversalServiceTests: XCTestCase {
                 relation: .mentionsThing,
                 createdBy: .extraction,
                 sourceMessageID: message.id
-            ),
+            )
         ]
 
         let results = RelationshipTraversalService().relatedRecords(
@@ -126,7 +126,7 @@ final class RelationshipTraversalServiceTests: XCTestCase {
                 targetID: missingNoteID,
                 relation: .sameMessage,
                 createdBy: .system
-            ),
+            )
         ]
 
         let results = RelationshipTraversalService().relatedRecords(
@@ -208,7 +208,7 @@ final class RelationshipTraversalServiceTests: XCTestCase {
                 relation: .sameMessage,
                 createdBy: .system,
                 sourceMessageID: message.id
-            ),
+            )
         ]
 
         let results = RelationshipTraversalService().relatedRecords(
@@ -223,7 +223,7 @@ final class RelationshipTraversalServiceTests: XCTestCase {
                     alphaSharedThingEvent,
                     sharedSourceEvent,
                     sameMessageEvent,
-                    directEvent,
+                    directEvent
                 ],
                 rules: [rule],
                 entityLinks: links
@@ -240,7 +240,7 @@ final class RelationshipTraversalServiceTests: XCTestCase {
                 .event(sharedSourceEvent.id),
                 .event(alphaSharedThingEvent.id),
                 .event(zetaSharedThingEvent.id),
-                .event(textOverlapEvent.id),
+                .event(textOverlapEvent.id)
             ]
         )
         XCTAssertEqual(
@@ -344,7 +344,7 @@ final class RelationshipTraversalServiceTests: XCTestCase {
                 relation: .primaryThing,
                 createdBy: .extraction,
                 sourceMessageID: message.id
-            ),
+            )
         ]
 
         let results = RelationshipTraversalService().relatedRecords(

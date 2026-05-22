@@ -121,7 +121,7 @@ final class DerivedFieldMaintenanceTests: XCTestCase {
         let links = [
             EntityLink(sourceType: .event, sourceID: event.id, targetType: .thing, targetID: source.id, relation: .primaryThing, createdBy: .extraction, sourceMessageID: message.id),
             EntityLink(sourceType: .rule, sourceID: rule.id, targetType: .thing, targetID: source.id, relation: .primaryThing, createdBy: .extraction, sourceMessageID: message.id),
-            EntityLink(sourceType: .note, sourceID: note.id, targetType: .thing, targetID: source.id, relation: .aboutThing, createdBy: .extraction, sourceMessageID: message.id),
+            EntityLink(sourceType: .note, sourceID: note.id, targetType: .thing, targetID: source.id, relation: .aboutThing, createdBy: .extraction, sourceMessageID: message.id)
         ]
         let service = DerivedFieldMaintenanceService(modelContext: context, now: { now })
 
@@ -182,7 +182,7 @@ final class DerivedFieldMaintenanceTests: XCTestCase {
             EntityLink(sourceType: .chatMessage, sourceID: message.id, targetType: .thing, targetID: source.id, relation: .mentionsThing, createdBy: .extraction, sourceMessageID: message.id),
             EntityLink(sourceType: .event, sourceID: event.id, targetType: .thing, targetID: source.id, relation: .primaryThing, createdBy: .extraction, sourceMessageID: message.id),
             EntityLink(sourceType: .rule, sourceID: rule.id, targetType: .thing, targetID: source.id, relation: .primaryThing, createdBy: .extraction, sourceMessageID: message.id),
-            EntityLink(sourceType: .note, sourceID: note.id, targetType: .thing, targetID: source.id, relation: .aboutThing, createdBy: .extraction, sourceMessageID: message.id),
+            EntityLink(sourceType: .note, sourceID: note.id, targetType: .thing, targetID: source.id, relation: .aboutThing, createdBy: .extraction, sourceMessageID: message.id)
         ]
         let service = DerivedFieldMaintenanceService(modelContext: context, now: { now })
 

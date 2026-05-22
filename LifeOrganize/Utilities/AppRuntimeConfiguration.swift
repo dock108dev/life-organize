@@ -5,7 +5,7 @@ enum AppDefaultsKeys {
     static let developerModeUnlocked = "DeveloperMode.isUnlocked"
 
     static let all = [
-        developerModeUnlocked,
+        developerModeUnlocked
     ]
 }
 
@@ -171,7 +171,7 @@ struct AppRuntimeConfiguration {
     ) -> [String] {
         let supportedPrefixes = [
             "-seed-scenario=",
-            "--seed-scenario=",
+            "--seed-scenario="
         ]
         let explicitIDs: [String] = arguments.compactMap { argument in
             guard let prefix = supportedPrefixes.first(where: { argument.hasPrefix($0) }) else {
@@ -319,7 +319,7 @@ struct AppRuntimeConfiguration {
         let relatedURLs = [
             storeURL,
             URL(fileURLWithPath: storeURL.path + "-shm"),
-            URL(fileURLWithPath: storeURL.path + "-wal"),
+            URL(fileURLWithPath: storeURL.path + "-wal")
         ]
         for url in relatedURLs where fileManager.fileExists(atPath: url.path) {
             do {

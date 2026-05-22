@@ -51,7 +51,7 @@ struct ExtractionRecoveryMaintenanceService {
                     ExtractionWarning(
                         code: ExtractionErrorCode.unknown.rawValue,
                         message: message.extractionError ?? "The saved entry can be retried."
-                    ),
+                    )
                 ]
             )
             .jsonStringOrEmpty()

@@ -155,7 +155,7 @@ struct ThingResolver {
             LedgerReviewItemKind.normalizationCandidate.rawValue,
             thing.id.uuidString,
             targetThingID.uuidString,
-            candidate.matchReason.rawValue,
+            candidate.matchReason.rawValue
         ].joined(separator: "|")
         let existingItems = try modelContext.fetch(FetchDescriptor<LedgerReviewItem>())
         guard !existingItems.contains(where: { $0.dedupeKey == dedupeKey }) else { return }
@@ -166,7 +166,7 @@ struct ThingResolver {
                 "source key: \(evidence.sourceKey)",
                 "matched: \(evidence.matchedText)",
                 "matched key: \(evidence.matchedKey)",
-                evidence.modelConfidence.map { "model confidence: \(LedgerDisplayFormatting.percent($0))" },
+                evidence.modelConfidence.map { "model confidence: \(LedgerDisplayFormatting.percent($0))" }
             ].compactMap { $0 }.joined(separator: "; ")
         }
         let item = LedgerReviewItem(
@@ -196,7 +196,7 @@ struct ThingResolver {
                     sourceID: targetThingID,
                     summary: candidate.targetName,
                     detail: evidenceDetails.joined(separator: " | ").nilIfEmpty
-                ),
+                )
             ],
             createdAt: now(),
             updatedAt: now()

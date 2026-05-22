@@ -128,7 +128,7 @@ final class ScenarioRunArtifactBundleTests: XCTestCase {
                         note: nil,
                         metadata: [],
                         source: ExportSource(kind: "manual")
-                    ),
+                    )
                 ],
                 rules: [],
                 notes: [],
@@ -205,7 +205,7 @@ final class ScenarioRunArtifactBundleTests: XCTestCase {
                     targetID: message.id,
                     confidence: 1,
                     evidence: [
-                        LedgerReviewItemEvidence(sourceType: .chatMessage, sourceID: message.id, summary: message.text, detail: nil),
+                        LedgerReviewItemEvidence(sourceType: .chatMessage, sourceID: message.id, summary: message.text, detail: nil)
                     ],
                     createdAt: now,
                     updatedAt: now
@@ -270,12 +270,12 @@ final class ScenarioRunArtifactBundleTests: XCTestCase {
                             recordType: "event",
                             match: ScenarioSemanticMatch(titleContains: "Oil"),
                             minCount: 1
-                        ),
+                        )
                     ],
                     expectedScreenshots: expectedScreenshots,
                     sourceTestIdentifier: "LifeOrganizeUITests/testLaunchTabsFakeExtractionAndPersistenceAcrossRelaunch",
                     durationSeconds: 12
-                ),
+                )
             ],
             requiresXCTestResultBundle: requiresXCTest
         )

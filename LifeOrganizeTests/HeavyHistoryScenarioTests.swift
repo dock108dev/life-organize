@@ -27,7 +27,7 @@ final class HeavyHistoryScenarioTests: XCTestCase {
             ExtractionStatus.partiallySucceeded.rawValue,
             ExtractionStatus.failed.rawValue,
             ExtractionStatus.failedNeedsReview.rawValue,
-            ExtractionStatus.needsReview.rawValue,
+            ExtractionStatus.needsReview.rawValue
         ])
         let reviewMessages = records.chatMessages.filter { message in
             guard message.role == ChatRole.user.rawValue else { return false }

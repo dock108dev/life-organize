@@ -5,14 +5,14 @@ enum V1ScopeContract {
     static let activeSettingsRows: [SettingsRow] = [
         .serviceToken,
         .clearLocalData,
-        .exportLocalJSON,
+        .exportLocalJSON
     ]
 
     static let allowedSettingsRows: [SettingsRow] = [
         .serviceToken,
         .extractionDebug,
         .clearLocalData,
-        .exportLocalJSON,
+        .exportLocalJSON
     ]
 
     static let activePersistenceModels: [PersistenceModel] = [
@@ -23,11 +23,11 @@ enum V1ScopeContract {
         .event,
         .rule,
         .note,
-        .reviewItem,
+        .reviewItem
     ]
 
     static let allowedPersistenceModels: [PersistenceModel] = activePersistenceModels + [
-        .reminder,
+        .reminder
     ]
 
     static let allowedAIServiceUses: [AIServiceUse] = [
@@ -36,7 +36,7 @@ enum V1ScopeContract {
         .dateParsing,
         .recallFormatting,
         .webLookup,
-        .webImport,
+        .webImport
     ]
 
     static let allowedSearchModes: [SearchMode] = [.localSubstring, .webSearch]
@@ -47,7 +47,7 @@ enum V1ScopeContract {
         .actionCandidate,
         .patternInference,
         .timelineSlice,
-        .searchFirstAffordance,
+        .searchFirstAffordance
     ]
 
     static let allowedLedgerRouteNameFragments: Set<String> = [
@@ -65,7 +65,7 @@ enum V1ScopeContract {
         "retry",
         "search",
         "summary",
-        "timeline",
+        "timeline"
     ]
 
     static let bannedRouteNameFragments: Set<String> = [
@@ -88,7 +88,7 @@ enum V1ScopeContract {
         "streak",
         "sync",
         "vector",
-        "voice",
+        "voice"
     ]
 
     static let bannedProductSurfaceNameFragments: Set<String> = [
@@ -99,14 +99,14 @@ enum V1ScopeContract {
         "chatbot",
         "coach",
         "copilot",
-        "recommend",
+        "recommend"
     ]
 
     static let internalProviderNameFragments: Set<String> = [
         "API",
         "HTTP",
-        
-        "Keychain",
+
+        "Keychain"
     ]
 
     static let bannedPersistenceModelNames: Set<String> = [
@@ -127,7 +127,7 @@ enum V1ScopeContract {
         "Sync",
         "User",
         "Vector",
-        "VoiceTranscript",
+        "VoiceTranscript"
     ]
 
     static let bannedFrameworkImports: Set<String> = [
@@ -144,7 +144,7 @@ enum V1ScopeContract {
         "Supabase",
         "UserNotifications",
         "WatchConnectivity",
-        "WidgetKit",
+        "WidgetKit"
     ]
 
     static let bannedDependencyTerms: Set<String> = [
@@ -160,7 +160,7 @@ enum V1ScopeContract {
         "Speech",
         "Supabase",
         "WatchConnectivity",
-        "WidgetKit",
+        "WidgetKit"
     ]
 
     static let bannedAIServiceInterfaceMethodFragments: Set<String> = [
@@ -174,7 +174,7 @@ enum V1ScopeContract {
         "habit",
         "insight",
         "mood",
-        "recommend",
+        "recommend"
     ]
 
     static let bannedNotificationCopyFragments: Set<String> = [
@@ -190,7 +190,7 @@ enum V1ScopeContract {
         "notification permission",
         "stay consistent",
         "streak",
-        "you haven't checked in",
+        "you haven't checked in"
     ]
 
     enum SettingsRow: String, CaseIterable {

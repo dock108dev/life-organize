@@ -44,7 +44,7 @@ extension LedgerReviewQueueService {
         let reason = [
             item.detail.nilIfEmpty,
             intervalEvidence.nilIfEmpty,
-            "No automatic recurrence has been scheduled.",
+            "No automatic recurrence has been scheduled."
         ].compactMap { $0 }.joined(separator: "\n\n")
         return LedgerReviewReminderDraft(
             title: "\(targetThing.name) reminder",

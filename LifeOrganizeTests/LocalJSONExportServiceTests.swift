@@ -74,7 +74,7 @@ final class LocalJSONExportServiceTests: XCTestCase {
                     numberValue: 48231,
                     unit: "mi",
                     sourceText: "48,231 miles"
-                ),
+                )
             ],
             thing: thing,
             sourceMessage: message
@@ -141,7 +141,7 @@ final class LocalJSONExportServiceTests: XCTestCase {
             thing.id.uuidString,
             event.id.uuidString,
             rule.id.uuidString,
-            note.id.uuidString,
+            note.id.uuidString
         ]))
 
         let exportedAttempt = try XCTUnwrap(records.extractionRuns.first)
@@ -158,7 +158,7 @@ final class LocalJSONExportServiceTests: XCTestCase {
             thing.id.uuidString,
             event.id.uuidString,
             rule.id.uuidString,
-            note.id.uuidString,
+            note.id.uuidString
         ]))
 
         XCTAssertEqual(records.things.first?.source.chatMessageId, message.id.uuidString)
@@ -234,7 +234,7 @@ final class LocalJSONExportServiceTests: XCTestCase {
             thingID.uuidString,
             eventID.uuidString,
             ruleID.uuidString,
-            noteID.uuidString,
+            noteID.uuidString
         ]))
     }
 
@@ -266,7 +266,7 @@ final class LocalJSONExportServiceTests: XCTestCase {
                     sourceID: event.id,
                     summary: event.title,
                     detail: "90-day interval"
-                ),
+                )
             ],
             createdAt: createdAt,
             updatedAt: createdAt
@@ -322,7 +322,7 @@ final class LocalJSONExportServiceTests: XCTestCase {
 
         let data = try makeService(context: context).jsonData()
         let decoded = try JSONDecoder().decode(LedgerExportEnvelope.self, from: data)
-        let json = String(decoding: data, as: UTF8.self)
+        let json = try XCTUnwrap(String(data: data, encoding: .utf8))
 
         XCTAssertEqual(decoded.records.chatMessages.first?.text, "Changed oil.")
         XCTAssertFalse(json.contains("unit-test-device-token"))
@@ -358,7 +358,7 @@ final class LocalJSONExportServiceTests: XCTestCase {
 
         let data = try makeService(context: context, exportedAt: completedAt).jsonData()
         let envelope = try JSONDecoder().decode(LedgerExportEnvelope.self, from: data)
-        let json = String(decoding: data, as: UTF8.self)
+        let json = try XCTUnwrap(String(data: data, encoding: .utf8))
         let exportedRule = try XCTUnwrap(envelope.records.rules.first)
 
         XCTAssertEqual(envelope.schemaVersion, 3)

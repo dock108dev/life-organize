@@ -25,7 +25,7 @@ final class LifeOrganizeTests: XCTestCase {
             "Life OS",
             "Insights",
             "Assistant",
-            "Settings",
+            "Settings"
         ]
 
         XCTAssertTrue(Set(AppTab.allCases.map(\.title)).isDisjoint(with: forbiddenLabels))

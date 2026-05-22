@@ -122,7 +122,7 @@ extension ScenarioFixtureValidator {
             metadata.stringValue != nil,
             metadata.numberValue != nil,
             metadata.dateValue != nil,
-            metadata.boolValue != nil,
+            metadata.boolValue != nil
         ].filter { $0 }.count
         try require(populatedValues == 1, "Event \(eventID) metadata \(metadata.key) must set exactly one value field.")
         switch metadata.valueKind {

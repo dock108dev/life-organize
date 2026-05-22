@@ -94,7 +94,7 @@ extension LedgerEvent {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
         guard let data = try? encoder.encode(entries) else { return "[]" }
-        return String(decoding: data, as: UTF8.self)
+        return String(data: data, encoding: .utf8) ?? "[]"
     }
 }
 
@@ -103,6 +103,6 @@ extension LedgerReviewItem {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
         guard let data = try? encoder.encode(evidence) else { return "[]" }
-        return String(decoding: data, as: UTF8.self)
+        return String(data: data, encoding: .utf8) ?? "[]"
     }
 }

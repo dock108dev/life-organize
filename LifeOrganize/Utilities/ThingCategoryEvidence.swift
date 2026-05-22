@@ -160,7 +160,7 @@ extension ThingNormalizer {
         (.maintenance, ["change oil", "oil change", "replace", "service"]),
         (.subscription, ["membership", "monthly", "plan", "renewal", "subscription"]),
         (.purchase, ["amount", "bought", "buy", "order", "paid", "purchase", "receipt", "vendor"]),
-        (.project, ["milestone", "project", "roadmap", "task"]),
+        (.project, ["milestone", "project", "roadmap", "task"])
     ]
 
     private static let compatibleCategoryGroups: [Set<ThingCategory>] = [
@@ -168,7 +168,7 @@ extension ThingNormalizer {
         [.vehicle, .maintenance],
         [.pet, .food],
         [.work, .project],
-        [.purchase, .subscription],
+        [.purchase, .subscription]
     ]
 }
 

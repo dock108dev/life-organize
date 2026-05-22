@@ -107,7 +107,7 @@ struct EventMetadataDisplayFormatter {
         .serviceReset,
         .recurrenceEvidence,
         .other,
-        .sourceText,
+        .sourceText
     ]
 
     private static func amountDisplay(_ amount: Double, unit: String?) -> String {

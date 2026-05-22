@@ -14,7 +14,7 @@ enum LifeOrganizeSchemaV1: VersionedSchema {
             LifeOrganizeSchemaV1.Thing.self,
             LifeOrganizeSchemaV1.LedgerEvent.self,
             LifeOrganizeSchemaV1.LedgerRule.self,
-            LifeOrganizeSchemaV1.LedgerNote.self,
+            LifeOrganizeSchemaV1.LedgerNote.self
         ]
     }
 

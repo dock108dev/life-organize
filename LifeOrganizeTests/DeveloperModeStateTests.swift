@@ -87,7 +87,7 @@ final class DeveloperModeStateTests: XCTestCase {
         let configuration = AppRuntimeConfiguration(arguments: [
             "LifeOrganize",
             "-ui-testing",
-            "-enable-developer-mode",
+            "-enable-developer-mode"
         ])
 
         XCTAssertTrue(configuration.isUITesting)

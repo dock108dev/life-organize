@@ -56,7 +56,7 @@ final class LedgerCopyRestraintTests: XCTestCase {
             LedgerFeedRowContent(item: .message(ChatMessage(role: .assistant, text: "Review:\nOne item needs a decision.", extractionStatus: .notRequired))),
             LedgerFeedRowContent(item: .event(event)),
             LedgerFeedRowContent(item: .reminder(reminder)),
-            LedgerFeedRowContent(item: .note(note)),
+            LedgerFeedRowContent(item: .note(note))
         ].flatMap(Self.feedText)
         let preview = ThingPreviewSnapshot(thing: thing, now: now, calendar: testCalendar)
         let detail = ThingDetailSnapshot(thing: thing, now: now, calendar: testCalendar)
@@ -78,16 +78,16 @@ final class LedgerCopyRestraintTests: XCTestCase {
             detail.statusSummary.label,
             detail.statusSummary.value,
             detail.reminderSummary.label,
-            detail.reminderSummary.value,
+            detail.reminderSummary.value
         ]
         let reminderText = [
             reminderPresentation.primaryLine,
-            reminderPresentation.badges.map(\.label).joined(separator: " "),
+            reminderPresentation.badges.map(\.label).joined(separator: " ")
         ]
         let reviewText = [
             reviewPresentation.title,
             reviewPresentation.detail ?? "",
-            reviewPresentation.rowLine.text,
+            reviewPresentation.rowLine.text
         ]
 
         return feedRows
@@ -106,7 +106,7 @@ final class LedgerCopyRestraintTests: XCTestCase {
             presentation.footerText,
             presentation.dateText,
             presentation.kindPillText,
-            presentation.rulePillText,
+            presentation.rulePillText
         ].compactMap(\.self)
             + presentation.secondaryLines.map(\.text)
             + presentation.badges.map(\.label)
@@ -127,7 +127,7 @@ final class LedgerCopyRestraintTests: XCTestCase {
             SettingsFeedback.deviceTokenSaved.message,
             SettingsFeedback.deviceTokenRemoved.message,
             SettingsFeedback.exportReady.message,
-            SettingsFeedback.localDataCleared.message,
+            SettingsFeedback.localDataCleared.message
         ]
     }
 
@@ -138,7 +138,7 @@ final class LedgerCopyRestraintTests: XCTestCase {
             content.primaryText,
             content.secondaryText,
             content.detailText,
-            content.linkedThingText,
+            content.linkedThingText
         ].compactMap(\.self)
     }
 
@@ -186,7 +186,7 @@ final class LedgerCopyRestraintTests: XCTestCase {
             "LLM",
             "raw response",
             "normalizedJSONText",
-            "requestJSON",
+            "requestJSON"
         ]
         let lowercased = text.lowercased()
         let offenders = bannedTerms.filter { lowercased.contains($0.lowercased()) }

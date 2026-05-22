@@ -57,7 +57,7 @@ final class ReminderContinuityPresentationTests: XCTestCase {
             (.dateBasedReminder, 0, nil, .reminderDueDate, "Now"),
             (.timeLimitedWindow, 2 * day, 4 * day, .reminderWindow, "Upcoming"),
             (.ongoing, -4 * day, -day, .reminderOngoing, "Review"),
-            (.recurringText, 3 * day, nil, .reminderRepeating, "Upcoming"),
+            (.recurringText, 3 * day, nil, .reminderRepeating, "Upcoming")
         ]
 
         for (behavior, startOffset, endOffset, typeSemantic, statusLabel) in scenarios {
@@ -125,7 +125,7 @@ final class ReminderContinuityPresentationTests: XCTestCase {
         XCTAssertEqual(rowLines.map(\.text), [
             "Due since \(RuleStatusService.date(rule.startsAt))",
             "Carried forward until completed or rescheduled",
-            "Keep policy active.",
+            "Keep policy active."
         ])
     }
 
@@ -234,11 +234,11 @@ final class ReminderContinuityPresentationTests: XCTestCase {
         XCTAssertEqual(service.rules([ongoing, window, due], in: .now, at: now).map(\.title), [
             "Pay insurance",
             "Use parking pass",
-            "Keep passport ready",
+            "Keep passport ready"
         ])
         XCTAssertEqual(service.rules([later, sooner], in: .comingUp, at: now).map(\.title), [
             "Sooner",
-            "Later",
+            "Later"
         ])
     }
 }

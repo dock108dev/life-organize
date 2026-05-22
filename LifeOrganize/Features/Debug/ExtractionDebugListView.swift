@@ -115,7 +115,7 @@ struct ExtractionDebugListView: View {
             attempt.errorCode?.rawValue,
             attempt.errorMessage,
             attempt.rawResponseText,
-            attempt.normalizedJSONText,
+            attempt.normalizedJSONText
         ]
         return fields.compactMap(\.self).contains { $0.localizedCaseInsensitiveContains(query) }
     }
@@ -154,7 +154,7 @@ private struct ExtractionAttemptRow: View {
         [
             attempt.modelName ?? "Unknown model",
             ExtractionDebugFormatting.dateTime.string(from: attempt.startedAt),
-            ExtractionDebugFormatting.duration(start: attempt.startedAt, end: attempt.completedAt),
+            ExtractionDebugFormatting.duration(start: attempt.startedAt, end: attempt.completedAt)
         ].joined(separator: " · ")
     }
 

@@ -73,4 +73,3 @@ extension SeedScenarioRecordBuilder {
         return try context.fetch(descriptor).first
     }
 }
-

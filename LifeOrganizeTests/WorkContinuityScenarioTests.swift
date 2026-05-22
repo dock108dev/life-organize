@@ -63,7 +63,7 @@ final class WorkContinuityScenarioTests: XCTestCase {
                     .event(vulnerabilityEvent.id),
                     .thing(cloudFunctions.id),
                     .thing(scanner.id),
-                    .thing(vulnerabilities.id),
+                    .thing(vulnerabilities.id)
                 ].contains($0.target)
             }
             .map { "\($0.source.rawValue):\(records.title(for: $0.target))" }
@@ -73,7 +73,7 @@ final class WorkContinuityScenarioTests: XCTestCase {
             "sharedSourceMessage:Reviewed vulnerability backlog",
             "sharedSourceMessage:Vulnerabilities",
             "sharedSourceMessage:Aster Cloud Functions",
-            "sharedSourceMessage:SignalScan",
+            "sharedSourceMessage:SignalScan"
         ])
 
         let relationshipAudit = auditLines(for: results, records: records)

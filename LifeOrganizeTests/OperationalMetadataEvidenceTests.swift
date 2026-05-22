@@ -44,7 +44,7 @@ final class OperationalMetadataEvidenceTests: XCTestCase {
         let envelope = try ExtractionService.parse(
             rawResponseText: canonicalExtractionJSON(
                 things: [
-                    canonicalThing("thing_1", name: "Car", category: "vehicle"),
+                    canonicalThing("thing_1", name: "Car", category: "vehicle")
                 ],
                 events: [
                     canonicalEvent(
@@ -79,9 +79,9 @@ final class OperationalMetadataEvidenceTests: XCTestCase {
                                 valueKind: "string",
                                 stringValue: "ABC123",
                                 sourceText: "ABC123"
-                            ),
+                            )
                         ]
-                    ),
+                    )
                 ]
             )
         ).envelope
@@ -100,7 +100,7 @@ final class OperationalMetadataEvidenceTests: XCTestCase {
                 payload: ExtractionResponsePayload(
                     rawResponseText: canonicalExtractionJSON(
                         things: [
-                            canonicalThing("thing_1", name: "Air Filter", category: "home_maintenance"),
+                            canonicalThing("thing_1", name: "Air Filter", category: "home_maintenance")
                         ],
                         events: [
                             canonicalEvent(
@@ -122,9 +122,9 @@ final class OperationalMetadataEvidenceTests: XCTestCase {
                                         valueKind: "boolean",
                                         boolValue: true,
                                         sourceText: "replaced"
-                                    ),
+                                    )
                                 ]
-                            ),
+                            )
                         ]
                     )
                 )
@@ -157,7 +157,7 @@ final class OperationalMetadataEvidenceTests: XCTestCase {
                 LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: 50_000, unit: "mi"),
                 LedgerEventMetadataEntry(key: .nextDueMileage, valueKind: .number, numberValue: 55_000, unit: "mi"),
                 LedgerEventMetadataEntry(key: .mileageInterval, valueKind: .number, numberValue: 5_000, unit: "mi"),
-                LedgerEventMetadataEntry(key: .nextDueDate, valueKind: .date, dateValue: "2027-03-15"),
+                LedgerEventMetadataEntry(key: .nextDueDate, valueKind: .date, dateValue: "2027-03-15")
             ],
             thing: car
         )

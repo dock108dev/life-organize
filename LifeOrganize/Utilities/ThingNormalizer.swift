@@ -135,7 +135,7 @@ enum ThingNormalizer {
             "cabin air filter",
             "car cabin filter",
             "vehicle cabin filter",
-            "auto cabin filter",
+            "auto cabin filter"
         ]) {
             return seed(named: "Cabin Air Filter")
         }
@@ -145,7 +145,7 @@ enum ThingNormalizer {
             "engine air filter",
             "vehicle air filter",
             "auto air filter",
-            "automotive air filter",
+            "automotive air filter"
         ]) {
             return seed(named: "Engine Air Filter")
         }
@@ -156,7 +156,7 @@ enum ThingNormalizer {
             "home air filter",
             "house filter",
             "return air filter",
-            "vent filter",
+            "vent filter"
         ]) {
             return seed(named: "Home Air Filters")
         }
@@ -182,7 +182,7 @@ enum ThingNormalizer {
         "next",
         "old",
         "the",
-        "today",
+        "today"
     ]
 
     private static let verbForms = [
@@ -209,27 +209,27 @@ enum ThingNormalizer {
         "visited": "visit",
         "visiting": "visit",
         "went": "go",
-        "going": "go",
+        "going": "go"
     ]
 
     private static let acronymDisplayWords = [
         "api": "API",
         "hvac": "HVAC",
         "id": "ID",
-        "nws": "NWS",
+        "nws": "NWS"
     ]
 
     private static let displaySurfacePassthroughWords: Set<String> = ["service"]
 
     private static let protectedProperNames: Set<String> = [
-        "rutgers",
+        "rutgers"
     ]
 
     private static let blockedOilPhrases = [
         "heating oil",
         "oil leak",
         "oil paint",
-        "olive oil",
+        "olive oil"
     ]
 
     private static let blockedFilterPhrases = [
@@ -240,7 +240,7 @@ enum ThingNormalizer {
         "vehicle air filter",
         "coffee filter",
         "pool filter",
-        "water filter",
+        "water filter"
     ]
 
     private static let blockedDomainPhrases = [
@@ -248,7 +248,7 @@ enum ThingNormalizer {
         "claims domain",
         "domain model",
         "math domain",
-        "work domain",
+        "work domain"
     ]
 
     static let seeds = [
@@ -265,7 +265,7 @@ enum ThingNormalizer {
                 "engine oil",
                 "engine oil change",
                 "car oil change",
-                "car oil changed",
+                "car oil changed"
             ]
         ),
         ThingSeed(
@@ -284,7 +284,7 @@ enum ThingNormalizer {
                 "return air filter",
                 "return air filters",
                 "vent filter",
-                "vent filters",
+                "vent filters"
             ]
         ),
         ThingSeed(
@@ -301,7 +301,7 @@ enum ThingNormalizer {
                 "auto air filter",
                 "auto air filters",
                 "automotive air filter",
-                "automotive air filters",
+                "automotive air filters"
             ]
         ),
         ThingSeed(
@@ -318,7 +318,7 @@ enum ThingNormalizer {
                 "vehicle cabin filter",
                 "vehicle cabin filters",
                 "auto cabin filter",
-                "auto cabin filters",
+                "auto cabin filters"
             ]
         ),
         ThingSeed(
@@ -337,9 +337,9 @@ enum ThingNormalizer {
                 "register domain",
                 "registering domains",
                 "renew domain",
-                "domain renewal",
+                "domain renewal"
             ]
-        ),
+        )
     ]
 }
 

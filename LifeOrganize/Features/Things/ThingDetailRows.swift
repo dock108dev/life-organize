@@ -42,7 +42,7 @@ struct LedgerEventRow: View {
 
     private var rowLines: [LedgerRowLine] {
         var lines = [
-            LedgerRowLine(text: DateFormatting.fullDate.string(from: event.occurredAt)),
+            LedgerRowLine(text: DateFormatting.fullDate.string(from: event.occurredAt))
         ]
         if let metadata = EventMetadataDisplayFormatter.summary(for: event.metadataEntries, eventType: event.eventType, limit: 3) {
             lines.append(LedgerRowLine(text: metadata))

@@ -182,7 +182,7 @@ struct LedgerFeedSectionSummary: Equatable {
     }
 }
 
-fileprivate enum LedgerFeedSummaryKind: Hashable {
+private enum LedgerFeedSummaryKind: Hashable {
     case message
     case event
     case reminder

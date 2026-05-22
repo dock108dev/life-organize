@@ -22,7 +22,7 @@ final class ChatIntentClassifierTests: XCTestCase {
             "Check again in 2 weeks.",
             "Check back Friday.",
             "Follow up about passport next week.",
-            "Remind me to replace the filter tomorrow.",
+            "Remind me to replace the filter tomorrow."
         ]
 
         for input in examples {

@@ -10,7 +10,7 @@ final class ChatSendServiceIdempotencyTests: XCTestCase {
             rawResponseText: canonicalExtractionJSON(
                 things: [
                     canonicalThing("thing_1", name: "Honda", category: "vehicle"),
-                    canonicalThing("thing_2", name: "Domains", category: "purchase"),
+                    canonicalThing("thing_2", name: "Domains", category: "purchase")
                 ],
                 events: [
                     canonicalEvent(
@@ -26,10 +26,10 @@ final class ChatSendServiceIdempotencyTests: XCTestCase {
                                 numberValue: 48231,
                                 unit: "mi",
                                 sourceText: "48,231 miles"
-                            ),
+                            )
                         ],
                         rawText: "Honda is at 48,231 miles."
-                    ),
+                    )
                 ],
                 rules: [
                     canonicalRule(
@@ -38,10 +38,10 @@ final class ChatSendServiceIdempotencyTests: XCTestCase {
                         thingRef: "thing_2",
                         startsAt: "2027-01-15",
                         expiresAt: "2027-02-14"
-                    ),
+                    )
                 ],
                 notes: [
-                    canonicalNote("note_1", text: "Honda receipt is in the glove box.", linkedThingRefs: ["thing_1"]),
+                    canonicalNote("note_1", text: "Honda receipt is in the glove box.", linkedThingRefs: ["thing_1"])
                 ]
             )
         )
@@ -100,7 +100,7 @@ final class ChatSendServiceIdempotencyTests: XCTestCase {
             link.sourceID.uuidString,
             link.targetType.rawValue,
             link.targetID.uuidString,
-            link.relation.rawValue,
+            link.relation.rawValue
         ].joined(separator: "|")
     }
 }

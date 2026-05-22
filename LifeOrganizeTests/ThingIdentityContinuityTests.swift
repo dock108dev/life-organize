@@ -36,7 +36,7 @@ final class ThingIdentityContinuityTests: XCTestCase {
             ("travel", .travel),
             ("rule_topic", .ruleTopic),
             ("other", .other),
-            ("unknown", .other),
+            ("unknown", .other)
         ]
 
         for (rawValue, category) in expectedMappings {
@@ -57,27 +57,27 @@ final class ThingIdentityContinuityTests: XCTestCase {
                         things: [
                             canonicalThing("thing_1", name: "Bowling", category: "other"),
                             canonicalThing("thing_2", name: "Car", category: "vehicle"),
-                            canonicalThing("thing_3", name: "HVAC Filter", category: "home_maintenance"),
+                            canonicalThing("thing_3", name: "HVAC Filter", category: "home_maintenance")
                         ],
                         events: [
                             canonicalEvent("event_1", title: "Bowling night", thingRef: "thing_1", occurredAt: "2027-01-15"),
                             canonicalEvent("event_2", title: "Changed car oil", thingRef: "thing_2", occurredAt: "2027-01-15"),
-                            canonicalEvent("event_3", title: "Replaced HVAC filter", thingRef: "thing_3", occurredAt: "2027-01-15"),
+                            canonicalEvent("event_3", title: "Replaced HVAC filter", thingRef: "thing_3", occurredAt: "2027-01-15")
                         ],
                         rules: [
                             canonicalRule("rule_1", title: "Reevaluate bowling", thingRef: "thing_1", startsAt: "2027-04-15", expiresAt: nil, ruleType: "reminder"),
                             canonicalRule("rule_2", title: "Schedule car inspection", thingRef: "thing_2", startsAt: "2027-02-15", expiresAt: nil, ruleType: "reminder"),
-                            canonicalRule("rule_3", title: "Replace home air filters", thingRef: "thing_3", startsAt: "2027-03-15", expiresAt: nil, ruleType: "reminder"),
+                            canonicalRule("rule_3", title: "Replace home air filters", thingRef: "thing_3", startsAt: "2027-03-15", expiresAt: nil, ruleType: "reminder")
                         ],
                         notes: [
                             canonicalNote("note_1", text: "Bowling shoes are in the hall closet.", linkedThingRefs: ["thing_1"]),
                             canonicalNote("note_2", text: "Car insurance card is in the glove box.", linkedThingRefs: ["thing_2"]),
-                            canonicalNote("note_3", text: "Home air filters are 20x20x1.", linkedThingRefs: ["thing_3"]),
+                            canonicalNote("note_3", text: "Home air filters are 20x20x1.", linkedThingRefs: ["thing_3"])
                         ],
                         aliases: [
                             canonicalAlias("thing_1", alias: "League Bowling"),
                             canonicalAlias("thing_2", alias: "Honda"),
-                            canonicalAlias("thing_3", alias: "Home Air Filters"),
+                            canonicalAlias("thing_3", alias: "Home Air Filters")
                         ]
                     )
                 )
@@ -202,13 +202,13 @@ final class ThingIdentityContinuityTests: XCTestCase {
                 existingThings: [
                     seedThing(named: "Home Air Filters"),
                     seedThing(named: "Engine Air Filter"),
-                    seedThing(named: "Cabin Air Filter"),
+                    seedThing(named: "Cabin Air Filter")
                 ],
                 expectedOutcome: .reviewCandidate,
                 expectedName: "Air Filter",
                 expectedNormalizedKey: "air filter",
                 expectedCategory: .homeMaintenance
-            ),
+            )
         ]
 
         for scenario in scenarios {

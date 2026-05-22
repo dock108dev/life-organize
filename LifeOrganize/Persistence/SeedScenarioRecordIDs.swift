@@ -43,7 +43,7 @@ struct SeedScenarioRecordIDs {
             Self.duplicateError(
                 chatMessageIDs + extractionRunIDs + thingIDs + eventIDs + ruleIDs + noteIDs + reviewItemIDs + entityLinkIDs,
                 label: "records"
-            ),
+            )
         ].compactMap { $0 }
     }
 
@@ -98,4 +98,3 @@ struct SeedScenarioRecordIDs {
         return "\(label) contains duplicate id \(duplicate)."
     }
 }
-

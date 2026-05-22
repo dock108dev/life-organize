@@ -12,7 +12,7 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
             message("Needs review", status: .needsReview),
             message("Partial", status: .partiallySucceeded),
             message("Waiting for key", status: .pendingToken),
-            message("Retry later", status: .pendingRetry),
+            message("Retry later", status: .pendingRetry)
         ]
         messages.forEach(context.insert)
         try context.save()
@@ -67,7 +67,7 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
             occurredAt: fixedTestNow,
             rawText: "Dentist",
             metadataEntries: [
-                LedgerEventMetadataEntry(key: .dueDate, valueKind: .date, dateValue: "2026-05-15"),
+                LedgerEventMetadataEntry(key: .dueDate, valueKind: .date, dateValue: "2026-05-15")
             ]
         )
         let overdue = LedgerRule(
@@ -154,7 +154,7 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
                 LedgerReviewItemEvidence(sourceType: .event, sourceID: event.id, summary: event.title, detail: nil),
                 LedgerReviewItemEvidence(sourceType: .rule, sourceID: rule.id, summary: rule.title, detail: nil),
                 LedgerReviewItemEvidence(sourceType: .none, sourceID: note.id, summary: note.text, detail: nil),
-                LedgerReviewItemEvidence(sourceType: .thing, sourceID: target.id, summary: target.name, detail: nil),
+                LedgerReviewItemEvidence(sourceType: .thing, sourceID: target.id, summary: target.name, detail: nil)
             ]
         )
         context.insert(source)
@@ -210,7 +210,7 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
             targetType: .thing,
             targetID: thing.id,
             evidence: [
-                LedgerReviewItemEvidence(sourceType: .event, sourceID: event.id, summary: event.title, detail: "90-day interval"),
+                LedgerReviewItemEvidence(sourceType: .event, sourceID: event.id, summary: event.title, detail: "90-day interval")
             ]
         )
         context.insert(thing)
@@ -288,7 +288,7 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
             targetID: target.id,
             evidence: [
                 LedgerReviewItemEvidence(sourceType: .thing, sourceID: target.id, summary: target.name, detail: nil),
-                LedgerReviewItemEvidence(sourceType: .thing, sourceID: source.id, summary: source.name, detail: nil),
+                LedgerReviewItemEvidence(sourceType: .thing, sourceID: source.id, summary: source.name, detail: nil)
             ]
         )
         context.insert(target)

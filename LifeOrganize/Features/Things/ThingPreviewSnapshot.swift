@@ -243,7 +243,7 @@ struct ThingPreviewSnapshot {
         if let latestEvent {
             let detail = [
                 DateFormatting.ledgerDateSummary(latestEvent.occurredAt, calendar: calendar, now: now),
-                latestEventMetadataSummary,
+                latestEventMetadataSummary
             ].compactMap { $0?.nilIfEmpty }.joined(separator: " · ")
             lines.append(ContinuityLine(
                 label: "Last event",
@@ -338,7 +338,7 @@ struct ThingPreviewSnapshot {
             let nextDate = dayInterval.flatMap { calendar.date(byAdding: .day, value: max($0, 1), to: latest.occurredAt) }
             let detail = [
                 "Next \(LedgerDisplayFormatting.mileage(latestMileage + mileageInterval))",
-                nextDate.map { DateFormatting.fullDate.string(from: $0) },
+                nextDate.map { DateFormatting.fullDate.string(from: $0) }
             ].compactMap { $0 }.joined(separator: " · ")
             return ContinuityLine(
                 label: "Service rhythm",

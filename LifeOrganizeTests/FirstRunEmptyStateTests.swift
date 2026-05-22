@@ -80,10 +80,11 @@ final class FirstRunEmptyStateTests: XCTestCase {
             modelContext: context,
             deviceTokenStore: InMemoryDeviceTokenStore(),
             dataGeneration: UUID(),
-            isDataGenerationCurrent: { _ in true }
-        ) { messageID in
-            persistedMessageID = messageID
-        }
+            isDataGenerationCurrent: { _ in true },
+            onRawMessagePersisted: { messageID in
+                persistedMessageID = messageID
+            }
+        )
 
         XCTAssertEqual(viewModel.draft, "  \n\t  ")
         XCTAssertFalse(viewModel.isCommittingSend)
@@ -102,10 +103,11 @@ final class FirstRunEmptyStateTests: XCTestCase {
             modelContext: context,
             deviceTokenStore: InMemoryDeviceTokenStore(),
             dataGeneration: UUID(),
-            isDataGenerationCurrent: { _ in true }
-        ) { _ in
-            rawMessagePersisted.fulfill()
-        }
+            isDataGenerationCurrent: { _ in true },
+            onRawMessagePersisted: { _ in
+                rawMessagePersisted.fulfill()
+            }
+        )
 
         await fulfillment(of: [rawMessagePersisted], timeout: 2)
 

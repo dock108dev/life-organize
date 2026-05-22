@@ -69,7 +69,7 @@ struct LocalSearchTimingParser {
             (["last", "month"], lastMonthRange),
             (["this", "year"], thisYearRange),
             (["last", "year"], lastYearRange),
-            (["upcoming"], upcomingRange),
+            (["upcoming"], upcomingRange)
         ]
 
         for (phrase, builder) in phrases {
@@ -177,7 +177,7 @@ struct LocalSearchTimingParser {
             "september": 9, "sep": 9, "sept": 9,
             "october": 10, "oct": 10,
             "november": 11, "nov": 11,
-            "december": 12, "dec": 12,
+            "december": 12, "dec": 12
         ]
         return months[word]
     }
@@ -185,7 +185,7 @@ struct LocalSearchTimingParser {
     private static func monthName(_ month: Int, year: Int, includeYear: Bool) -> String {
         let names = [
             "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December",
+            "July", "August", "September", "October", "November", "December"
         ]
         let name = names[month - 1]
         return includeYear ? "\(name) \(year)" : name

@@ -58,7 +58,7 @@ struct ExtractionEnvelope: Codable, Equatable {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
         let data = try encoder.encode(self)
-        return String(decoding: data, as: UTF8.self)
+        return String(data: data, encoding: .utf8) ?? ""
     }
 }
 

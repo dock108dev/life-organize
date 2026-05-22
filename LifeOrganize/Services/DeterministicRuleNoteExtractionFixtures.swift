@@ -8,7 +8,7 @@ let ruleNoteAndRecallFixtures: [DeterministicMessageExtractionFixture] = [
             canonicalResponse(
                 things: [thing("thing_dentist", name: "Dentist", category: "health")],
                 rules: [
-                    rule("rule_call_dentist", title: "Call dentist", thingRef: "thing_dentist", ruleType: "reminder", startsAt: "2027-01-20", expiresAt: nil, rawText: "Remind me to call dentist Jan 20"),
+                    rule("rule_call_dentist", title: "Call dentist", thingRef: "thing_dentist", ruleType: "reminder", startsAt: "2027-01-20", expiresAt: nil, rawText: "Remind me to call dentist Jan 20")
                 ]
             )
         }
@@ -38,7 +38,7 @@ let ruleNoteAndRecallFixtures: [DeterministicMessageExtractionFixture] = [
                 things: [thing("thing_domains", name: "Domains", category: "purchase")],
                 rules: [
                     rule("rule_domains", title: "No buying domains", thingRef: "thing_domains", ruleType: "restriction", startsAt: dateString(from: now), expiresAt: nil, rawText: "No buying domains long term, reevaluate in 90 days"),
-                    rule("rule_domains_review", title: "Reevaluate buying domains", thingRef: "thing_domains", ruleType: "reminder", startsAt: dateString(byAddingDays: 90, to: now), expiresAt: nil, rawText: "Reevaluate buying domains in 90 days"),
+                    rule("rule_domains_review", title: "Reevaluate buying domains", thingRef: "thing_domains", ruleType: "reminder", startsAt: dateString(byAddingDays: 90, to: now), expiresAt: nil, rawText: "Reevaluate buying domains in 90 days")
                 ]
             )
         }
@@ -50,7 +50,7 @@ let ruleNoteAndRecallFixtures: [DeterministicMessageExtractionFixture] = [
             canonicalResponse(
                 things: [thing("thing_domains", name: "Domains", category: "purchase")],
                 rules: [
-                    rule("rule_domains_review", title: "Reevaluate buying domains", thingRef: "thing_domains", ruleType: "reminder", startsAt: dateString(byAddingDays: 90, to: now), expiresAt: nil, rawText: "Reevaluate buying domains in 90 days"),
+                    rule("rule_domains_review", title: "Reevaluate buying domains", thingRef: "thing_domains", ruleType: "reminder", startsAt: dateString(byAddingDays: 90, to: now), expiresAt: nil, rawText: "Reevaluate buying domains in 90 days")
                 ]
             )
         }
@@ -62,7 +62,7 @@ let ruleNoteAndRecallFixtures: [DeterministicMessageExtractionFixture] = [
             canonicalResponse(
                 things: [thing("thing_domains", name: "Domains", category: "purchase")],
                 rules: [
-                    rule("rule_domains", title: "No buying domains", thingRef: "thing_domains", ruleType: "restriction", startsAt: dateString(from: now), expiresAt: dateString(from: now.addingTimeInterval(30 * 24 * 60 * 60))),
+                    rule("rule_domains", title: "No buying domains", thingRef: "thing_domains", ruleType: "restriction", startsAt: dateString(from: now), expiresAt: dateString(from: now.addingTimeInterval(30 * 24 * 60 * 60)))
                 ]
             )
         }
@@ -74,7 +74,7 @@ let ruleNoteAndRecallFixtures: [DeterministicMessageExtractionFixture] = [
             canonicalResponse(
                 things: [thing("thing_air_filters", name: "Air Filters", category: "home_maintenance")],
                 rules: [
-                    rule("rule_air_filters", title: "Replace air filters", thingRef: "thing_air_filters", ruleType: "reminder", startsAt: dateString(byAddingMonths: 2, to: now), expiresAt: nil, rawText: "Replace air filters in 2 months"),
+                    rule("rule_air_filters", title: "Replace air filters", thingRef: "thing_air_filters", ruleType: "reminder", startsAt: dateString(byAddingMonths: 2, to: now), expiresAt: nil, rawText: "Replace air filters in 2 months")
                 ]
             )
         }
@@ -86,7 +86,7 @@ let ruleNoteAndRecallFixtures: [DeterministicMessageExtractionFixture] = [
             canonicalResponse(
                 things: [thing("thing_filter", name: "Filter", category: "home_maintenance")],
                 rules: [
-                    rule("rule_filter", title: "Replace filter", thingRef: "thing_filter", ruleType: "reminder", startsAt: dateString(byAddingMonths: 2, to: now), expiresAt: nil, rawText: "Replace filter in 2 months"),
+                    rule("rule_filter", title: "Replace filter", thingRef: "thing_filter", ruleType: "reminder", startsAt: dateString(byAddingMonths: 2, to: now), expiresAt: nil, rawText: "Replace filter in 2 months")
                 ]
             )
         }
@@ -107,7 +107,7 @@ let ruleNoteAndRecallFixtures: [DeterministicMessageExtractionFixture] = [
                         ownerField: "unknown",
                         confidence: 0.42,
                         resolvedConfidence: 0.42
-                    ),
+                    )
                 ],
                 confidence: #"{"overall":0.58,"requiresReview":true,"reasons":["tentative_language","ambiguous_due_window"]}"#,
                 errors: [
@@ -116,7 +116,7 @@ let ruleNoteAndRecallFixtures: [DeterministicMessageExtractionFixture] = [
                         message: "Haircut for Bogey has an ambiguous due window; choose a date before saving a reminder.",
                         severity: "warning",
                         sourceText: text
-                    ),
+                    )
                 ]
             )
         }
@@ -132,7 +132,7 @@ let ruleNoteAndRecallFixtures: [DeterministicMessageExtractionFixture] = [
                         "note_garage_filter",
                         text: "Garage filter is in the cabinet.",
                         linkedThingRefs: ["thing_garage_filter"]
-                    ),
+                    )
                 ]
             )
         }
@@ -150,7 +150,7 @@ let ruleNoteAndRecallFixtures: [DeterministicMessageExtractionFixture] = [
                         thingRef: "thing_claims_repo",
                         occurredAt: dateString(from: now),
                         note: "Migration work started."
-                    ),
+                    )
                 ]
             )
         }
@@ -162,7 +162,7 @@ let ruleNoteAndRecallFixtures: [DeterministicMessageExtractionFixture] = [
             canonicalResponse(
                 messageType: "recall_query",
                 recallQueries: [
-                    recallQuery("query_last_oil", queryType: "last_time", thingName: "Oil Change", rawText: text),
+                    recallQuery("query_last_oil", queryType: "last_time", thingName: "Oil Change", rawText: text)
                 ]
             )
         }
@@ -174,9 +174,9 @@ let ruleNoteAndRecallFixtures: [DeterministicMessageExtractionFixture] = [
             canonicalResponse(
                 things: [thing("thing_hvac_filter", name: "HVAC Filter", category: "home_maintenance")],
                 events: [
-                    event("event_hvac_filter", title: "Replaced HVAC filter", thingRef: "thing_hvac_filter", occurredAt: dateString(from: now)),
+                    event("event_hvac_filter", title: "Replaced HVAC filter", thingRef: "thing_hvac_filter", occurredAt: dateString(from: now))
                 ]
             )
         }
-    ),
+    )
 ]

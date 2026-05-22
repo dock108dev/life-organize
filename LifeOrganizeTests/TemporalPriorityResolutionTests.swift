@@ -48,7 +48,7 @@ final class TemporalPriorityResolutionTests: XCTestCase {
                 payload: ExtractionResponsePayload(
                     rawResponseText: canonicalExtractionJSON(
                         things: [
-                            canonicalThing("thing_1", name: "Domains", category: "purchase"),
+                            canonicalThing("thing_1", name: "Domains", category: "purchase")
                         ],
                         rules: [
                             canonicalRule(
@@ -58,7 +58,7 @@ final class TemporalPriorityResolutionTests: XCTestCase {
                                 startsAt: "2027-01-15",
                                 expiresAt: "2027-04-15",
                                 rawText: input
-                            ),
+                            )
                         ],
                         dates: [
                             canonicalDate(
@@ -68,7 +68,7 @@ final class TemporalPriorityResolutionTests: XCTestCase {
                                 dateRole: "rule_expires_at",
                                 ownerRef: "rule_1",
                                 ownerField: "expiresAt"
-                            ),
+                            )
                         ]
                     )
                 )
@@ -158,7 +158,7 @@ final class TemporalPriorityResolutionTests: XCTestCase {
         ExtractionResponsePayload(
             rawResponseText: canonicalExtractionJSON(
                 things: [
-                    canonicalThing("thing_1", name: "Bowling", category: "other"),
+                    canonicalThing("thing_1", name: "Bowling", category: "other")
                 ],
                 rules: [
                     canonicalRule(
@@ -168,7 +168,7 @@ final class TemporalPriorityResolutionTests: XCTestCase {
                         startsAt: "2028-01-01",
                         expiresAt: nil,
                         rawText: "I don't want to bowl next year"
-                    ),
+                    )
                 ],
                 dates: [
                     canonicalDate(
@@ -185,7 +185,7 @@ final class TemporalPriorityResolutionTests: XCTestCase {
                         resolvedDateValue: "2027-04-15",
                         dateRole: "duration",
                         ownerField: "duration"
-                    ),
+                    )
                 ]
             )
         )

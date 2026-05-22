@@ -88,7 +88,7 @@ final class TimelineSliceProjectionTests: XCTestCase {
             note: "Synthetic service",
             eventType: .maintenance,
             metadataEntries: [
-                LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Costco"),
+                LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Costco")
             ],
             thing: car
         )

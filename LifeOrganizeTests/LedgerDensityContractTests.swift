@@ -38,7 +38,7 @@ final class LedgerDensityContractTests: XCTestCase {
             content.primaryText,
             content.secondaryText,
             content.detailText,
-            content.linkedThingText,
+            content.linkedThingText
         ].compactMap(\.self)
 
         XCTAssertEqual(LedgerSurfaceDensity.feedRow.rowDensity, .compact)

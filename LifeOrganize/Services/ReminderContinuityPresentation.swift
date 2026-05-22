@@ -269,25 +269,25 @@ struct ReminderContinuityPresentationService {
             return [
                 MetadataRowContent(label: "Due", value: Self.fullDate(rule.startsAt)),
                 MetadataRowContent(label: "Current place", value: lane.title),
-                MetadataRowContent(label: "Next step", value: "Complete or reschedule"),
+                MetadataRowContent(label: "Next step", value: "Complete or reschedule")
             ]
         case .scheduled:
             return [
                 MetadataRowContent(label: "Due", value: Self.fullDate(rule.startsAt)),
                 MetadataRowContent(label: "Current place", value: lane.title),
-                MetadataRowContent(label: "Moves to Now", value: Self.fullDate(rule.startsAt)),
+                MetadataRowContent(label: "Moves to Now", value: Self.fullDate(rule.startsAt))
             ]
         case .expired:
             return [
                 MetadataRowContent(label: "Due", value: Self.fullDate(rule.startsAt)),
                 MetadataRowContent(label: "Current place", value: lane.title),
-                MetadataRowContent(label: "Next step", value: "Complete, reschedule, or pause"),
+                MetadataRowContent(label: "Next step", value: "Complete, reschedule, or pause")
             ]
         case .inactive:
             return [
                 MetadataRowContent(label: "Original due date", value: Self.fullDate(rule.startsAt)),
                 MetadataRowContent(label: "Current place", value: lane.title),
-                MetadataRowContent(label: "Paused", value: rule.manuallyDeactivatedAt.map(Self.fullDate) ?? "Stopped"),
+                MetadataRowContent(label: "Paused", value: rule.manuallyDeactivatedAt.map(Self.fullDate) ?? "Stopped")
             ]
         }
     }
@@ -303,25 +303,25 @@ struct ReminderContinuityPresentationService {
             return [
                 MetadataRowContent(label: "Window opened", value: Self.fullDate(rule.startsAt)),
                 MetadataRowContent(label: "Window closes", value: rule.expiresAt.map(Self.fullDate) ?? "No planned end"),
-                MetadataRowContent(label: "Time left", value: rule.expiresAt.map { statusService.daysRemainingDisplay(until: $0, at: date) } ?? "No planned end"),
+                MetadataRowContent(label: "Time left", value: rule.expiresAt.map { statusService.daysRemainingDisplay(until: $0, at: date) } ?? "No planned end")
             ]
         case .scheduled:
             return [
                 MetadataRowContent(label: "Window opens", value: Self.fullDate(rule.startsAt)),
                 MetadataRowContent(label: "Window closes", value: rule.expiresAt.map(Self.fullDate) ?? "No planned end"),
-                MetadataRowContent(label: "Current place", value: lane.title),
+                MetadataRowContent(label: "Current place", value: lane.title)
             ]
         case .expired:
             return [
                 MetadataRowContent(label: "Window opened", value: Self.fullDate(rule.startsAt)),
                 MetadataRowContent(label: "Window ended", value: rule.expiresAt.map(Self.fullDate) ?? "Ended"),
-                MetadataRowContent(label: "Next step", value: "Extend or let it rest"),
+                MetadataRowContent(label: "Next step", value: "Extend or let it rest")
             ]
         case .inactive:
             return [
                 MetadataRowContent(label: "Window started", value: Self.fullDate(rule.startsAt)),
                 MetadataRowContent(label: "Original end", value: rule.expiresAt.map(Self.fullDate) ?? "No planned end"),
-                MetadataRowContent(label: "Current place", value: lane.title),
+                MetadataRowContent(label: "Current place", value: lane.title)
             ]
         }
     }
@@ -337,7 +337,7 @@ struct ReminderContinuityPresentationService {
             var rows = [
                 MetadataRowContent(label: "Started", value: Self.fullDate(rule.startsAt)),
                 MetadataRowContent(label: "Current place", value: lane.title),
-                MetadataRowContent(label: "Planned end", value: rule.expiresAt.map(Self.fullDate) ?? "No planned end"),
+                MetadataRowContent(label: "Planned end", value: rule.expiresAt.map(Self.fullDate) ?? "No planned end")
             ]
             if let expiresAt = rule.expiresAt {
                 rows.append(MetadataRowContent(label: "Time left", value: statusService.daysRemainingDisplay(until: expiresAt, at: date)))
@@ -347,19 +347,19 @@ struct ReminderContinuityPresentationService {
             return [
                 MetadataRowContent(label: "Starts", value: Self.fullDate(rule.startsAt)),
                 MetadataRowContent(label: "Planned end", value: rule.expiresAt.map(Self.fullDate) ?? "No planned end"),
-                MetadataRowContent(label: "Current place", value: lane.title),
+                MetadataRowContent(label: "Current place", value: lane.title)
             ]
         case .expired:
             return [
                 MetadataRowContent(label: "Started", value: Self.fullDate(rule.startsAt)),
                 MetadataRowContent(label: "Ended", value: rule.expiresAt.map(Self.fullDate) ?? "Ended"),
-                MetadataRowContent(label: "Next step", value: "Renew or let it rest"),
+                MetadataRowContent(label: "Next step", value: "Renew or let it rest")
             ]
         case .inactive:
             return [
                 MetadataRowContent(label: "Started", value: Self.fullDate(rule.startsAt)),
                 MetadataRowContent(label: "Current place", value: lane.title),
-                MetadataRowContent(label: "Paused", value: rule.manuallyDeactivatedAt.map(Self.fullDate) ?? "Stopped"),
+                MetadataRowContent(label: "Paused", value: rule.manuallyDeactivatedAt.map(Self.fullDate) ?? "Stopped")
             ]
         }
     }
@@ -374,25 +374,25 @@ struct ReminderContinuityPresentationService {
             return [
                 MetadataRowContent(label: "Pattern", value: "Saved from original wording"),
                 MetadataRowContent(label: "Current place", value: lane.title),
-                MetadataRowContent(label: "Automation", value: "Not scheduled automatically"),
+                MetadataRowContent(label: "Automation", value: "Not scheduled automatically")
             ]
         case .scheduled:
             return [
                 MetadataRowContent(label: "Starts", value: Self.fullDate(rule.startsAt)),
                 MetadataRowContent(label: "Pattern", value: "Saved from original wording"),
-                MetadataRowContent(label: "Automation", value: "Not scheduled automatically"),
+                MetadataRowContent(label: "Automation", value: "Not scheduled automatically")
             ]
         case .expired:
             return [
                 MetadataRowContent(label: "Pattern", value: "Saved from original wording"),
                 MetadataRowContent(label: "Current place", value: lane.title),
-                MetadataRowContent(label: "Next step", value: "Update wording or pause"),
+                MetadataRowContent(label: "Next step", value: "Update wording or pause")
             ]
         case .inactive:
             return [
                 MetadataRowContent(label: "Pattern", value: "Saved from original wording"),
                 MetadataRowContent(label: "Current place", value: lane.title),
-                MetadataRowContent(label: "Original wording", value: "Remains saved"),
+                MetadataRowContent(label: "Original wording", value: "Remains saved")
             ]
         }
     }

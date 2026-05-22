@@ -148,7 +148,7 @@ final class ChatIntentRoutingTests: XCTestCase {
                     occurredAt: kickoff,
                     eventType: "appointment",
                     rawText: "Rutgers home game source: https://scarletknights.com/sports/football/schedule/2026"
-                ),
+                )
             ],
             rules: [
                 canonicalRule(
@@ -159,7 +159,7 @@ final class ChatIntentRoutingTests: XCTestCase {
                     expiresAt: nil,
                     ruleType: "reminder",
                     rawText: "Tailgate starts 3 hours before kickoff."
-                ),
+                )
             ]
         )
         let service = ChatSendService(
@@ -253,7 +253,7 @@ final class ChatIntentRoutingTests: XCTestCase {
                         things: [canonicalThing("thing_1", name: "Oil Change", category: "vehicle")],
                         events: [canonicalEvent("event_1", title: "Changed oil", thingRef: "thing_1", occurredAt: "2027-01-15")],
                         recallQueries: [
-                            canonicalRecallQuery("query_1", queryType: "last_time", thingName: "Oil Change", rawText: "when did I last change oil"),
+                            canonicalRecallQuery("query_1", queryType: "last_time", thingName: "Oil Change", rawText: "when did I last change oil")
                         ]
                     )
                 )

@@ -14,7 +14,7 @@ final class AppRuntimeConfigurationTests: XCTestCase {
             "-screenshot-mode",
             "--initial-tab=things",
             "-seed-scenario=first_launch_empty",
-            "--seed-scenario=car_maintenance",
+            "--seed-scenario=car_maintenance"
         ])
 
         XCTAssertTrue(configuration.isUITesting)
@@ -32,7 +32,7 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         let configuration = AppRuntimeConfiguration(arguments: [
             "LifeOrganize",
             "-ui-testing",
-            "--reset-db",
+            "--reset-db"
         ])
 
         XCTAssertTrue(configuration.shouldResetStore)
@@ -50,7 +50,7 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         let configuration = AppRuntimeConfiguration(arguments: [
             "LifeOrganize",
             "--reset-db",
-            "--seed-scenario=first-run-empty",
+            "--seed-scenario=first-run-empty"
         ])
 
         if case .standard = configuration.modelContainer() {
@@ -64,7 +64,7 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         let configuration = AppRuntimeConfiguration(arguments: [
             "LifeOrganize",
             "-screenshot-mode",
-            "--reset-db",
+            "--reset-db"
         ])
 
         XCTAssertTrue(configuration.isAutomationRuntime)
@@ -78,7 +78,7 @@ final class AppRuntimeConfigurationTests: XCTestCase {
     func testScreenshotModeDerivesDeterministicDefaultsWithoutLegacyFlags() throws {
         let configuration = AppRuntimeConfiguration(arguments: [
             "LifeOrganize",
-            "-screenshot-mode",
+            "-screenshot-mode"
         ])
 
         XCTAssertTrue(configuration.isUITesting)
@@ -102,7 +102,7 @@ final class AppRuntimeConfigurationTests: XCTestCase {
             "-screenshot-locale=en_US",
             "-screenshot-time-zone=America/New_York",
             "-screenshot-calendar=gregorian",
-            "-screenshot-appearance=dark",
+            "-screenshot-appearance=dark"
         ])
 
         XCTAssertEqual(configuration.seedScenarioIDs, ["timeline_search"])
@@ -131,7 +131,7 @@ final class AppRuntimeConfigurationTests: XCTestCase {
             "LifeOrganize",
             "-ui-testing",
             "-use-in-memory-store",
-            "-skip-launch-maintenance",
+            "-skip-launch-maintenance"
         ])
 
         XCTAssertTrue(configuration.shouldSkipLaunchMaintenance)
@@ -146,7 +146,7 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         let configuration = AppRuntimeConfiguration(arguments: [
             "LifeOrganize",
             "-ui-testing",
-            "--reset-db",
+            "--reset-db"
         ])
         let defaults = configuration.userDefaults()
         defaults.set(true, forKey: AppDefaultsKeys.developerModeUnlocked)

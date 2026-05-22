@@ -92,7 +92,7 @@ final class SwiftDataMigrationTests: XCTestCase {
             "Thing",
             "LedgerEvent",
             "LedgerRule",
-            "LedgerNote",
+            "LedgerNote"
         ]
         let activeNames = historicalNames + ["LedgerReviewItem"]
 

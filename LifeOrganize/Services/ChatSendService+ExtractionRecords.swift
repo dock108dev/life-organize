@@ -289,7 +289,7 @@ extension ChatSendService {
                 entry.key,
                 entry.stringValue,
                 entry.unit,
-                entry.sourceText,
+                entry.sourceText
             ].compactMap(\.self)
         }
         return ([sourceMessage.text, event.title, event.rawText, event.note, event.eventType].compactMap(\.self) + metadataText)

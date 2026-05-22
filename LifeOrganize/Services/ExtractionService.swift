@@ -268,7 +268,7 @@ enum ExtractionService {
             warning(for: "dates", failedCount: raw.dates.failedCount),
             warning(for: "aliases", failedCount: raw.aliases.failedCount),
             warning(for: "recallQueries", failedCount: raw.recallQueries.failedCount),
-            warning(for: "errors", failedCount: raw.errors.failedCount),
+            warning(for: "errors", failedCount: raw.errors.failedCount)
         ].compactMap { $0 }
     }
 

@@ -28,7 +28,7 @@ struct ReminderDetailSummaryService {
         let continuity = continuityService.presentation(for: rule, at: date)
         let actionTitles = [
             ReminderDetailActionPolicy.dateAction(for: rule, status: status)?.title,
-            ReminderDetailActionPolicy.lifecycleAction(for: rule, status: status)?.title,
+            ReminderDetailActionPolicy.lifecycleAction(for: rule, status: status)?.title
         ].compactMap(\.self)
 
         return ReminderDetailSummaryPresentation(

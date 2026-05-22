@@ -43,7 +43,7 @@ final class SearchLandingExperienceTests: XCTestCase {
             "oil last month",
             "May 2026",
             "HarborMart 40k",
-            "upcoming",
+            "upcoming"
         ])
         XCTAssertTrue(UnifiedSearchView.landingExamples.contains { $0.detail.contains("rough timing") })
         XCTAssertNil(LedgerEmptyStateContent.noSearchResults.secondaryBody)
@@ -102,7 +102,7 @@ final class SearchLandingExperienceTests: XCTestCase {
 
         XCTAssertEqual(messagePresentation.secondaryLines.map(\.text), [
             DateFormatting.shortDate.string(from: fixedTestNow),
-            "Filter size is 16x20.",
+            "Filter size is 16x20."
         ])
 
         let noteID = UUID(uuidString: "00000000-0000-0000-0000-000000000502")!
@@ -129,7 +129,7 @@ final class SearchLandingExperienceTests: XCTestCase {
         )
 
         XCTAssertEqual(notePresentation.secondaryLines.map(\.text), [
-            DateFormatting.shortDate.string(from: fixedTestNow),
+            DateFormatting.shortDate.string(from: fixedTestNow)
         ])
     }
 
@@ -319,7 +319,7 @@ final class SearchLandingExperienceTests: XCTestCase {
                 notePresentation.sourceDetail ?? "",
                 messagePresentation.text,
                 messagePresentation.capturedLine,
-                messagePresentation.roleText,
+                messagePresentation.roleText
             ].joined(separator: " ")
         )
     }
@@ -335,7 +335,7 @@ final class SearchLandingExperienceTests: XCTestCase {
                 presentation.title,
                 presentation.description,
                 presentation.actionTitle,
-                presentation.navigationTitle,
+                presentation.navigationTitle
             ].joined(separator: " ")
         )
     }
@@ -351,11 +351,11 @@ final class SearchLandingExperienceTests: XCTestCase {
             LedgerEmptyStateContent.noSearchResults.body,
             LedgerEmptyStateContent.noSearchResults.secondaryBody ?? "",
             LedgerEmptyStateContent.noThingSearchResults.title,
-            LedgerEmptyStateContent.noThingSearchResults.body,
+            LedgerEmptyStateContent.noThingSearchResults.body
         ]
         return ([
             "Search what you remember",
-            "Try a detail",
+            "Try a detail"
         ] + examples + emptyStates).joined(separator: " ")
     }
 
@@ -377,7 +377,7 @@ final class SearchLandingExperienceTests: XCTestCase {
             "generated",
             "classifier",
             "ranking score",
-            "llm",
+            "llm"
         ]
         let offenders = forbiddenTerms.filter { lowercased.contains($0) }
         XCTAssertEqual(offenders, [], file: file, line: line)

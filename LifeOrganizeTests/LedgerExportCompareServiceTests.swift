@@ -209,7 +209,7 @@ final class LedgerExportCompareServiceTests: XCTestCase {
                     boolValue: nil,
                     unit: nil,
                     sourceText: "hallway"
-                ),
+                )
             ],
             source: source
         )

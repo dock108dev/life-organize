@@ -43,7 +43,7 @@ enum SeedScenario: CaseIterable, Identifiable {
         "overview-basic": "car_maintenance",
         "review-partial": "ambiguous_dog_grooming",
         "dog-continuity": "operational_home",
-        "dog_continuity": "operational_home",
+        "dog_continuity": "operational_home"
     ]
 }
 

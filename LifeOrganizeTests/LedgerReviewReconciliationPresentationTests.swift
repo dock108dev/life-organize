@@ -22,7 +22,7 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
             primaryActionTitle: "Open Records",
             createdRecords: [
                 LedgerReviewCreatedRecord(targetType: .thing, targetID: thingID, title: "Car", subtitle: "Thing"),
-                LedgerReviewCreatedRecord(targetType: .event, targetID: eventID, title: "Changed cabin filter", subtitle: "Event"),
+                LedgerReviewCreatedRecord(targetType: .event, targetID: eventID, title: "Changed cabin filter", subtitle: "Event")
             ]
         )
 
@@ -83,7 +83,7 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
             confidence: 0.8,
             evidence: [
                 evidence(.thing, target.id, target.name),
-                evidence(.thing, source.id, source.name, source.details),
+                evidence(.thing, source.id, source.name, source.details)
             ]
         )
 
@@ -301,7 +301,7 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
             targetID: message.id,
             evidence: [
                 evidence(.chatMessage, message.id, message.text),
-                evidence(.thing, thing.id, thing.name),
+                evidence(.thing, thing.id, thing.name)
             ]
         )
         context.insert(message)

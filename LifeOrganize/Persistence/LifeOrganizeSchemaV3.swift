@@ -14,7 +14,7 @@ enum LifeOrganizeSchemaV3: VersionedSchema {
             LedgerEvent.self,
             LedgerRule.self,
             LedgerNote.self,
-            LedgerReviewItem.self,
+            LedgerReviewItem.self
         ]
     }
 }

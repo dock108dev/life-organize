@@ -167,7 +167,7 @@ struct FixtureRecordIDs {
             Self.duplicateError(ruleIDs, label: "rules"),
             Self.duplicateError(noteIDs, label: "notes"),
             Self.duplicateError(reviewItemIDs, label: "ledgerReviewItems"),
-            Self.duplicateError(entityLinkIDs, label: "entityLinks"),
+            Self.duplicateError(entityLinkIDs, label: "entityLinks")
         ].compactMap { $0 }
     }
 

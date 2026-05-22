@@ -41,7 +41,7 @@ struct OperationalHomeScenarioFactory {
         let filterEvents = [
             event("Replaced Home Air Filters", on: date(2026, 1, 5), type: .replacement, thing: filters, rawText: "Replaced furnace air filters."),
             event("Replaced Home Air Filters", on: date(2026, 4, 5), type: .replacement, thing: filters, rawText: "Replaced HVAC return vent filters."),
-            event("Replaced Home Air Filters", on: date(2026, 7, 4), type: .replacement, thing: filters, rawText: "Replaced Home Air Filters before the holiday weekend."),
+            event("Replaced Home Air Filters", on: date(2026, 7, 4), type: .replacement, thing: filters, rawText: "Replaced Home Air Filters before the holiday weekend.")
         ]
 
         let dogFood = Thing(
@@ -60,7 +60,7 @@ struct OperationalHomeScenarioFactory {
                 rawText: "Bought a 30 lb bag of dog food at Corner Pet Supply.",
                 metadata: [
                     LedgerEventMetadataEntry(key: .quantity, valueKind: .number, numberValue: 30, unit: "lb", sourceText: "30 lb bag"),
-                    LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Corner Pet Supply", sourceText: "Corner Pet Supply"),
+                    LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Corner Pet Supply", sourceText: "Corner Pet Supply")
                 ]
             )
         }
@@ -75,7 +75,7 @@ struct OperationalHomeScenarioFactory {
         let oilEvents = [
             event("Oil change", on: date(2026, 1, 10), type: .maintenance, thing: car, mileage: 30_000, subtype: "oil_change", rawText: "Changed oil on the blue sedan at 30000 miles."),
             event("Oil change", on: date(2026, 4, 10), type: .maintenance, thing: car, mileage: 35_000, subtype: "oil_change", rawText: "Changed oil on the blue sedan at 35000 miles."),
-            event("Oil change", on: date(2026, 7, 1), type: .maintenance, thing: car, mileage: 40_000, subtype: "oil_change", rawText: "Changed oil on the blue sedan at 40000 miles."),
+            event("Oil change", on: date(2026, 7, 1), type: .maintenance, thing: car, mileage: 40_000, subtype: "oil_change", rawText: "Changed oil on the blue sedan at 40000 miles.")
         ]
 
         let garage = Thing(
@@ -87,7 +87,7 @@ struct OperationalHomeScenarioFactory {
         )
         let garageEvents = [
             event("Cleaned garage", on: date(2026, 3, 2), type: .cleaning, thing: garage, rawText: "Swept floor, broke down boxes, moved winter bins to the back shelf."),
-            event("Cleaned garage", on: date(2026, 6, 15), type: .cleaning, thing: garage, rawText: "Cleared donation pile and checked storage shelves."),
+            event("Cleaned garage", on: date(2026, 6, 15), type: .cleaning, thing: garage, rawText: "Cleared donation pile and checked storage shelves.")
         ]
 
         let householdSupplies = Thing(
@@ -100,13 +100,13 @@ struct OperationalHomeScenarioFactory {
         let householdSupplyEvents = [
             householdSupplyEvent(on: date(2026, 4, 3), amount: 148.72, quantity: 8, rawText: "Bought paper towels, trash bags, detergent, batteries, dish tabs, freezer bags, coffee, and napkins.", thing: householdSupplies),
             householdSupplyEvent(on: date(2026, 5, 3), amount: 163.40, quantity: 9, rawText: "Restocked paper towels, laundry soap, dishwasher tabs, granola bars, foil, freezer bags, light bulbs, hand soap, and napkins.", thing: householdSupplies),
-            householdSupplyEvent(on: date(2026, 6, 2), amount: 137.18, quantity: 7, rawText: "Restocked trash bags, paper towels, dish tabs, coffee, batteries, hand soap, and freezer bags.", thing: householdSupplies),
+            householdSupplyEvent(on: date(2026, 6, 2), amount: 137.18, quantity: 7, rawText: "Restocked trash bags, paper towels, dish tabs, coffee, batteries, hand soap, and freezer bags.", thing: householdSupplies)
         ]
 
         let dryerVent = Thing(name: "Dryer vent", aliases: ["laundry vent"], category: .homeMaintenance, createdAt: date(2026, 1, 1), updatedAt: now)
         let dryerVentEvents = [
             event("Cleaned dryer vent", on: date(2026, 1, 18), type: .cleaning, thing: dryerVent, rawText: "Vacuumed lint line and checked exterior flap."),
-            event("Cleaned dryer vent", on: date(2026, 6, 20), type: .cleaning, thing: dryerVent, rawText: "Cleared lint from hose and wall outlet."),
+            event("Cleaned dryer vent", on: date(2026, 6, 20), type: .cleaning, thing: dryerVent, rawText: "Cleared lint from hose and wall outlet.")
         ]
 
         let smokeDetectorBatteries = Thing(
@@ -118,7 +118,7 @@ struct OperationalHomeScenarioFactory {
         )
         let smokeDetectorEvents = [
             event("Replaced smoke detector battery", on: date(2026, 3, 9), type: .replacement, thing: smokeDetectorBatteries, rawText: "Replaced hallway smoke detector battery."),
-            event("Replaced smoke detector battery", on: date(2026, 6, 9), type: .replacement, thing: smokeDetectorBatteries, rawText: "Replaced basement smoke detector battery after chirping."),
+            event("Replaced smoke detector battery", on: date(2026, 6, 9), type: .replacement, thing: smokeDetectorBatteries, rawText: "Replaced basement smoke detector battery after chirping.")
         ]
 
         let fixture = OperationalHomeScenarioFixture(
@@ -169,7 +169,7 @@ struct OperationalHomeScenarioFactory {
             metadata: [
                 LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Harbor Warehouse", sourceText: "Harbor Warehouse"),
                 LedgerEventMetadataEntry(key: .amount, valueKind: .number, numberValue: amount, unit: "USD", sourceText: "$\(amountText)"),
-                LedgerEventMetadataEntry(key: .quantity, valueKind: .number, numberValue: quantity, unit: "items", sourceText: "\(Int(quantity)) items"),
+                LedgerEventMetadataEntry(key: .quantity, valueKind: .number, numberValue: quantity, unit: "items", sourceText: "\(Int(quantity)) items")
             ]
         )
     }
@@ -193,7 +193,7 @@ struct OperationalHomeScenarioFactory {
             eventType: type,
             metadataEntries: metadata ?? [
                 mileage.map { LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: $0, unit: "mi") },
-                subtype.map { LedgerEventMetadataEntry(key: .subtype, valueKind: .string, stringValue: $0) },
+                subtype.map { LedgerEventMetadataEntry(key: .subtype, valueKind: .string, stringValue: $0) }
             ].compactMap { $0 },
             thing: thing
         )
@@ -240,13 +240,13 @@ extension ContinuityScenarioRegressionTests {
 
     func assertNoLeakedPrimarySurfaceTerms(_ values: [String], file: StaticString = #filePath, line: UInt = #line) {
         assertNoTerms(values, disallowed: [
-            "dashboard", "chart", "ai-powered", "advice", "coaching", "internal extraction", "confidence", "assistant transcript", "assistant:",
+            "dashboard", "chart", "ai-powered", "advice", "coaching", "internal extraction", "confidence", "assistant transcript", "assistant:"
         ], file: file, line: line)
     }
 
     func assertNoOperationalLanguageLeaks(_ values: [String], file: StaticString = #filePath, line: UInt = #line) {
         assertNoTerms(values, disallowed: [
-            "emotion", "emotional", "mood", "productive", "productivity", "habit", "coach", "coaching", "advice", "primary", "secondary", "surface",
+            "emotion", "emotional", "mood", "productive", "productivity", "habit", "coach", "coaching", "advice", "primary", "secondary", "surface"
         ], file: file, line: line)
     }
 

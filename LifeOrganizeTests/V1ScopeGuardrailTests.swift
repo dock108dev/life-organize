@@ -23,7 +23,7 @@ final class V1ScopeGuardrailTests: XCTestCase {
                 "LedgerEvent",
                 "LedgerRule",
                 "LedgerNote",
-                "LedgerReviewItem",
+                "LedgerReviewItem"
             ]
         )
         XCTAssertEqual(
@@ -37,7 +37,7 @@ final class V1ScopeGuardrailTests: XCTestCase {
                 "LedgerRule",
                 "LedgerNote",
                 "LedgerReviewItem",
-                "LedgerReminder",
+                "LedgerReminder"
             ]
         )
         XCTAssertEqual(
@@ -53,7 +53,7 @@ final class V1ScopeGuardrailTests: XCTestCase {
                 .actionCandidate,
                 .patternInference,
                 .timelineSlice,
-                .searchFirstAffordance,
+                .searchFirstAffordance
             ]
         )
     }
@@ -119,7 +119,7 @@ final class V1ScopeGuardrailTests: XCTestCase {
     func testAIServiceInterfacesStayNarrowAndNonCoaching() throws {
         let aiServiceSources = try [
             "LifeOrganize/Services/AIServiceClient.swift",
-            "LifeOrganize/Services/ExtractionService.swift",
+            "LifeOrganize/Services/ExtractionService.swift"
         ].map { try sourceFile(relativePath: $0) }
         let methodNames = try declaredNames(matching: #"\bfunc\s+([A-Za-z_][A-Za-z0-9_]*)\b"#, in: aiServiceSources)
 
@@ -166,7 +166,7 @@ final class V1ScopeGuardrailTests: XCTestCase {
             "projection",
             "review",
             "search",
-            "summary",
+            "summary"
         ])))
 
         XCTAssertTrue(V1ScopeContract.allowedLedgerNativeCapabilities.contains(.deterministicLocalProjection))
@@ -190,7 +190,7 @@ final class V1ScopeGuardrailTests: XCTestCase {
             "profile",
             "streak",
             "sync",
-            "vector",
+            "vector"
         ]
         XCTAssertTrue(durableRouteBans.allSatisfy { V1ScopeContract.bannedRouteNameFragments.contains($0) })
         XCTAssertTrue(V1ScopeContract.bannedPersistenceModelNames.isSuperset(of: Set([
@@ -206,7 +206,7 @@ final class V1ScopeGuardrailTests: XCTestCase {
             "Streak",
             "Sync",
             "User",
-            "Vector",
+            "Vector"
         ])))
         XCTAssertTrue(V1ScopeContract.bannedAIServiceInterfaceMethodFragments.isSuperset(of: Set([
             "advice",
@@ -218,13 +218,13 @@ final class V1ScopeGuardrailTests: XCTestCase {
             "habit",
             "insight",
             "mood",
-            "recommend",
+            "recommend"
         ])))
         XCTAssertTrue(V1ScopeContract.bannedNotificationCopyFragments.isSuperset(of: Set([
             "daily check-in",
             "daily prompt",
             "keep your streak",
-            "you haven't checked in",
+            "you haven't checked in"
         ])))
     }
 
@@ -243,7 +243,7 @@ final class V1ScopeGuardrailTests: XCTestCase {
             "advise",
             "assistant",
             "coach",
-            "recommend",
+            "recommend"
         ])))
     }
 
@@ -286,7 +286,7 @@ final class V1ScopeGuardrailTests: XCTestCase {
             ChatResponseFormatter().extractionFailed(),
             LedgerEmptyStateContent.searchLanding.body,
             snapshot.continuitySummary?.label,
-            snapshot.continuitySummary?.detail,
+            snapshot.continuitySummary?.detail
         ].compactMap { $0 }.joined(separator: " ")
 
         let bannedCopyTerms = [
@@ -302,7 +302,7 @@ final class V1ScopeGuardrailTests: XCTestCase {
             "Automatic filing",
             "ledger item",
             "Expected next check",
-            "Estimated next",
+            "Estimated next"
         ]
         XCTAssertNoBannedUserCopyTerms(primaryCopy, bannedTerms: bannedCopyTerms)
     }

@@ -36,7 +36,7 @@ final class ThingPreviewSnapshotTests: XCTestCase {
                     valueKind: .number,
                     numberValue: 52_000,
                     unit: "mi"
-                ),
+                )
             ],
             thing: car
         )
@@ -74,7 +74,7 @@ final class ThingPreviewSnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.continuityLines.map(\.value), [
             "Oil change",
             "Rotate tires",
-            "Insurance renewed with annual premium.",
+            "Insurance renewed with annual premium."
         ])
         XCTAssertEqual(snapshot.continuityLines[0].detail, "Jan 13 · Mileage: 52,000 mi · Vendor: Northline Auto")
         XCTAssertEqual(snapshot.continuityLines[1].detail, "in 24 days")
@@ -199,7 +199,7 @@ final class ThingPreviewSnapshotTests: XCTestCase {
                 LedgerEventMetadataEntry(key: .amount, valueKind: .number, numberValue: 42.18, unit: "USD"),
                 LedgerEventMetadataEntry(key: .dueDate, valueKind: .date, dateValue: dueDate),
                 LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Hearth & Bolt"),
-                LedgerEventMetadataEntry(key: .location, valueKind: .string, stringValue: "Aisle 12"),
+                LedgerEventMetadataEntry(key: .location, valueKind: .string, stringValue: "Aisle 12")
             ],
             thing: filters
         )
@@ -223,7 +223,7 @@ final class ThingPreviewSnapshotTests: XCTestCase {
             metadataEntries: [
                 LedgerEventMetadataEntry(key: .identifier, valueKind: .string, stringValue: "INV-412"),
                 LedgerEventMetadataEntry(key: .sourceText, valueKind: .string, stringValue: "receipt line"),
-                LedgerEventMetadataEntry(key: .location, valueKind: .string, stringValue: "Aisle 12"),
+                LedgerEventMetadataEntry(key: .location, valueKind: .string, stringValue: "Aisle 12")
             ],
             thing: thing
         )
@@ -278,7 +278,7 @@ final class ThingPreviewSnapshotTests: XCTestCase {
             LedgerEventMetadataEntry(key: .sourceText, valueKind: .string, stringValue: "receipt line"),
             LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: 52_000, unit: "mi"),
             LedgerEventMetadataEntry(key: .amount, valueKind: .number, numberValue: 84.2, unit: "USD"),
-            LedgerEventMetadataEntry(key: .location, valueKind: .string, stringValue: "Bay 3"),
+            LedgerEventMetadataEntry(key: .location, valueKind: .string, stringValue: "Bay 3")
         ]
 
         let ordered = EventMetadataDisplayFormatter.orderedDetailEntries(entries, eventType: .maintenance)
@@ -301,7 +301,7 @@ final class ThingPreviewSnapshotTests: XCTestCase {
             rawText: "Bought wipers.",
             eventType: .purchase,
             metadataEntries: [
-                LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Parts Counter"),
+                LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Parts Counter")
             ],
             thing: thing
         )
@@ -311,7 +311,7 @@ final class ThingPreviewSnapshotTests: XCTestCase {
             rawText: "Changed oil.",
             eventType: .maintenance,
             metadataEntries: [
-                LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: 52_000, unit: "mi"),
+                LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: 52_000, unit: "mi")
             ],
             thing: thing
         )
@@ -343,7 +343,7 @@ final class ThingPreviewSnapshotTests: XCTestCase {
                 createdAt: now.addingTimeInterval(86_400),
                 updatedAt: now.addingTimeInterval(86_400),
                 linkedThings: [thing]
-            ),
+            )
         ]
         snapshot = ThingPreviewSnapshot(thing: thing, now: now, calendar: utcCalendar)
 
@@ -365,7 +365,7 @@ final class ThingPreviewSnapshotTests: XCTestCase {
             rawText: "Changed oil.",
             eventType: .maintenance,
             metadataEntries: [
-                LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: 46_000, unit: "mi"),
+                LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: 46_000, unit: "mi")
             ],
             thing: thing
         )
@@ -375,7 +375,7 @@ final class ThingPreviewSnapshotTests: XCTestCase {
             rawText: "Changed oil.",
             eventType: .maintenance,
             metadataEntries: [
-                LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: 52_000, unit: "mi"),
+                LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: 52_000, unit: "mi")
             ],
             thing: thing
         )

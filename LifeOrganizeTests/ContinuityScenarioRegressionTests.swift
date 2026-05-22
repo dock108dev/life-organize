@@ -150,7 +150,7 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
                 dogFoodReviewItem.detail,
                 filterReviewItem.title,
                 filterReviewItem.detail,
-                suppressed.suppressionReason ?? "",
+                suppressed.suppressionReason ?? ""
             ] + replayText + surfaceText(from: search.search("dog food", in: searchRecords))
         )
     }
@@ -167,7 +167,7 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
         let oilChanges = [
             event("Oil change", on: date(2025, 6, 1), type: .maintenance, thing: car, mileage: 30_000, subtype: "oil_change"),
             event("Oil change", on: date(2025, 12, 1), type: .maintenance, thing: car, mileage: 35_000, subtype: "oil_change"),
-            event("Oil change", on: date(2026, 5, 1), type: .maintenance, thing: car, mileage: 40_000, subtype: "oil_change"),
+            event("Oil change", on: date(2026, 5, 1), type: .maintenance, thing: car, mileage: 40_000, subtype: "oil_change")
         ]
         let tireRotation = event("Tire rotation", on: date(2026, 5, 3), type: .maintenance, thing: car, mileage: 40_200, subtype: "tire_rotation")
         let registration = event("Registration renewal", on: date(2026, 5, 8), type: .renewal, thing: car)
@@ -294,7 +294,7 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
                 LedgerReviewItemEvidence(sourceType: .event, sourceID: securityEvent.id, summary: securityEvent.title, detail: nil),
                 LedgerReviewItemEvidence(sourceType: .rule, sourceID: followUp.id, summary: followUp.title, detail: nil),
                 LedgerReviewItemEvidence(sourceType: .none, sourceID: note.id, summary: note.text, detail: nil),
-                LedgerReviewItemEvidence(sourceType: .thing, sourceID: canonical.id, summary: canonical.name, detail: nil),
+                LedgerReviewItemEvidence(sourceType: .thing, sourceID: canonical.id, summary: canonical.name, detail: nil)
             ],
             createdAt: now,
             updatedAt: now
@@ -353,7 +353,7 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
         XCTAssertEqual(userMessages.map(\.text), [
             "Replaced Home Air Filters.",
             "Changed car oil at 40,000 miles.",
-            "Bought dog food.",
+            "Bought dog food."
         ])
         XCTAssertEqual(userMessages.map(\.extractionStatus), [.pendingToken, .pendingToken, .pendingRetry])
         XCTAssertEqual(userMessages.map(\.extractionErrorCode), [.missingServiceToken, .invalidServiceToken, .serverError])
@@ -467,7 +467,7 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
             eventType: type,
             metadataEntries: metadata ?? [
                 mileage.map { LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: $0, unit: "mi") },
-                subtype.map { LedgerEventMetadataEntry(key: .subtype, valueKind: .string, stringValue: $0) },
+                subtype.map { LedgerEventMetadataEntry(key: .subtype, valueKind: .string, stringValue: $0) }
             ].compactMap { $0 },
             thing: thing
         )

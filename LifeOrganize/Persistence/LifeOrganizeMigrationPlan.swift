@@ -5,14 +5,14 @@ enum LifeOrganizeMigrationPlan: SchemaMigrationPlan {
         [
             LifeOrganizeSchemaV1.self,
             LifeOrganizeSchemaV2.self,
-            LifeOrganizeSchemaV3.self,
+            LifeOrganizeSchemaV3.self
         ]
     }
 
     static var stages: [MigrationStage] {
         [
             migrateV1ToV2,
-            migrateV2ToV3,
+            migrateV2ToV3
         ]
     }
 

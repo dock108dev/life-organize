@@ -72,7 +72,7 @@ final class TimelineAwareSearchTests: XCTestCase {
             rawText: "Changed oil at 40k miles.",
             eventType: .maintenance,
             metadataEntries: [
-                LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: 40_000, unit: "mi", sourceText: "40k miles"),
+                LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: 40_000, unit: "mi", sourceText: "40k miles")
             ],
             thing: car
         )

@@ -46,7 +46,7 @@ private extension HeavyHistorySeedScenarioGenerator {
 
         private let keywords = [
             "filter", "receipt", "permit", "garage", "garden", "medicine", "budget", "registration",
-            "battery", "warranty", "inspection", "storage", "routine", "subscription", "repair",
+            "battery", "warranty", "inspection", "storage", "routine", "subscription", "repair"
         ]
         private let verbs = ["Changed", "Checked", "Cleaned", "Logged", "Moved", "Paid", "Filed", "Measured", "Replaced", "Scheduled", "Tested", "Updated"]
         private let objects = ["air filter", "storage label", "garden timer", "receipt folder", "garage shelf", "battery pack", "warranty note", "permit copy", "medicine list", "budget line", "registration card", "repair kit"]
@@ -92,32 +92,32 @@ private extension HeavyHistorySeedScenarioGenerator {
                     "rules": .number(96),
                     "notes": .number(128),
                     "ledgerReviewItems": .number(12),
-                    "entityLinks": .number(120),
+                    "entityLinks": .number(120)
                 ]),
                 "requiredVisibleSurfaces": .array([
                     surface("log", ids: [uuid(.event, 0), uuid(.note, 0), uuid(.rule, 0), uuid(.message, 0)]),
                     surface("search", ids: [uuid(.event, 1), uuid(.note, 1), uuid(.rule, 1)]),
                     surface("reviewQueue", ids: [uuid(.reviewItem, 0)]),
-                    surface("timelineReplay", ids: [uuid(.thing, 0), uuid(.event, 0)]),
+                    surface("timelineReplay", ids: [uuid(.thing, 0), uuid(.event, 0)])
                 ]),
                 "relationshipChecks": .array([
                     relationship("thingHasEvent", fromType: "thing", from: uuid(.thing, 0), toType: "event", to: uuid(.event, 0)),
                     relationship("thingHasNote", fromType: "thing", from: uuid(.thing, 7), toType: "note", to: uuid(.note, 1)),
                     relationship("thingHasRule", fromType: "thing", from: uuid(.thing, 3), toType: "rule", to: uuid(.rule, 0)),
-                    relationship("entityLinkExists", fromType: "event", from: uuid(.event, 0), toType: "thing", to: uuid(.thing, 0)),
+                    relationship("entityLinkExists", fromType: "event", from: uuid(.event, 0), toType: "thing", to: uuid(.thing, 0))
                 ]),
                 "searchExpectations": .array([
                     search("filter", targets: [.object(["type": .string("event"), "id": .string(uuid(.event, 0))])]),
                     search("receipt", targets: [.object(["type": .string("note"), "id": .string(uuid(.note, 1))])]),
-                    search("garage", targets: [.object(["type": .string("rule"), "id": .string(uuid(.rule, 3))])]),
+                    search("garage", targets: [.object(["type": .string("rule"), "id": .string(uuid(.rule, 3))])])
                 ]),
                 "replayExpectations": .array([
                     .object([
                         "sourceType": .string("thing"),
                         "sourceId": .string(uuid(.thing, 0)),
                         "requiredText": .array(["filter", "Commuter Hatch"].map(JSONValue.string)),
-                        "expectedTargets": .array([.object(["type": .string("event"), "id": .string(uuid(.event, 0))])]),
-                    ]),
+                        "expectedTargets": .array([.object(["type": .string("event"), "id": .string(uuid(.event, 0))])])
+                    ])
                 ]),
                 "reviewQueueExpectations": .array([
                     .object([
@@ -125,9 +125,9 @@ private extension HeavyHistorySeedScenarioGenerator {
                         "state": .string(LedgerReviewItemState.candidate.rawValue),
                         "targetType": .string(LedgerReviewItemTargetType.chatMessage.rawValue),
                         "targetId": .string(uuid(.message, 0)),
-                        "requiredEvidenceIds": .array([.string(uuid(.message, 0))]),
-                    ]),
-                ]),
+                        "requiredEvidenceIds": .array([.string(uuid(.message, 0))])
+                    ])
+                ])
             ])
         }
 
@@ -153,7 +153,7 @@ private extension HeavyHistorySeedScenarioGenerator {
                 ("Household Budget", .finance), ("Permit Folder", .finance), ("Receipt Box", .finance), ("Subscription List", .finance),
                 ("Tax Drawer", .finance), ("Repair Fund", .finance), ("Porch Feeder", .pet), ("Travel Crate", .pet),
                 ("Grooming Kit", .pet), ("Vet Folder", .pet), ("Spring Reset", .project), ("Archive Cleanup", .project),
-                ("Garage Sort", .project), ("Garden Map", .project), ("Storage Audit", .project), ("Warranty Sweep", .project),
+                ("Garage Sort", .project), ("Garden Map", .project), ("Storage Audit", .project), ("Warranty Sweep", .project)
             ]
             return names.enumerated().map { index, value in
                 let createdAt = historicalDate(index, stride: 19, phase: index % 11)
@@ -401,7 +401,7 @@ private extension HeavyHistorySeedScenarioGenerator.Builder {
             "Stored the backup copy in the labeled folder.",
             "Use this when comparing the next update.",
             "Reviewed and kept the shorter version.",
-            "Needs a second look before the next errand.",
+            "Needs a second look before the next errand."
         ][index % 5]
     }
 

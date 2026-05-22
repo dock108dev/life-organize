@@ -25,7 +25,7 @@ enum DeterministicMessageExtractionFixtureLibrary {
         canonicalResponse(
             things: [thing("thing_oil", name: "Oil Change", category: "vehicle")],
             events: [
-                event("event_oil", title: "Changed oil", thingRef: "thing_oil", occurredAt: dateString(from: now)),
+                event("event_oil", title: "Changed oil", thingRef: "thing_oil", occurredAt: dateString(from: now))
             ],
             recallQueries: []
         )

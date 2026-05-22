@@ -35,7 +35,7 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
                 ownership: .modelDependentAmbiguity,
                 preservesAmbiguityForReview: true,
                 mustNotGuessCommittedReminder: true
-            ),
+            )
         ]
 
         XCTAssertEqual(rows.first { $0.phrase == "reevaluate in 90 days" }?.ownership, .deterministicResolver)
@@ -58,13 +58,13 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
             ("Reevaluate pantry buying in 90 days.", "2027-04-15"),
             ("Check back in 2 weeks.", "2027-01-29"),
             ("Follow up in 1 month.", "2027-02-15"),
-            ("Remind me in 1 year.", "2028-01-15"),
+            ("Remind me in 1 year.", "2028-01-15")
         ]
 
         for testCase in cases {
             let resolved = try resolveReminder(
                 sourceText: testCase.input,
-                startingEnvelope: parsedEnvelope(
+                    startingEnvelope: try parsedEnvelope(
                     rules: [
                         canonicalRule(
                             "rule_1",
@@ -74,7 +74,7 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
                             expiresAt: nil,
                             ruleType: "reminder",
                             rawText: testCase.input
-                        ),
+                        )
                     ]
                 )
             )
@@ -90,11 +90,11 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
         let cases = [
             "Maybe renew this next year.",
             "Revisit this later this month.",
-            "Revisit this next season.",
+            "Revisit this next season."
         ]
 
         for input in cases {
-            let original = parsedEnvelope(
+            let original = try parsedEnvelope(
                 things: [canonicalThing("thing_1", name: "Open Decision", category: "other")],
                 dates: [
                     canonicalDate(
@@ -105,11 +105,11 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
                         ownerField: "unknown",
                         confidence: 0.3,
                         resolvedConfidence: 0.3
-                    ),
+                    )
                 ],
                 confidence: #"{"overall":0.35,"requiresReview":true,"reasons":["ambiguous_date"]}"#,
                 errors: [
-                    modelError(code: "ambiguous_date", message: "Temporal phrase needs review.", sourceText: input),
+                    modelError(code: "ambiguous_date", message: "Temporal phrase needs review.", sourceText: input)
                 ]
             )
 
@@ -148,7 +148,7 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
                 payload: ExtractionResponsePayload(
                     rawResponseText: canonicalExtractionJSON(
                         things: [
-                            canonicalThing("thing_1", name: "Tools", category: "purchase"),
+                            canonicalThing("thing_1", name: "Tools", category: "purchase")
                         ],
                         rules: [
                             canonicalRule(
@@ -158,7 +158,7 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
                                 startsAt: "2027-01-15",
                                 expiresAt: "2027-01-29",
                                 rawText: input
-                            ),
+                            )
                         ],
                         dates: [
                             canonicalDate(
@@ -175,7 +175,7 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
                                 dateRole: "rule_expires_at",
                                 ownerRef: "rule_1",
                                 ownerField: "expiresAt"
-                            ),
+                            )
                         ]
                     )
                 )
@@ -206,7 +206,7 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
                 payload: ExtractionResponsePayload(
                     rawResponseText: canonicalExtractionJSON(
                         things: [
-                            canonicalThing("thing_1", name: "Domains", category: "purchase"),
+                            canonicalThing("thing_1", name: "Domains", category: "purchase")
                         ],
                         rules: [
                             canonicalRule(
@@ -217,7 +217,7 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
                                 expiresAt: "2027-04-01",
                                 sourceText: "until April 1",
                                 rawText: input
-                            ),
+                            )
                         ],
                         dates: [
                             canonicalDate(
@@ -234,7 +234,7 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
                                 resolvedDateValue: "2027-04-15",
                                 dateRole: "duration",
                                 ownerField: "duration"
-                            ),
+                            )
                         ]
                     )
                 )
@@ -265,7 +265,7 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
                 payload: ExtractionResponsePayload(
                     rawResponseText: canonicalExtractionJSON(
                         things: [
-                            canonicalThing("thing_1", name: "Cabin filter", category: "home_maintenance"),
+                            canonicalThing("thing_1", name: "Cabin filter", category: "home_maintenance")
                         ],
                         dates: [
                             canonicalDate(
@@ -276,11 +276,11 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
                                 ownerField: "unknown",
                                 confidence: 0.25,
                                 resolvedConfidence: 0.25
-                            ),
+                            )
                         ],
                         confidence: #"{"overall":0.42,"requiresReview":true,"reasons":["ambiguous_date"]}"#,
                         errors: [
-                            modelError(code: "ambiguous_date", message: "Seasonal timing needs review.", sourceText: input),
+                            modelError(code: "ambiguous_date", message: "Seasonal timing needs review.", sourceText: input)
                         ]
                     )
                 )
@@ -326,8 +326,8 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
         dates: [String] = [],
         confidence: String = #"{"overall":0.95,"requiresReview":false,"reasons":[]}"#,
         errors: [String] = []
-    ) -> ExtractionEnvelope {
-        try! ExtractionService.parse(
+    ) throws -> ExtractionEnvelope {
+        try ExtractionService.parse(
             rawResponseText: canonicalExtractionJSON(
                 things: things,
                 rules: rules,

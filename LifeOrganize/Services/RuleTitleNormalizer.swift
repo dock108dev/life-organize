@@ -71,7 +71,7 @@ struct RuleTitleNormalizer {
             "need to ",
             "rule: ",
             "rule to ",
-            "remember ",
+            "remember "
         ]
         return strippingPrefix(from: title, prefixes: prefixes)
     }
@@ -85,7 +85,7 @@ struct RuleTitleNormalizer {
             #"\s+until\s+.+$"#,
             #"\s+before\s+.+$"#,
             #"\s+for\s+\d+\s+(day|days|week|weeks|month|months)$"#,
-            #"\s+in\s+\d+\s+(day|days|week|weeks|month|months)$"#,
+            #"\s+in\s+\d+\s+(day|days|week|weeks|month|months)$"#
         ]
         return patterns.reduce(title) { result, pattern in
             replacingRegex(pattern, in: result, with: "")
@@ -173,7 +173,7 @@ struct RuleTitleNormalizer {
             (#"\bavoid\s+(.+?)(?:\s+(?:until|before|for|in)\s+.+)?$"#, "Avoid"),
             (#"\bno\s+(.+?)(?:\s+(?:until|before|for|in)\s+.+)?$"#, "No"),
             (#"\bwait\s+before\s+(.+?)(?:\s+(?:until|before|for|in)\s+.+)?$"#, "Wait before"),
-            (#"\bhold off\s+(?:on\s+)?(.+?)(?:\s+(?:until|before|for|in)\s+.+)?$"#, "Hold off on"),
+            (#"\bhold off\s+(?:on\s+)?(.+?)(?:\s+(?:until|before|for|in)\s+.+)?$"#, "Hold off on")
         ]
         for (pattern, prefix) in patterns {
             guard let match = firstRegexCapture(pattern, in: sourceText) else { continue }
@@ -206,7 +206,7 @@ struct RuleTitleNormalizer {
             "should probably": "",
             "probably": "",
             "should": "",
-            "plans": "",
+            "plans": ""
         ]
         for (needle, replacement) in replacements {
             target = target.replacingOccurrences(of: needle, with: replacement)
@@ -245,7 +245,7 @@ struct RuleTitleNormalizer {
             "scheduling": "schedule",
             "spending": "spend",
             "starting": "start",
-            "using": "use",
+            "using": "use"
         ]
         for (gerund, verb) in gerunds where title.lowercased().hasPrefix("\(gerund) ") {
             return verb + title.dropFirst(gerund.count)

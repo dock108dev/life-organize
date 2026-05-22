@@ -126,7 +126,7 @@ final class PhaseThreeLedgerRegressionTests: XCTestCase {
             content.primaryText,
             content.secondaryText,
             content.detailText,
-            content.linkedThingText,
+            content.linkedThingText
         ]
         .compactMap(\.self)
         .joined(separator: " ")
@@ -140,7 +140,7 @@ final class PhaseThreeLedgerRegressionTests: XCTestCase {
             "schemaVersion",
             "createdEntities",
             "date_furnace_filter_next_due",
-            "invalid_json",
+            "invalid_json"
         ] {
             XCTAssertFalse(text.contains(token), "Visible text leaked \(token)", file: file, line: line)
         }

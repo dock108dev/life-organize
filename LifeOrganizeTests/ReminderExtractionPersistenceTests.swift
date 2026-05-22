@@ -68,7 +68,7 @@ final class ReminderExtractionPersistenceTests: XCTestCase {
                 payload: ExtractionResponsePayload(
                     rawResponseText: canonicalExtractionJSON(
                         things: [
-                            canonicalThing("thing_1", name: "Air Filters", category: "home_maintenance"),
+                            canonicalThing("thing_1", name: "Air Filters", category: "home_maintenance")
                         ],
                         rules: [
                             canonicalRule(
@@ -79,7 +79,7 @@ final class ReminderExtractionPersistenceTests: XCTestCase {
                                 expiresAt: nil,
                                 ruleType: "reminder",
                                 rawText: "Replace air filters in 2 months"
-                            ),
+                            )
                         ]
                     )
                 )
@@ -164,7 +164,7 @@ final class ReminderExtractionPersistenceTests: XCTestCase {
                 payload: ExtractionResponsePayload(
                     rawResponseText: canonicalExtractionJSON(
                         things: [
-                            canonicalThing("thing_1", name: "Bowling", category: "other"),
+                            canonicalThing("thing_1", name: "Bowling", category: "other")
                         ],
                         rules: [
                             canonicalRule(
@@ -175,7 +175,7 @@ final class ReminderExtractionPersistenceTests: XCTestCase {
                                 expiresAt: nil,
                                 ruleType: "reminder",
                                 rawText: input
-                            ),
+                            )
                         ]
                     )
                 )
@@ -256,7 +256,7 @@ final class ReminderExtractionPersistenceTests: XCTestCase {
                                 expiresAt: nil,
                                 ruleType: "reminder",
                                 rawText: input
-                            ),
+                            )
                         ]
                     )
                 )
@@ -288,7 +288,7 @@ final class ReminderExtractionPersistenceTests: XCTestCase {
                         expiresAt: nil,
                         ruleType: "reminder",
                         rawText: input
-                    ),
+                    )
                 ]
             )
         )

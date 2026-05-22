@@ -216,7 +216,7 @@ struct RuleLookupService {
         "can i",
         "can we",
         "may i",
-        "allowed to",
+        "allowed to"
     ]
 
     private let ruleTargetFillerWords: Set<String> = [
@@ -226,7 +226,7 @@ struct RuleLookupService {
         "purchase",
         "replace",
         "start",
-        "upgrade",
+        "upgrade"
     ]
 
     private let blockingRuleMarkers = [
@@ -242,7 +242,7 @@ struct RuleLookupService {
         "wait until",
         "not buying",
         "not ordering",
-        "ban",
+        "ban"
     ]
 }
 

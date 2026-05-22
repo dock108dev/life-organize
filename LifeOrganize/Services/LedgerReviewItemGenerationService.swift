@@ -63,16 +63,16 @@ struct LedgerReviewItemGenerationService {
             intervalInference.inferences(for: thing, now: now).compactMap { inference in
                 let intervalText = [
                     inference.calendarIntervalDays.map { "about every \(LedgerDisplayFormatting.count($0, singular: "day", plural: "days"))" },
-                    inference.mileageInterval.map { "about every \(Self.integerText($0)) miles" },
+                    inference.mileageInterval.map { "about every \(Self.integerText($0)) miles" }
                 ].compactMap { $0 }.joined(separator: " and ")
                 let nextText = [
                     inference.nextExpectedMileage.map { "next mileage \(Self.integerText($0)) mi" },
-                    inference.nextExpectedDateRange.map { "next date range \(dateOnly($0.start)) to \(dateOnly($0.end))" },
+                    inference.nextExpectedDateRange.map { "next date range \(dateOnly($0.start)) to \(dateOnly($0.end))" }
                 ].compactMap { $0 }.joined(separator: "; ")
                 let detail = [
                     "Saved records show \(intervalText).",
                     nextText.nilIfEmpty,
-                    "No reminder has been created or changed.",
+                    "No reminder has been created or changed."
                 ].compactMap { $0 }.joined(separator: " ")
                 return ReviewItemDefinition(
                     dedupeKey: key(.intervalReminder, [thing.id.uuidString, inference.track.rawValue, inference.latestEventID.uuidString]),
@@ -111,7 +111,7 @@ struct LedgerReviewItemGenerationService {
                 targetID: rule.id,
                 confidence: 1,
                 evidence: [
-                    LedgerReviewItemEvidence(sourceType: .rule, sourceID: rule.id, summary: rule.title, detail: rule.rawText.nilIfEmpty),
+                    LedgerReviewItemEvidence(sourceType: .rule, sourceID: rule.id, summary: rule.title, detail: rule.rawText.nilIfEmpty)
                 ]
             )
         }
@@ -284,7 +284,7 @@ struct LedgerReviewItemGenerationService {
                 targetID: event.id,
                 confidence: 0.85,
                 evidence: [
-                    LedgerReviewItemEvidence(sourceType: .event, sourceID: event.id, summary: event.title, detail: conflict.sourceText),
+                    LedgerReviewItemEvidence(sourceType: .event, sourceID: event.id, summary: event.title, detail: conflict.sourceText)
                 ]
             )
         }
@@ -309,7 +309,7 @@ struct LedgerReviewItemGenerationService {
                 targetID: thing.id,
                 confidence: 0.75,
                 evidence: [
-                    LedgerReviewItemEvidence(sourceType: .thing, sourceID: thing.id, summary: thing.name, detail: "Normalized key: \(thing.normalizedKey)"),
+                    LedgerReviewItemEvidence(sourceType: .thing, sourceID: thing.id, summary: thing.name, detail: "Normalized key: \(thing.normalizedKey)")
                 ]
             )
         }

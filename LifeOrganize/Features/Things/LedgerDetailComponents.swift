@@ -167,7 +167,7 @@ struct LedgerDetailSection<Content: View>: View {
 enum LedgerReminderRowLines {
     static func lines(for presentation: ReminderContinuityPresentation, reason: String? = nil) -> [LedgerRowLine] {
         var lines = [
-            LedgerRowLine(text: presentation.primaryLine),
+            LedgerRowLine(text: presentation.primaryLine)
         ]
         if let dateLine = presentation.dateLine {
             lines.append(LedgerRowLine(text: dateLine))

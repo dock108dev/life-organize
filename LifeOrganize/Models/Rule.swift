@@ -60,7 +60,7 @@ final class LedgerRule {
 
     var thingID: UUID? {
         get { thing?.id }
-        set { }
+        set { _ = newValue }
     }
 
     var sourceMessageID: UUID? {
@@ -202,7 +202,7 @@ enum LedgerContinuityBehavior: String, Codable, CaseIterable {
             " monthly",
             " yearly",
             " annually",
-            " each ",
+            " each "
         ]
         return markers.contains { normalized.contains($0) }
     }

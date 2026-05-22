@@ -40,7 +40,7 @@ final class LedgerEvent {
 
     var thingID: UUID? {
         get { thing?.id }
-        set { }
+        set { _ = newValue }
     }
 
     var sourceMessageID: UUID? {
@@ -91,7 +91,7 @@ final class LedgerEvent {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
         guard let data = try? encoder.encode(entries) else { return "[]" }
-        return String(decoding: data, as: UTF8.self)
+        return String(data: data, encoding: .utf8) ?? "[]"
     }
 }
 

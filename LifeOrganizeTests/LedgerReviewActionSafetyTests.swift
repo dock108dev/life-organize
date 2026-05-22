@@ -16,7 +16,7 @@ final class LedgerReviewActionSafetyTests: XCTestCase {
             .reassignRecords(targetID, "Garage"),
             .adjustReminderTiming(fixedTestNow, "Move Due Date"),
             .applyReminderLifecycle("Mark Done"),
-            .saveAsNote,
+            .saveAsNote
         ]
 
         for action in actions {
@@ -82,7 +82,7 @@ final class LedgerReviewActionSafetyTests: XCTestCase {
         let event = LedgerEvent(title: "Changed oil", occurredAt: fixedTestNow, rawText: "Changed oil")
         let attempt = ExtractionAttempt(status: .partiallySucceeded, createdEventIDs: [event.id], sourceMessage: message)
         let item = reviewItem(targetID: message.id, evidence: [
-            LedgerReviewItemEvidence(sourceType: .chatMessage, sourceID: message.id, summary: message.text, detail: nil),
+            LedgerReviewItemEvidence(sourceType: .chatMessage, sourceID: message.id, summary: message.text, detail: nil)
         ])
         context.insert(message)
         context.insert(event)
@@ -105,7 +105,7 @@ final class LedgerReviewActionSafetyTests: XCTestCase {
         let context = makeInMemoryModelContext()
         let message = ChatMessage(role: .user, text: "Changed oil.", extractionStatus: .failed)
         let item = reviewItem(targetID: message.id, evidence: [
-            LedgerReviewItemEvidence(sourceType: .chatMessage, sourceID: message.id, summary: message.text, detail: nil),
+            LedgerReviewItemEvidence(sourceType: .chatMessage, sourceID: message.id, summary: message.text, detail: nil)
         ])
         context.insert(message)
         context.insert(item)
@@ -129,7 +129,7 @@ final class LedgerReviewActionSafetyTests: XCTestCase {
         let context = makeInMemoryModelContext()
         let message = ChatMessage(role: .user, text: "Garage code changed.", extractionStatus: .needsReview)
         let item = reviewItem(targetID: message.id, evidence: [
-            LedgerReviewItemEvidence(sourceType: .chatMessage, sourceID: message.id, summary: message.text, detail: nil),
+            LedgerReviewItemEvidence(sourceType: .chatMessage, sourceID: message.id, summary: message.text, detail: nil)
         ])
         context.insert(message)
         context.insert(item)

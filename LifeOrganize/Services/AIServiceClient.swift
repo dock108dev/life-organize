@@ -19,12 +19,6 @@ struct AIServiceClient {
     var baseURL = URL(string: "https://life.dock108.dev")!
     var session: any AIServiceHTTPSession = URLSession.shared
 
-    init(deviceToken: String?, baseURL: URL = URL(string: "https://life.dock108.dev")!, session: any AIServiceHTTPSession = URLSession.shared) {
-        self.deviceToken = deviceToken
-        self.baseURL = baseURL
-        self.session = session
-    }
-
     func sendExtraction(_ request: BackendExtractionRequest) async throws -> ExtractionResponsePayload {
         let response: BackendExtractionResponse = try await send(request, path: "/api/v1/extractions")
         return ExtractionResponsePayload(

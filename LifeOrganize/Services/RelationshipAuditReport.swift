@@ -159,7 +159,7 @@ struct RelationshipAuditService {
             "- Failures: \(report.summary.failures)",
             "- Warnings: \(report.summary.warnings)",
             "",
-            "## Checks",
+            "## Checks"
         ]
         for check in report.checks {
             lines.append("- \(check.id): \(check.status), \(check.checked) checked, \(check.failed) failed")
@@ -267,7 +267,7 @@ struct RelationshipAuditService {
             ("thing", run.createdEntities.things, index.things),
             ("event", run.createdEntities.events, index.events),
             ("rule", run.createdEntities.rules, index.rules),
-            ("note", run.createdEntities.notes, index.notes),
+            ("note", run.createdEntities.notes, index.notes)
         ]
         var findings: [RelationshipAuditFinding] = typedIDs.flatMap { type, ids, knownIDs in
             ids.compactMap {

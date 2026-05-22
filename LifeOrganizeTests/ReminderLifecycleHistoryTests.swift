@@ -21,7 +21,7 @@ final class ReminderLifecycleHistoryTests: XCTestCase {
             ReminderDetailActionPolicy.lifecycleAction(for: window, status: .active),
             ReminderDetailActionPolicy.lifecycleAction(for: scheduledWindow, status: .scheduled),
             ReminderDetailActionPolicy.lifecycleAction(for: recurring, status: .active),
-            ReminderDetailActionPolicy.lifecycleAction(for: expired, status: .expired),
+            ReminderDetailActionPolicy.lifecycleAction(for: expired, status: .expired)
         ].compactMap { $0 }
 
         XCTAssertEqual(actions.map(\.title), ["Mark Done", "Stop Carrying", "Close Window", "Cancel Window", "Pause Pattern", "Let It Rest"])
@@ -51,7 +51,7 @@ final class ReminderLifecycleHistoryTests: XCTestCase {
         let cases = [
             (selected: try Self.date(2026, 5, 20), status: RuleStatus.active, isActive: true),
             (selected: now, status: RuleStatus.active, isActive: true),
-            (selected: try Self.date(2026, 5, 30), status: RuleStatus.scheduled, isActive: false),
+            (selected: try Self.date(2026, 5, 30), status: RuleStatus.scheduled, isActive: false)
         ]
 
         for item in cases {

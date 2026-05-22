@@ -32,7 +32,7 @@ final class LedgerFeedRowContentTests: XCTestCase {
             (.failed, "Failed", .danger),
             (.failedNeedsReview, "Review", .attention),
             (.needsReview, "Review", .attention),
-            (.succeeded, nil, .neutral),
+            (.succeeded, nil, .neutral)
         ]
 
         for (status, expectedText, expectedTone) in expectedStatuses {
@@ -240,7 +240,7 @@ final class LedgerFeedRowContentTests: XCTestCase {
             content.primaryText,
             content.secondaryText,
             content.detailText,
-            content.linkedThingText,
+            content.linkedThingText
         ]
         .compactMap(\.self)
         .joined(separator: " ")

@@ -118,7 +118,7 @@ enum LedgerEventMetadataValidation {
             "recurring",
             "next_due",
             "package",
-            "reset",
+            "reset"
         ].contains { normalized.contains($0) }
     }
 

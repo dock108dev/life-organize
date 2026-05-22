@@ -284,10 +284,10 @@ final class ThingResolutionTests: XCTestCase {
                             canonicalThing("thing_1", name: "Oil Change", category: "vehicle"),
                             canonicalThing("thing_2", name: "Domains", category: "purchase"),
                             canonicalThing("thing_3", name: "Garage Filter", category: "home_maintenance"),
-                            canonicalThing("thing_4", name: "Kitchen Filter", category: "home_maintenance"),
+                            canonicalThing("thing_4", name: "Kitchen Filter", category: "home_maintenance")
                         ],
                         events: [
-                            canonicalEvent("event_1", title: "Changed oil", thingRef: "thing_1", occurredAt: "2027-01-15"),
+                            canonicalEvent("event_1", title: "Changed oil", thingRef: "thing_1", occurredAt: "2027-01-15")
                         ],
                         rules: [
                             canonicalRule(
@@ -296,18 +296,18 @@ final class ThingResolutionTests: XCTestCase {
                                 thingRef: "thing_2",
                                 startsAt: "2027-01-15",
                                 expiresAt: "2027-02-14"
-                            ),
+                            )
                         ],
                         notes: [
                             canonicalNote(
                                 "note_1",
                                 text: "Garage filter and kitchen filter use the same size.",
                                 linkedThingRefs: ["thing_3", "thing_4"]
-                            ),
+                            )
                         ],
                         aliases: [
                             canonicalAlias("thing_1", alias: "changed oil"),
-                            canonicalAlias("thing_2", alias: "another domain"),
+                            canonicalAlias("thing_2", alias: "another domain")
                         ]
                     )
                 )

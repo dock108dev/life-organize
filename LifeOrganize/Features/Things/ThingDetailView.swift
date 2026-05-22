@@ -239,7 +239,7 @@ struct ThingDetailView: View {
             LedgerInlineActionTray(actions: [
                 LedgerInlineAction(title: "Event", systemImage: "calendar.badge.plus") { activeSheet = .addEvent },
                 LedgerInlineAction(title: "Reminder", systemImage: "bell.badge") { activeSheet = .addRule },
-                LedgerInlineAction(title: "Note", systemImage: "note.text.badge.plus") { activeSheet = .addNote },
+                LedgerInlineAction(title: "Note", systemImage: "note.text.badge.plus") { activeSheet = .addNote }
             ])
         }
         .padding(.vertical, 4)

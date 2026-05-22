@@ -121,7 +121,7 @@ struct LedgerExportJSONDiffer {
         case .null:
             "null"
         case .array, .object:
-            String(decoding: value.encodedData, as: UTF8.self)
+            String(data: value.encodedData, encoding: .utf8) ?? ""
         }
     }
 }

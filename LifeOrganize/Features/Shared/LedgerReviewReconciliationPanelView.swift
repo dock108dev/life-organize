@@ -41,7 +41,7 @@ struct ReconciliationPanelView<Destination: View>: View {
             secondary: [
                 row.detail.map {
                     LedgerRowLine(text: $0, tone: row.isMissing ? .attention : .neutral, lineLimit: prominence.detailLineLimit)
-                },
+                }
             ].compactMap { $0 },
             density: prominence.rowDensity,
             emphasis: row.isMissing ? .attention : .normal

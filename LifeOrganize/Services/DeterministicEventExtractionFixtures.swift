@@ -16,7 +16,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                         thingRef: "thing_furnace_filter",
                         occurredAt: eventDate,
                         eventType: "maintenance"
-                    ),
+                    )
                 ],
                 rules: [
                     rule(
@@ -27,7 +27,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                         startsAt: reminderDate,
                         expiresAt: nil,
                         rawText: "Next one due in 2 months"
-                    ),
+                    )
                 ],
                 dates: [
                     dateEvidence(
@@ -47,7 +47,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                         ownerField: "startsAt",
                         confidence: 0.91,
                         resolvedConfidence: 0.93
-                    ),
+                    )
                 ]
             )
         }
@@ -70,7 +70,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                         startsAt: dateString(byAddingDays: 1, to: now),
                         expiresAt: nil,
                         rawText: "Remind me to replace furnace filter tomorrow"
-                    ),
+                    )
                 ]
             )
         }
@@ -108,10 +108,10 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                 messageType: "mixed",
                 things: [thing("thing_oil", name: "Oil Change", category: "vehicle")],
                 events: [
-                    event("event_oil", title: "Changed oil", thingRef: "thing_oil", occurredAt: dateString(from: now)),
+                    event("event_oil", title: "Changed oil", thingRef: "thing_oil", occurredAt: dateString(from: now))
                 ],
                 recallQueries: [
-                    recallQuery("query_last_oil", queryType: "last_time", thingName: "Oil Change", rawText: text),
+                    recallQuery("query_last_oil", queryType: "last_time", thingName: "Oil Change", rawText: text)
                 ]
             )
         }
@@ -124,7 +124,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                 things: [thing("thing_oil", name: "Oil Change", category: "vehicle")],
                 events: [
                     event("event_oil", title: "Changed oil", thingRef: "thing_oil", occurredAt: dateString(from: now)),
-                    event("event_bad_date", title: "Checked oil again", thingRef: "thing_oil", occurredAt: "soon"),
+                    event("event_bad_date", title: "Checked oil again", thingRef: "thing_oil", occurredAt: "soon")
                 ]
             )
         }
@@ -154,7 +154,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                         valueKind: "boolean",
                         boolValue: true,
                         sourceText: "replaced air filter"
-                    ),
+                    )
                 ]
             )
         }
@@ -187,7 +187,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                         valueKind: "boolean",
                         boolValue: true,
                         sourceText: "changed oil"
-                    ),
+                    )
                 ]
             )
         }
@@ -218,7 +218,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                         numberValue: 55000,
                         unit: "mi",
                         sourceText: "next at 55,000 miles"
-                    ),
+                    )
                 ]
             )
         }
@@ -236,7 +236,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                 eventType: "maintenance",
                 occurredAt: dateString(from: now),
                 metadata: [
-                    metadata(key: "mileage", valueKind: "number", numberValue: 40000, unit: "mi", sourceText: "40k miles"),
+                    metadata(key: "mileage", valueKind: "number", numberValue: 40000, unit: "mi", sourceText: "40k miles")
                 ]
             )
         }
@@ -254,7 +254,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                 eventType: "purchase",
                 occurredAt: dateString(from: now),
                 metadata: [
-                    metadata(key: "package_quantity", valueKind: "number", numberValue: 30, unit: "lb", sourceText: "30 lb bag"),
+                    metadata(key: "package_quantity", valueKind: "number", numberValue: 30, unit: "lb", sourceText: "30 lb bag")
                 ]
             )
         }
@@ -274,7 +274,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                 metadata: [
                     metadata(key: "vendor", valueKind: "string", stringValue: "Staples", sourceText: "Staples"),
                     metadata(key: "amount", valueKind: "number", numberValue: 12.50, unit: "USD", sourceText: "$12.50"),
-                    metadata(key: "quantity", valueKind: "number", numberValue: 2, sourceText: "2 reams"),
+                    metadata(key: "quantity", valueKind: "number", numberValue: 2, sourceText: "2 reams")
                 ]
             )
         }
@@ -297,7 +297,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                         valueKind: "string",
                         stringValue: "when the indicator turns red",
                         sourceText: "when the indicator turns red"
-                    ),
+                    )
                 ]
             )
         }
@@ -331,7 +331,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                 eventType: "visit",
                 occurredAt: dateString(from: now),
                 metadata: [
-                    metadata(key: "location", valueKind: "string", stringValue: "dentist office", sourceText: "dentist office"),
+                    metadata(key: "location", valueKind: "string", stringValue: "dentist office", sourceText: "dentist office")
                 ]
             )
         }
@@ -351,7 +351,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                 eventType: "renewal",
                 occurredAt: dateString(from: now),
                 metadata: [
-                    metadata(key: "identifier", valueKind: "string", stringValue: "passport", sourceText: "passport"),
+                    metadata(key: "identifier", valueKind: "string", stringValue: "passport", sourceText: "passport")
                 ]
             )
         }
@@ -369,7 +369,7 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                 eventType: "appointment",
                 occurredAt: "2027-01-20",
                 metadata: [
-                    metadata(key: "due_date", valueKind: "date", dateValue: "2027-01-20", sourceText: "Jan 20"),
+                    metadata(key: "due_date", valueKind: "date", dateValue: "2027-01-20", sourceText: "Jan 20")
                 ]
             )
         }
@@ -388,9 +388,9 @@ let eventFixtures: [DeterministicMessageExtractionFixture] = [
                 eventType: "note",
                 occurredAt: dateString(from: now),
                 metadata: [
-                    metadata(key: "identifier", valueKind: "string", stringValue: "A123", sourceText: "A123"),
+                    metadata(key: "identifier", valueKind: "string", stringValue: "A123", sourceText: "A123")
                 ]
             )
         }
-    ),
+    )
 ]

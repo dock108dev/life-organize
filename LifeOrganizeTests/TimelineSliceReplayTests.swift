@@ -49,7 +49,7 @@ final class TimelineSliceReplayTests: XCTestCase {
             .eventDetail(event.id),
             .ruleDetail(reminder.id),
             .noteDetail(note.id),
-            .chatMessage(message.id),
+            .chatMessage(message.id)
         ])
     }
 
@@ -151,7 +151,7 @@ final class TimelineSliceReplayTests: XCTestCase {
         let rows = [
             Self.row(kind: .event, date: morning, label: "Oil change"),
             Self.row(kind: .reminder, date: afternoon, label: "Renew registration"),
-            Self.row(kind: .note, date: afternoon, label: "Insurance card"),
+            Self.row(kind: .note, date: afternoon, label: "Insurance card")
         ]
         let summary = TimelineSliceReplaySectionSummary(rows: rows, calendar: calendar)
 
@@ -222,7 +222,7 @@ final class TimelineSliceReplayTests: XCTestCase {
             "Completed reminder",
             "Older note",
             "Same moment reminder",
-            "Completed reminder",
+            "Completed reminder"
         ])
     }
 

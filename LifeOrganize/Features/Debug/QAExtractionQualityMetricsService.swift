@@ -323,7 +323,7 @@ struct QAExtractionQualityMetricsService {
         [
             "entity_link_missing_source",
             "entity_link_missing_target",
-            "entity_link_missing_source_message",
+            "entity_link_missing_source_message"
         ].contains(failure.code)
     }
 }

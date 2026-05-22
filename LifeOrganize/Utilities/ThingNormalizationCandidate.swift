@@ -21,7 +21,7 @@ struct ThingNormalizationEvidence: Codable, Equatable {
     var matchedText: String
     var matchedKey: String
     var categoryHint: String?
-    var categoryEvidence: ThingNormalizationCategoryEvidence? = nil
+    var categoryEvidence: ThingNormalizationCategoryEvidence?
     var modelConfidence: Double?
 }
 
@@ -317,7 +317,7 @@ extension ThingNormalizer {
                     categoryHint: categoryHint,
                     categoryEvidence: categoryEvidence,
                     modelConfidence: modelConfidence
-                ),
+                )
             ],
             ambiguityReason: categoryAmbiguityReason(categoryEvidence) ?? ambiguityReason
         )
@@ -469,7 +469,7 @@ extension ThingNormalizer {
         "service": ["cloud", "service"],
         "vuln": ["issue", "security", "vulnerability"],
         "vulnerability": ["issue", "security", "vulnerability"],
-        "web": ["cloud", "web"],
+        "web": ["cloud", "web"]
     ]
 
     private static let broadReviewTokens = [
@@ -482,7 +482,7 @@ extension ThingNormalizer {
         "service",
         "vuln",
         "vulnerability",
-        "work",
+        "work"
     ]
 
     private static let semanticReviewTokens: Set<String> = Set(broadReviewTokens + ["issue"])

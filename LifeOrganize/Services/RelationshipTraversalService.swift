@@ -391,6 +391,6 @@ struct RelationshipTraversalService {
         "from",
         "have",
         "will",
-        "rule",
+        "rule"
     ]
 }

@@ -98,7 +98,7 @@ final class SearchRecallServiceTests: XCTestCase {
             metadataEntries: [
                 LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: 40_000, unit: "mi", sourceText: "40k miles"),
                 LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Valvoline"),
-                LedgerEventMetadataEntry(key: .amount, valueKind: .number, numberValue: 89.95, unit: "USD", sourceText: "$89.95"),
+                LedgerEventMetadataEntry(key: .amount, valueKind: .number, numberValue: 89.95, unit: "USD", sourceText: "$89.95")
             ],
             thing: car
         )
@@ -159,7 +159,7 @@ final class SearchRecallServiceTests: XCTestCase {
                 LedgerEventMetadataEntry(key: .amount, valueKind: .number, numberValue: 129, unit: "USD"),
                 LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Boxwell Depot"),
                 LedgerEventMetadataEntry(key: .dueDate, valueKind: .date, dateValue: "2027-03-15"),
-                LedgerEventMetadataEntry(key: .sourceText, valueKind: .string, stringValue: "internal source fragment"),
+                LedgerEventMetadataEntry(key: .sourceText, valueKind: .string, stringValue: "internal source fragment")
             ],
             thing: storage
         )
@@ -202,7 +202,7 @@ final class SearchRecallServiceTests: XCTestCase {
             eventType: .maintenance,
             metadataEntries: [
                 LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: 40_000, unit: "mi", sourceText: "40k miles"),
-                LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Costco"),
+                LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Costco")
             ],
             thing: car,
             sourceMessage: sourceMessage
@@ -251,7 +251,7 @@ final class SearchRecallServiceTests: XCTestCase {
             eventType: .maintenance,
             metadataEntries: [
                 LedgerEventMetadataEntry(key: .mileage, valueKind: .number, numberValue: 40_000, unit: "mi", sourceText: "40k miles"),
-                LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Costco"),
+                LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Costco")
             ],
             thing: car,
             sourceMessage: sourceMessage
@@ -320,7 +320,7 @@ final class SearchRecallServiceTests: XCTestCase {
             createdAt: now,
             updatedAt: now,
             metadataEntries: [
-                LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Home Depot"),
+                LedgerEventMetadataEntry(key: .vendor, valueKind: .string, stringValue: "Home Depot")
             ],
             thing: filters
         )

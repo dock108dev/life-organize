@@ -41,7 +41,7 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
                 (sourceType: .thing, sourceID: fixture.partialThing.id),
                 (sourceType: .event, sourceID: fixture.partialEvent.id),
                 (sourceType: .rule, sourceID: fixture.partialRule.id),
-                (sourceType: .none, sourceID: fixture.partialNote.id),
+                (sourceType: .none, sourceID: fixture.partialNote.id)
             ]
         )
 
@@ -74,7 +74,7 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
             detailContains: ["share a normalized name or alias", "No records have been merged"],
             evidence: [
                 (sourceType: .thing, sourceID: fixture.duplicateTarget.id),
-                (sourceType: .thing, sourceID: fixture.duplicateSource.id),
+                (sourceType: .thing, sourceID: fixture.duplicateSource.id)
             ]
         )
         XCTAssertTrue(duplicateTargetIDs.contains(try XCTUnwrap(duplicate.targetID)))
@@ -92,7 +92,7 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
                 "Window service renewal",
                 "is dated",
                 "saved metadata includes 2026-05-15",
-                "Review the event before changing dates",
+                "Review the event before changing dates"
             ],
             evidence: [(sourceType: .event, sourceID: fixture.conflictEvent.id)]
         )
@@ -123,14 +123,14 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
             "Entry needs review",
             "Possible duplicate Things",
             "Event has conflicting dates",
-            "Entry recovery is available",
+            "Entry recovery is available"
         ])
         XCTAssertEqual(presentations.map(\.nextActionTitle), [
             "Retry Now",
             "Open Records",
             "Review Things",
             "Review event",
-            "Retry Now",
+            "Retry Now"
         ])
         XCTAssertEqual(presentations.map(\.isBlocked), [false, true, false, false, false])
 
@@ -208,7 +208,7 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
                                 occurredAt: "2027-01-15",
                                 eventType: "maintenance",
                                 rawText: "Need to retry this entry when the connection returns."
-                            ),
+                            )
                         ]
                     )
                 )
@@ -246,7 +246,7 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
                                 thingRef: "thing_recovery_retry",
                                 occurredAt: "2027-01-15",
                                 rawText: fixture.recoveryMessage.text
-                            ),
+                            )
                         ]
                     )
                 )
@@ -330,7 +330,7 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
             targetID: source.id,
             evidence: [
                 LedgerReviewItemEvidence(sourceType: .event, sourceID: event.id, summary: event.title, detail: nil),
-                LedgerReviewItemEvidence(sourceType: .thing, sourceID: target.id, summary: target.name, detail: nil),
+                LedgerReviewItemEvidence(sourceType: .thing, sourceID: target.id, summary: target.name, detail: nil)
             ],
             createdAt: scenarioNow,
             updatedAt: scenarioNow

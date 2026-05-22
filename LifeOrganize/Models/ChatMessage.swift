@@ -119,7 +119,7 @@ private extension String {
             "Web results:",
             "Review:",
             "Blocked.",
-            "No active ",
+            "No active "
         ]
         if visiblePrefixes.contains(where: { trimmed.hasPrefix($0) }) {
             return true

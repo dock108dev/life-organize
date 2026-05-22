@@ -116,7 +116,7 @@ func resolvedDate(
 func jsonLiteral(_ value: String?) -> String {
     guard let value else { return "null" }
     let data = (try? JSONEncoder().encode(value)) ?? Data(#""""#.utf8)
-    return String(decoding: data, as: UTF8.self)
+    return String(data: data, encoding: .utf8) ?? #""""#
 }
 
 func jsonNumberLiteral(_ value: Double?) -> String {

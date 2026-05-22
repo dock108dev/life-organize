@@ -224,7 +224,7 @@ struct RecallService {
             metadata.key.rawValue,
             metadata.key.displayName,
             metadata.displayValue,
-            metadata.sourceText,
+            metadata.sourceText
         ]
         .compactMap { $0?.nilIfEmpty }
         .map(ThingNormalizer.normalizeKey)
@@ -265,7 +265,7 @@ struct RecallService {
             "show",
             "the",
             "what",
-            "when",
+            "when"
         ]
         return Set(
             ThingNormalizer.normalizeKey(text)
@@ -409,7 +409,7 @@ struct RecallService {
         "have i",
         "have we",
         "recently",
-        "last",
+        "last"
     ]
 
     private let lastTimeFillerWords: Set<String> = [
@@ -430,7 +430,7 @@ struct RecallService {
         "to",
         "was",
         "we",
-        "when",
+        "when"
     ]
 
     private let priorRecallPrefixes = [
@@ -459,7 +459,7 @@ struct RecallService {
         "anything about ",
         "anything saved about ",
         "what do i know about ",
-        "what do i have about ",
+        "what do i have about "
     ]
 
 }

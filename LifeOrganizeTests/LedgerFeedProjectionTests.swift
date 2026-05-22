@@ -69,15 +69,15 @@ final class LedgerFeedProjectionTests: XCTestCase {
             "Thu, May 21",
             "Wed, May 20",
             "May 18",
-            "Sunday",
+            "Sunday"
         ])
         XCTAssertEqual(sections[0].items.map(\.id), [
-            "reminder-\(reminder.id.uuidString)",
+            "reminder-\(reminder.id.uuidString)"
         ])
         XCTAssertEqual(sections[1].items.map(\.id), [
             "event-\(todayEvent.id.uuidString)",
             LedgerFeedItem.messageID(for: newerMessage.id),
-            LedgerFeedItem.messageID(for: olderMessage.id),
+            LedgerFeedItem.messageID(for: olderMessage.id)
         ])
         XCTAssertEqual(sections[2].items.map(\.id), ["event-\(yesterdayEvent.id.uuidString)"])
         XCTAssertEqual(sections[3].items.map(\.id), ["event-\(thisWeekEvent.id.uuidString)"])
@@ -119,10 +119,10 @@ final class LedgerFeedProjectionTests: XCTestCase {
         XCTAssertEqual(sections.map(\.group), [.upcoming, .upcoming])
         XCTAssertEqual(sections.map(\.title), ["Jun 20", "Jun 1"])
         XCTAssertEqual(sections[0].items.map(\.id), [
-            "reminder-\(futureReminder.id.uuidString)",
+            "reminder-\(futureReminder.id.uuidString)"
         ])
         XCTAssertEqual(sections[1].items.map(\.id), [
-            "event-\(futureEvent.id.uuidString)",
+            "event-\(futureEvent.id.uuidString)"
         ])
         XCTAssertEqual(sections[0].summary.itemCountText, "1 item")
         XCTAssertEqual(sections[0].summary.typeMixText, "1 reminder")
@@ -155,7 +155,7 @@ final class LedgerFeedProjectionTests: XCTestCase {
 
         XCTAssertEqual(items.map(\.id), [
             "event-\(eveningEvent.id.uuidString)",
-            "event-\(morningEvent.id.uuidString)",
+            "event-\(morningEvent.id.uuidString)"
         ])
     }
 
@@ -313,7 +313,7 @@ final class LedgerFeedProjectionTests: XCTestCase {
             .partiallySucceeded,
             .failed,
             .failedNeedsReview,
-            .needsReview,
+            .needsReview
         ]
         let visibleMessages = attentionStatuses.map {
             ChatMessage(role: .user, text: "Attention \($0.rawValue)", createdAt: now, extractionStatus: $0)
@@ -323,7 +323,7 @@ final class LedgerFeedProjectionTests: XCTestCase {
         let hiddenMessages = [
             ChatMessage(role: .user, text: "Handled", createdAt: now, extractionStatus: .succeeded),
             ChatMessage(role: .user, text: "Local question", createdAt: now, extractionStatus: .notRequired),
-            ChatMessage(role: .system, text: "Ready.", createdAt: now, extractionStatus: .pending),
+            ChatMessage(role: .system, text: "Ready.", createdAt: now, extractionStatus: .pending)
         ]
 
         let items = LedgerFeedProjection(calendar: calendar, now: now).items(

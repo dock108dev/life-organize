@@ -62,7 +62,7 @@ final class SettingsTrustSurfaceTests: XCTestCase {
             SettingsClearDataCopy.exportFailedBody,
             SettingsFeedback.deviceTokenReplaced.message,
             SettingsFeedback.exportReady.message,
-            SettingsFeedback.localDataCleared.message,
+            SettingsFeedback.localDataCleared.message
         ].joined(separator: " ")
 
         XCTAssertNoPrimaryCopyTerms(
@@ -77,7 +77,7 @@ final class SettingsTrustSurfaceTests: XCTestCase {
                 "raw response",
                 "normalized",
                 "model metadata",
-                "error code",
+                "error code"
             ]
         )
     }
@@ -96,7 +96,7 @@ final class SettingsTrustSurfaceTests: XCTestCase {
             SettingsTrustCopy.clearBody,
             SettingsTrustCopy.clearDeletes,
             SettingsTrustCopy.clearKeeps,
-            "LifeOrganize 0.1 (1)",
+            "LifeOrganize 0.1 (1)"
         ].joined(separator: " ")
 
         XCTAssertNoPrimaryCopyTerms(
@@ -109,7 +109,7 @@ final class SettingsTrustSurfaceTests: XCTestCase {
                 "raw response",
                 "normalized JSON",
                 "model metadata",
-                "error code",
+                "error code"
             ]
         )
     }

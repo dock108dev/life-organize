@@ -163,7 +163,7 @@ struct NoteDetailPresentation: Equatable {
         updatedLine = "Updated \(DateFormatting.fullDate.string(from: note.updatedAt))"
         metadata = [
             SearchDetailMetadata(label: "Created", value: DateFormatting.fullDate.string(from: note.createdAt)),
-            SearchDetailMetadata(label: "Updated", value: DateFormatting.fullDate.string(from: note.updatedAt)),
+            SearchDetailMetadata(label: "Updated", value: DateFormatting.fullDate.string(from: note.updatedAt))
         ]
         let source = LedgerSourcePresentation(
             hasSourceMessage: note.sourceMessage != nil,
@@ -323,7 +323,7 @@ struct ChatMessageContextPresentation: Equatable {
         roleText = message.role == .user ? "Original entry" : message.role.rawValue.capitalized
         metadata = [
             SearchDetailMetadata(label: "Captured", value: DateFormatting.fullDate.string(from: message.createdAt)),
-            SearchDetailMetadata(label: "Context", value: roleText),
+            SearchDetailMetadata(label: "Context", value: roleText)
         ]
     }
 }

@@ -205,7 +205,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
                 sourceText,
                 "",
                 "Suggested interpretation:",
-                suggestionText,
+                suggestionText
             ].joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
             return body.nilIfEmpty
         case .duplicateThing, .normalizationCandidate, .intervalReminder, .overdueReminderReview:

@@ -33,7 +33,7 @@ final class DeterministicExtractionClientTests: XCTestCase {
             ("Renewed passport.", "renewal", ["identifier"]),
             ("Dentist appointment Jan 20.", "appointment", ["due_date"]),
             ("Kitchen remodel project started.", "project", []),
-            ("Noted washer serial A123.", "note", ["identifier"]),
+            ("Noted washer serial A123.", "note", ["identifier"])
         ]
         for (input, eventType, metadataKeys) in examples {
             let envelope = try await parsedEnvelope(for: input)
@@ -51,7 +51,7 @@ final class DeterministicExtractionClientTests: XCTestCase {
             ("Bought dog food.", "event", "Bought dog food", "purchase"),
             ("Cleaned garage.", "event", "Cleaned garage", "cleaning"),
             ("Replace filter in 2 months.", "rule", "Replace filter", "reminder"),
-            ("Reevaluate buying domains in 90 days.", "rule", "Reevaluate buying domains", "reminder"),
+            ("Reevaluate buying domains in 90 days.", "rule", "Reevaluate buying domains", "reminder")
         ]
 
         for (input, expectedKind, expectedTitle, expectedType) in examples {
@@ -96,7 +96,7 @@ final class DeterministicExtractionClientTests: XCTestCase {
         let envelope = try ExtractionService.parse(
             rawResponseText: canonicalExtractionJSON(
                 things: [
-                    canonicalThing("thing_1", name: "Car", category: "vehicle"),
+                    canonicalThing("thing_1", name: "Car", category: "vehicle")
                 ],
                 events: [
                     canonicalEvent(
@@ -116,9 +116,9 @@ final class DeterministicExtractionClientTests: XCTestCase {
                                 valueKind: "string",
                                 stringValue: "ABC123",
                                 sourceText: "ABC123"
-                            ),
+                            )
                         ]
-                    ),
+                    )
                 ]
             )
         ).envelope
@@ -143,7 +143,7 @@ final class DeterministicExtractionClientTests: XCTestCase {
                         confidence: 0.62,
                         resolvedConfidence: 0.71,
                         resolvedSourceText: "next Friday"
-                    ),
+                    )
                 ],
                 confidence: #"{"overall":0.58,"requiresReview":true,"reasons":["ambiguous_date"]}"#
             )
@@ -170,10 +170,10 @@ final class DeterministicExtractionClientTests: XCTestCase {
         let envelope = try ExtractionService.parse(
             rawResponseText: canonicalExtractionJSON(
                 things: [
-                    canonicalThing("thing_1", name: "Vulnerabilities", category: "work"),
+                    canonicalThing("thing_1", name: "Vulnerabilities", category: "work")
                 ],
                 aliases: [
-                    canonicalAlias("thing_1", alias: "vulns"),
+                    canonicalAlias("thing_1", alias: "vulns")
                 ],
                 confidence: #"{"overall":0.64,"requiresReview":true,"reasons":["possible_duplicate"]}"#
             )
@@ -363,7 +363,7 @@ final class DeterministicExtractionClientTests: XCTestCase {
         let envelope = try ExtractionService.parse(
             rawResponseText: canonicalExtractionJSON(
                 things: [
-                    canonicalThing("thing_1", name: "Air Filters", category: "home_maintenance"),
+                    canonicalThing("thing_1", name: "Air Filters", category: "home_maintenance")
                 ],
                 rules: [
                     canonicalRule(
@@ -374,7 +374,7 @@ final class DeterministicExtractionClientTests: XCTestCase {
                         expiresAt: nil,
                         ruleType: "reminder",
                         rawText: "Replace air filters every 90 days"
-                    ),
+                    )
                 ]
             )
         ).envelope

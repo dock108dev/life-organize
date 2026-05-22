@@ -14,7 +14,7 @@ extension LedgerReviewItemGenerationService {
         let actionName = suggestedReminderAction(for: message.text, thingName: thingName)
         let detail = [
             "This sounds like a tentative \(reminderDescription(actionName: actionName, thingName: thingName)).",
-            "The date phrase \"\(window.sourceText)\" means sometime from \(window.displayText), so no exact reminder date was saved.",
+            "The date phrase \"\(window.sourceText)\" means sometime from \(window.displayText), so no exact reminder date was saved."
         ].joined(separator: " ")
         let messageEvidence = LedgerReviewItemEvidence(
             sourceType: .chatMessage,
@@ -75,7 +75,7 @@ extension LedgerReviewItemGenerationService {
             "in a week or two",
             "in one or two weeks",
             "in 1 or 2 weeks",
-            "in a couple weeks or so",
+            "in a couple weeks or so"
         ].contains(normalized)
         guard matchesWeekWindow,
               let start = calendar.date(byAdding: .day, value: 7, to: referenceDate),

@@ -124,7 +124,7 @@ extension LedgerReviewQueueConsistencyScenarioTests {
                     valueKind: .date,
                     dateValue: "2026-05-15",
                     sourceText: "due 2026-05-15"
-                ),
+                )
             ]
         )
         context.insert(ambiguousMessage)

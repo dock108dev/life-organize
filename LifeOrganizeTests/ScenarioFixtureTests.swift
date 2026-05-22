@@ -10,7 +10,7 @@ final class ScenarioFixtureTests: XCTestCase {
             "heavy_history",
             "operational_home",
             "timeline_search",
-            "work_continuity",
+            "work_continuity"
         ]
 
         XCTAssertEqual(try ScenarioFixture.allBundledScenarioIDs(), expectedIDs)

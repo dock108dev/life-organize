@@ -399,7 +399,7 @@ private enum EventDetailSheet: Identifiable {
                         valueKind: .number,
                         numberValue: 52_000,
                         unit: "mi"
-                    ),
+                    )
                 ]
             )
         )

@@ -262,7 +262,7 @@ enum TemporalPriorityResolver {
             "ban ",
             "long term",
             "long-term",
-            "indefinitely",
+            "indefinitely"
         ]
         return markers.contains { text.contains($0) }
     }
@@ -325,7 +325,7 @@ enum TemporalPriorityResolver {
         "review later",
         "review whether",
         "remind me",
-        "follow up",
+        "follow up"
     ]
 }
 

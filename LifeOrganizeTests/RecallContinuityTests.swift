@@ -17,7 +17,7 @@ final class RecallContinuityTests: XCTestCase {
                     numberValue: 48231,
                     unit: "mi",
                     sourceText: "48,231 miles"
-                ),
+                )
             ],
             thing: car
         )
@@ -140,7 +140,7 @@ final class RecallContinuityTests: XCTestCase {
                     numberValue: 48231,
                     unit: "mi",
                     sourceText: "48,231 miles"
-                ),
+                )
             ],
             thing: car
         )

@@ -114,7 +114,7 @@ struct UnifiedSearchView: View {
         SearchLandingExample(query: "oil last month", detail: "Thing plus rough timing", pillText: "Rough date", tone: .neutral),
         SearchLandingExample(query: "May 2026", detail: "A month from the ledger", pillText: "Month", tone: .info),
         SearchLandingExample(query: "HarborMart 40k", detail: "Vendor, mileage, or phrase fragments", pillText: "Fragment", tone: .success),
-        SearchLandingExample(query: "upcoming", detail: "Future reminder windows", pillText: "Timing", tone: .attention),
+        SearchLandingExample(query: "upcoming", detail: "Future reminder windows", pillText: "Timing", tone: .attention)
     ]
 
     static let phaseThreeExampleQueries = landingExamples.map(\.query)

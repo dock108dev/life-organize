@@ -135,7 +135,7 @@ final class LedgerReviewItemPresentationTests: XCTestCase {
             .statusDismissed,
             .statusSnoozed,
             .statusExpired,
-            .statusFailed,
+            .statusFailed
         ])
         XCTAssertTrue(presentations[2].detail?.contains("Returns") == true)
         XCTAssertEqual(presentations[4].detail, "The saved record could not be updated.")

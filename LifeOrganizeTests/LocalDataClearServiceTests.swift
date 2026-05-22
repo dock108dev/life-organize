@@ -22,7 +22,7 @@ final class LocalDataClearServiceTests: XCTestCase {
                     numberValue: 90,
                     unit: "days",
                     sourceText: "every 90 days"
-                ),
+                )
             ],
             thing: thing,
             sourceMessage: message
@@ -52,7 +52,7 @@ final class LocalDataClearServiceTests: XCTestCase {
             targetType: .thing,
             targetID: thing.id,
             evidence: [
-                LedgerReviewItemEvidence(sourceType: .event, sourceID: event.id, summary: event.title, detail: "90 days"),
+                LedgerReviewItemEvidence(sourceType: .event, sourceID: event.id, summary: event.title, detail: "90 days")
             ],
             createdAt: createdAt,
             updatedAt: createdAt
@@ -124,7 +124,7 @@ final class LocalDataClearServiceTests: XCTestCase {
             ExtractionResponsePayload(
                 rawResponseText: canonicalExtractionJSON(
                     events: [
-                        canonicalEvent("event_1", title: "Changed oil", thingRef: nil, occurredAt: "2027-01-15"),
+                        canonicalEvent("event_1", title: "Changed oil", thingRef: nil, occurredAt: "2027-01-15")
                     ]
                 )
             )

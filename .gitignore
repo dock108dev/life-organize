@@ -1,7 +1,5 @@
 # AIDLC working directory
-.aidlc/runs/
-.aidlc/reports/
-.aidlc/_archive/
+.aidlc/
 
 # Xcode local build output
 .build/

@@ -42,6 +42,8 @@ enum ReminderContinuityLane: CaseIterable, Hashable {
             .inactive
         }
     }
+
+    static let activeCases: [ReminderContinuityLane] = [.now, .comingUp, .review]
 }
 
 struct ReminderContinuityPresentation: Equatable {
@@ -74,12 +76,15 @@ struct ReminderContinuityPresentationService {
         let lane = lane(for: status)
         let statusBadge = LedgerBadgePresentation.reminderStatus(for: lane)
         let typeBadge = LedgerBadgePresentation.reminderType(for: rule.continuityBehavior)
+        let badges = lane == .paused
+            ? [statusBadge]
+            : LedgerBadgePresentation.visibleBadges(from: [statusBadge, typeBadge], maxCount: 2)
 
         return ReminderContinuityPresentation(
             lane: lane,
             statusBadge: statusBadge,
             typeBadge: typeBadge,
-            badges: LedgerBadgePresentation.visibleBadges(from: [statusBadge, typeBadge], maxCount: 2),
+            badges: badges,
             primaryLine: primaryLine(for: rule, status: status, at: date),
             dateLine: dateLine(for: rule, status: status, at: date),
             detailTimingRows: detailTimingRows(for: rule, status: status, lane: lane, at: date)
@@ -144,7 +149,8 @@ struct ReminderContinuityPresentationService {
             case .expired:
                 return "Choose whether to complete or reschedule"
             case .inactive:
-                return "Original due date \(Self.shortDate(rule.startsAt))"
+                return rule.manuallyDeactivatedAt.map { "Paused \(Self.shortDate($0)) · Hidden from active carry forward" }
+                    ?? "Hidden from active carry forward"
             }
         case .timeLimitedWindow:
             switch status {
@@ -155,7 +161,8 @@ struct ReminderContinuityPresentationService {
             case .expired:
                 return "Review whether to extend or let it rest"
             case .inactive:
-                return rule.expiresAt.map { "Original end date \(Self.shortDate($0))" }
+                return rule.manuallyDeactivatedAt.map { "Paused \(Self.shortDate($0)) · Hidden from active carry forward" }
+                    ?? "Hidden from active carry forward"
             }
         case .ongoing:
             switch status {
@@ -169,7 +176,8 @@ struct ReminderContinuityPresentationService {
             case .expired:
                 return "Review whether this still matters"
             case .inactive:
-                return rule.manuallyDeactivatedAt.map { "Paused \(Self.shortDate($0))" }
+                return rule.manuallyDeactivatedAt.map { "Paused \(Self.shortDate($0)) · Hidden from active carry forward" }
+                    ?? "Hidden from active carry forward"
             }
         case .recurringText:
             switch status {
@@ -178,7 +186,8 @@ struct ReminderContinuityPresentationService {
             case .expired:
                 return "Update the reminder if the pattern changed"
             case .inactive:
-                return "Original wording remains saved"
+                return rule.manuallyDeactivatedAt.map { "Paused \(Self.shortDate($0)) · Hidden from active carry forward" }
+                    ?? "Hidden from active carry forward"
             }
         }
     }
@@ -216,7 +225,7 @@ struct ReminderContinuityPresentationService {
         case .expired:
             return "Date passed"
         case .inactive:
-            return "No longer carried forward"
+            return "Paused"
         }
     }
 
@@ -229,7 +238,7 @@ struct ReminderContinuityPresentationService {
         case .expired:
             return rule.expiresAt.map { "Ended \(Self.longDate($0))" } ?? "Window ended"
         case .inactive:
-            return "Window stopped"
+            return "Paused"
         }
     }
 
@@ -242,7 +251,7 @@ struct ReminderContinuityPresentationService {
         case .expired:
             return rule.expiresAt.map { "Ended \(Self.longDate($0))" } ?? "Ended"
         case .inactive:
-            return "No longer carried forward"
+            return "Paused"
         }
     }
 
@@ -255,7 +264,7 @@ struct ReminderContinuityPresentationService {
         case .expired:
             return "Repeat wording may need review"
         case .inactive:
-            return "Recurring intention paused"
+            return "Paused"
         }
     }
 

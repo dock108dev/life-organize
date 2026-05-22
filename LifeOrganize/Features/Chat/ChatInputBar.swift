@@ -14,7 +14,7 @@ struct ChatInputBar: View {
 
     init(
         text: Binding<String>,
-        placeholder: String = "Ask what is due or add a note",
+        placeholder: String = "Add anything or ask what’s due",
         isCommittingSend: Bool,
         isOrganizing: Bool,
         isFocused: FocusState<Bool>.Binding,
@@ -54,7 +54,12 @@ struct ChatInputBar: View {
                     .font(LedgerVisualSystem.Typography.rowPrimary)
                     .accessibilityIdentifier("chat-input")
                     .padding(.vertical, 6)
-                    .submitLabel(.return)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        if canSend {
+                            onSend()
+                        }
+                    }
 
                 Button(action: onSend) {
                     Image(systemName: "plus")

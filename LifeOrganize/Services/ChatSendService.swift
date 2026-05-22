@@ -24,6 +24,9 @@ struct ChatSendService {
         if classification.intent == .webLookup || classification.intent == .webImport {
             return try await sendWebRequest(text, classification: classification, now: now, onRawMessagePersisted: onRawMessagePersisted)
         }
+        if let lifecycleMessage = try handleLocalLifecycleCommand(text, now: now, onRawMessagePersisted: onRawMessagePersisted) {
+            return lifecycleMessage
+        }
         if !classification.intent.needsExtraction {
             let message = ChatMessage(role: .user, text: text, createdAt: now, extractionStatus: .notRequired)
             modelContext.insert(message)
@@ -260,5 +263,83 @@ struct ChatSendService {
         attempt.errorMessage = detail
         attempt.normalizedJSONText = try normalizedJSON.jsonString()
         persistAssistantMessage(userMessage)
+    }
+
+    private func handleLocalLifecycleCommand(
+        _ text: String,
+        now: Date,
+        onRawMessagePersisted: ((ChatMessage) -> Void)?
+    ) throws -> ChatMessage? {
+        guard let target = lifecyclePauseTarget(from: text) else { return nil }
+        let rules = try modelContext.fetch(FetchDescriptor<LedgerRule>())
+        guard let rule = bestLifecycleMatch(for: target, in: rules, now: now) else {
+            return nil
+        }
+
+        let message = ChatMessage(role: .user, text: text, createdAt: now, extractionStatus: .notRequired)
+        modelContext.insert(message)
+        try modelContext.save()
+        onRawMessagePersisted?(message)
+
+        ReminderRuleLifecycleMutation.deactivate(
+            rule,
+            at: now,
+            maintenance: DerivedFieldMaintenanceService(modelContext: modelContext, now: { now })
+        )
+        try EntityLinkWriter(modelContext: modelContext, now: { now }).linkExtracted(message: message, rule: rule)
+        if let thing = rule.thing {
+            try EntityLinkWriter(modelContext: modelContext, now: { now }).linkMessage(message, mentions: thing)
+        }
+        persistAssistantMessage("Saved.")
+        try modelContext.save()
+        return message
+    }
+
+    private func lifecyclePauseTarget(from text: String) -> String? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lowercased = trimmed.lowercased()
+        let prefixes = ["pause work on ", "pause ", "stop work on ", "stop "]
+        guard let prefix = prefixes.first(where: { lowercased.hasPrefix($0) }) else { return nil }
+        let target = String(trimmed.dropFirst(prefix.count))
+            .trimmingCharacters(in: .whitespacesAndNewlines.union(.punctuationCharacters))
+        return target.nilIfEmpty
+    }
+
+    private func bestLifecycleMatch(for target: String, in rules: [LedgerRule], now: Date) -> LedgerRule? {
+        let statusService = RuleStatusService()
+        let candidates = rules
+            .filter { rule in
+                switch statusService.status(for: rule, at: now) {
+                case .active, .scheduled:
+                    true
+                case .expired, .inactive:
+                    false
+                }
+            }
+            .compactMap { rule -> (rule: LedgerRule, score: Int)? in
+                let score = lifecycleMatchScore(rule: rule, target: target)
+                return score > 0 ? (rule, score) : nil
+            }
+            .sorted { lhs, rhs in
+                if lhs.score != rhs.score { return lhs.score > rhs.score }
+                if lhs.rule.startsAt != rhs.rule.startsAt { return lhs.rule.startsAt < rhs.rule.startsAt }
+                return lhs.rule.updatedAt > rhs.rule.updatedAt
+            }
+        guard let best = candidates.first, best.score >= 3 else { return nil }
+        return best.rule
+    }
+
+    private func lifecycleMatchScore(rule: LedgerRule, target: String) -> Int {
+        let targetTokens = Set(ThingNormalizer.normalizeKey(target).split(separator: " ").map(String.init))
+        guard !targetTokens.isEmpty else { return 0 }
+        let searchable = ThingNormalizer.normalizeKey(
+            [rule.title, rule.rawText, rule.reason, rule.thing?.name]
+                .compactMap { $0 }
+                .joined(separator: " ")
+        )
+        let searchableTokens = Set(searchable.split(separator: " ").map(String.init))
+        let overlap = targetTokens.intersection(searchableTokens).count
+        let titleContainsTarget = searchable.contains(ThingNormalizer.normalizeKey(target))
+        return overlap + (titleContainsTarget ? 4 : 0)
     }
 }

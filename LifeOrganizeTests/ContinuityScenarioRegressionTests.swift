@@ -254,8 +254,8 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
             existingThings: [securityCanonical],
             modelConfidence: 0.7
         ).first)
-        XCTAssertEqual(abbreviationCandidate.matchReason, .abbreviationVariant)
-        XCTAssertFalse(abbreviationCandidate.allowsAutomaticMerge)
+        XCTAssertEqual(abbreviationCandidate.matchReason, .seedAlias)
+        XCTAssertTrue(abbreviationCandidate.allowsAutomaticMerge)
 
         let sourceThing = try ThingResolver(modelContext: context, now: { now }).resolve(
             name: "NWS",

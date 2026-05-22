@@ -220,11 +220,7 @@ enum LedgerReminderRowLines {
     }
 
     static func lines(for presentation: ReminderContinuityPresentation, rule: LedgerRule, reason: String? = nil) -> [LedgerRowLine] {
-        var lines = lines(for: presentation, reason: reason)
-        if let deactivatedAt = rule.manuallyDeactivatedAt {
-            lines.append(LedgerRowLine(text: "Completed or stopped \(DateFormatting.fullDate.string(from: deactivatedAt))"))
-        }
-        return lines
+        lines(for: presentation, reason: reason)
     }
 }
 

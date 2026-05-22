@@ -17,7 +17,7 @@ final class ChatViewModel: ObservableObject {
     }
 
     func inputPlaceholder(hasAIServiceCredential: Bool) -> String {
-        hasAIServiceCredential ? "Ask what is due or add a note" : "Capture something locally"
+        hasAIServiceCredential ? "Add anything or ask what’s due" : "Capture something locally"
     }
 
     func sendDraft(

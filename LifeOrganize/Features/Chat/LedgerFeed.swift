@@ -241,6 +241,9 @@ enum LedgerFeedItem: Identifiable {
         case .event(let event):
             return event.occurredAt
         case .reminder(let reminder):
+            if let manuallyDeactivatedAt = reminder.manuallyDeactivatedAt {
+                return manuallyDeactivatedAt
+            }
             return reminder.startsAt
         case .note(let note):
             return note.createdAt
@@ -388,6 +391,9 @@ struct LedgerFeedProjection {
             return true
         }
 
+        if reminder.manuallyDeactivatedAt != nil {
+            return true
+        }
         return reminder.startsAt < horizonEnd
     }
 }

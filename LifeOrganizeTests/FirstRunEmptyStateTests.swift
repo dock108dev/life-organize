@@ -82,7 +82,7 @@ final class FirstRunEmptyStateTests: XCTestCase {
     func testChatInputPlaceholderExplainsLocalOnlyMode() {
         let viewModel = ChatViewModel()
 
-        XCTAssertEqual(viewModel.inputPlaceholder(hasAIServiceCredential: true), "Ask what is due or add a note")
+        XCTAssertEqual(viewModel.inputPlaceholder(hasAIServiceCredential: true), "Add anything or ask what’s due")
         XCTAssertEqual(
             viewModel.inputPlaceholder(hasAIServiceCredential: false),
             "Capture something locally"

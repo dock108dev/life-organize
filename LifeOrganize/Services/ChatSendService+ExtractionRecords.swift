@@ -43,6 +43,7 @@ extension ChatSendService {
             )
             createdThingIDs.insert(thing.id)
             createdRecords.standaloneThings.append(thing)
+            siblingEntities.append((.thing, thing.id))
             rememberResolvedThing(thing, values: [extractedThing.name] + extractedThing.aliases)
             try linkWriter.linkMessage(sourceMessage, mentions: thing)
         }
@@ -106,6 +107,7 @@ extension ChatSendService {
             if let thing {
                 createdThingIDs.insert(thing.id)
                 thing.updatedAt = dateProvider.now
+                siblingEntities.append((.thing, thing.id))
                 try linkWriter.linkMessage(sourceMessage, mentions: thing)
                 try linkWriter.linkPrimary(event: event, thing: thing, sourceMessage: sourceMessage)
             }
@@ -174,6 +176,7 @@ extension ChatSendService {
             if let thing {
                 createdThingIDs.insert(thing.id)
                 thing.updatedAt = dateProvider.now
+                siblingEntities.append((.thing, thing.id))
                 try linkWriter.linkMessage(sourceMessage, mentions: thing)
                 try linkWriter.linkPrimary(rule: rule, thing: thing, sourceMessage: sourceMessage)
             }
@@ -229,6 +232,7 @@ extension ChatSendService {
             things.forEach { thing in
                 createdThingIDs.insert(thing.id)
                 thing.updatedAt = dateProvider.now
+                siblingEntities.append((.thing, thing.id))
             }
             for thing in things {
                 try linkWriter.linkMessage(sourceMessage, mentions: thing)

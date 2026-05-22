@@ -55,7 +55,7 @@ final class ThingNormalizationCandidateTests: XCTestCase {
     }
 
     @MainActor
-    func testSecurityAbbreviationCandidatesRequireReviewInsteadOfMerge() throws {
+    func testSeededSecurityAbbreviationsMergeIntoCanonicalThing() throws {
         let context = makeInMemoryModelContext()
         let now = fixedTestNow
         let existing = Thing(name: "Vulnerabilities", category: .work, createdAt: now, updatedAt: now)
@@ -76,11 +76,11 @@ final class ThingNormalizationCandidateTests: XCTestCase {
             modelConfidence: 0.7
         )
         let candidate = try XCTUnwrap(candidates.first)
-        XCTAssertEqual(candidate.matchReason, .abbreviationVariant)
+        XCTAssertEqual(candidate.matchReason, .seedAlias)
         XCTAssertEqual(candidate.sourceEvidence.first?.categoryEvidence?.primaryCategory, .work)
         XCTAssertEqual(candidate.sourceEvidence.first?.categoryEvidence?.targetCategory, .work)
-        XCTAssertNotNil(candidate.ambiguityReason)
-        XCTAssertFalse(candidate.allowsAutomaticMerge)
+        XCTAssertNil(candidate.ambiguityReason)
+        XCTAssertTrue(candidate.allowsAutomaticMerge)
 
         let resolved = try resolver.resolve(
             name: "vulns",
@@ -93,8 +93,8 @@ final class ThingNormalizationCandidateTests: XCTestCase {
         )
         try context.save()
 
-        XCTAssertNotEqual(resolved.id, existing.id)
-        XCTAssertEqual(try context.fetch(FetchDescriptor<LedgerReviewItem>()).filter { $0.kind == .normalizationCandidate }.count, 1)
+        XCTAssertEqual(resolved.id, existing.id)
+        XCTAssertEqual(try context.fetch(FetchDescriptor<LedgerReviewItem>()).filter { $0.kind == .normalizationCandidate }.count, 0)
     }
 
     @MainActor

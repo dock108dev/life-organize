@@ -169,9 +169,9 @@ final class WorkContinuityScenarioTests: XCTestCase {
             existingThings: [vulnerabilities],
             modelConfidence: 0.7
         ).first
-        XCTAssertEqual(abbreviationCandidate?.targetThingID, vulnerabilities.id)
-        XCTAssertEqual(abbreviationCandidate?.matchReason, .abbreviationVariant)
-        XCTAssertEqual(abbreviationCandidate?.allowsAutomaticMerge, false)
+        XCTAssertEqual(abbreviationCandidate?.targetName, vulnerabilities.name)
+        XCTAssertEqual(abbreviationCandidate?.matchReason, .seedAlias)
+        XCTAssertEqual(abbreviationCandidate?.allowsAutomaticMerge, true)
 
         let scannerAliasCandidate = ThingNormalizer.candidates(
             for: "quality gate",

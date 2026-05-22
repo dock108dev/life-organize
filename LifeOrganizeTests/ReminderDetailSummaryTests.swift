@@ -111,7 +111,10 @@ final class ReminderDetailSummaryTests: XCTestCase {
 
         let summary = ReminderDetailSummaryService().presentation(for: rule, at: now)
 
-        XCTAssertEqual(summary.stateSentence, "Recurring intention paused. Original wording remains saved.")
+        XCTAssertEqual(
+            summary.stateSentence,
+            "Paused. Paused \(DateFormatting.shortDate.string(from: stoppedAt)) · Hidden from active carry forward."
+        )
         XCTAssertNil(summary.actionSentence)
         XCTAssertEqual(summary.actionTitles, [])
     }

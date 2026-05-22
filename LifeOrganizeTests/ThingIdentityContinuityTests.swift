@@ -181,9 +181,9 @@ final class ThingIdentityContinuityTests: XCTestCase {
                 categoryHint: "work",
                 contextText: "Review vulns and security issues.",
                 existingThings: [Thing(name: "Vulnerabilities", category: .work)],
-                expectedOutcome: .reviewCandidate,
-                expectedName: "Vuln",
-                expectedNormalizedKey: "vuln",
+                expectedOutcome: .automaticMerge,
+                expectedName: "Vulnerabilities",
+                expectedNormalizedKey: "vulnerability",
                 expectedCategory: .work
             ),
             IdentityScenario(

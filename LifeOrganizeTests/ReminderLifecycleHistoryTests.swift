@@ -169,8 +169,9 @@ final class ReminderLifecycleHistoryTests: XCTestCase {
             .map(\.text)
             .joined(separator: " ")
 
-        XCTAssertTrue(rendered.contains("Original due date"))
-        XCTAssertTrue(rendered.contains("Completed or stopped"))
+        XCTAssertTrue(rendered.contains("Paused"))
+        XCTAssertTrue(rendered.contains("Hidden from active carry forward"))
+        XCTAssertFalse(rendered.contains("Completed or stopped"))
     }
 
     private static let calendar: Calendar = {

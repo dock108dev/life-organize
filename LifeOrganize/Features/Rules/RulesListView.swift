@@ -5,6 +5,7 @@ struct RulesListView: View {
     @Query(sort: \LedgerRule.createdAt, order: .reverse) private var rules: [LedgerRule]
     @Query(sort: \LedgerReviewItem.updatedAt, order: .reverse) private var reviewItems: [LedgerReviewItem]
     @State private var isAddingRule = false
+    @State private var showsPaused = false
     @State private var reviewItemErrorMessage: String?
     private let continuityService = ReminderContinuityPresentationService()
     let onOpenLog: () -> Void
@@ -27,6 +28,20 @@ struct RulesListView: View {
                         .buttonStyle(.bordered)
                     }
                 }
+            } else if activeRules.isEmpty && !showsPaused {
+                LedgerEmptyStateView(
+                    content: LedgerEmptyStateContent(
+                        symbolName: "checklist",
+                        title: "Nothing needs attention right now.",
+                        body: "Paused and completed items are hidden from active Carry Forward.",
+                        secondaryBody: "Show paused items when you want to review old follow-ups."
+                    )
+                ) {
+                    Button("Show Paused") {
+                        showsPaused = true
+                    }
+                    .buttonStyle(.bordered)
+                }
             } else {
                 List {
                     LedgerContextPanel(content: .rules)
@@ -34,7 +49,7 @@ struct RulesListView: View {
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
 
-                    ForEach(ReminderContinuityLane.allCases, id: \.title) { lane in
+                    ForEach(visibleLanes, id: \.title) { lane in
                         let laneRules = rules(in: lane)
                         if !laneRules.isEmpty {
                             Section {
@@ -90,6 +105,14 @@ struct RulesListView: View {
         } message: {
             Text(reviewItemErrorMessage ?? "")
         }
+    }
+
+    private var activeRules: [LedgerRule] {
+        ReminderContinuityLane.activeCases.flatMap { rules(in: $0) }
+    }
+
+    private var visibleLanes: [ReminderContinuityLane] {
+        showsPaused ? ReminderContinuityLane.allCases : ReminderContinuityLane.activeCases
     }
 
     private func rules(in lane: ReminderContinuityLane) -> [LedgerRule] {

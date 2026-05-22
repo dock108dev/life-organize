@@ -213,6 +213,7 @@ enum ThingNormalizer {
     ]
 
     private static let acronymDisplayWords = [
+        "aws": "AWS",
         "api": "API",
         "hvac": "HVAC",
         "id": "ID",
@@ -339,6 +340,30 @@ enum ThingNormalizer {
                 "renew domain",
                 "domain renewal"
             ]
+        ),
+        ThingSeed(
+            canonicalName: "AWS",
+            canonicalKey: "aws",
+            category: .work,
+            aliases: ["aws", "amazon web services"]
+        ),
+        ThingSeed(
+            canonicalName: "Vulnerabilities",
+            canonicalKey: "vulnerability",
+            category: .work,
+            aliases: ["vulnerability", "vulnerabilities", "vuln", "vulns"]
+        ),
+        ThingSeed(
+            canonicalName: "Monorepo",
+            canonicalKey: "monorepo",
+            category: .work,
+            aliases: ["monorepo", "mono repo", "mono repository"]
+        ),
+        ThingSeed(
+            canonicalName: "Finance",
+            canonicalKey: "finance",
+            category: .finance,
+            aliases: ["finance", "finances"]
         )
     ]
 }

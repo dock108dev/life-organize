@@ -25,7 +25,7 @@ final class LifeOrganizeScenarioUITests: XCTestCase {
 
         let input = app.textFields["chat-input"]
         XCTAssertTrue(input.exists)
-        XCTAssertEqual(input.placeholderValue, "Ask what is due or add a note")
+        XCTAssertEqual(input.placeholderValue, "Add anything or ask what’s due")
         let sendButton = app.buttons["chat-send-button"]
         XCTAssertTrue(sendButton.exists)
         XCTAssertFalse(sendButton.isEnabled)

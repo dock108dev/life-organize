@@ -265,7 +265,8 @@ private struct ThingsNavigationRoot: View {
                         state: toolbarState,
                         isShowingReviewQueue: $isShowingReviewQueue,
                         isShowingSearch: $isShowingSearch,
-                        isShowingSettings: $isShowingSettings
+                        isShowingSettings: $isShowingSettings,
+                        showsSearch: false
                     )
                 }
         }
@@ -300,6 +301,7 @@ private struct AppToolbarButtons: ToolbarContent {
     @Binding var isShowingReviewQueue: Bool
     @Binding var isShowingSearch: Bool
     @Binding var isShowingSettings: Bool
+    var showsSearch = true
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .topBarTrailing) {
@@ -315,12 +317,14 @@ private struct AppToolbarButtons: ToolbarContent {
                 }
             }
 
-            LedgerToolbarIconButton(
-                systemName: AppToolbarSearchEntry.systemName,
-                accessibilityLabel: AppToolbarSearchEntry.accessibilityLabel,
-                accessibilityIdentifier: AppToolbarSearchEntry.accessibilityIdentifier
-            ) {
-                isShowingSearch = true
+            if showsSearch {
+                LedgerToolbarIconButton(
+                    systemName: AppToolbarSearchEntry.systemName,
+                    accessibilityLabel: AppToolbarSearchEntry.accessibilityLabel,
+                    accessibilityIdentifier: AppToolbarSearchEntry.accessibilityIdentifier
+                ) {
+                    isShowingSearch = true
+                }
             }
 
             LedgerToolbarIconButton(

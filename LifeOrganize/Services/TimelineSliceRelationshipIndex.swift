@@ -23,7 +23,7 @@ struct TimelineSliceRelationshipIndex {
             }
         )
 
-        for link in linksByNode[node] ?? [] where link.representsThingAssociation {
+        for link in linksByNode[node] ?? [] where link.representsThingAssociation || link.relation == .sameMessage {
             let linkedThingID: UUID?
             if link.sourceType == .thing {
                 linkedThingID = link.sourceID

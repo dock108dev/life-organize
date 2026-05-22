@@ -4,6 +4,8 @@ import SwiftUI
 struct ThingsListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Thing.updatedAt, order: .reverse) private var things: [Thing]
+    @Query(sort: \LedgerRule.updatedAt, order: .reverse) private var rules: [LedgerRule]
+    @Query(sort: \ChatMessage.createdAt, order: .reverse) private var messages: [ChatMessage]
     @Query(sort: \LedgerReviewItem.updatedAt, order: .reverse) private var reviewItems: [LedgerReviewItem]
     @State private var searchText = ""
     @State private var isAddingThing = false
@@ -66,7 +68,12 @@ struct ThingsListView: View {
                         NavigationLink {
                             ThingDetailView(thing: thing)
                         } label: {
-                            ThingRow(thing: thing, reviewPresentation: reviewPresentation)
+                            ThingRow(
+                                thing: thing,
+                                reviewPresentation: reviewPresentation,
+                                relatedRules: relatedRules(for: thing),
+                                sourceMessages: sourceMessages(for: thing)
+                            )
                         }
                         .accessibilityIdentifier("thing-row-\(thing.id.uuidString)")
                         .listRowInsets(EdgeInsets(top: 5, leading: 12, bottom: 5, trailing: 12))
@@ -150,14 +157,29 @@ struct ThingsListView: View {
             in: reviewItems
         )
     }
+
+    private func relatedRules(for thing: Thing) -> [LedgerRule] {
+        let sourceIDs = Set(thing.sourceMessageIDs)
+        return rules.filter { rule in
+            guard let sourceMessageID = rule.sourceMessageID else { return false }
+            return sourceIDs.contains(sourceMessageID)
+        }
+    }
+
+    private func sourceMessages(for thing: Thing) -> [ChatMessage] {
+        let sourceIDs = Set(thing.sourceMessageIDs)
+        return messages.filter { sourceIDs.contains($0.id) }
+    }
 }
 
 private struct ThingRow: View {
     let thing: Thing
     let reviewPresentation: LedgerReviewItemPresentation?
+    var relatedRules: [LedgerRule] = []
+    var sourceMessages: [ChatMessage] = []
 
     private var snapshot: ThingPreviewSnapshot {
-        ThingPreviewSnapshot(thing: thing)
+        ThingPreviewSnapshot(thing: thing, relatedRules: relatedRules, sourceMessages: sourceMessages)
     }
 
     var body: some View {
@@ -181,33 +203,11 @@ private struct ThingRow: View {
     }
 
     private func rowLines(_ snapshot: ThingPreviewSnapshot) -> [LedgerRowLine] {
-        var lines = snapshot.continuityLines.prefix(1).map { line in
-            var parts = [line.value]
-            if let detail = line.detail?.nilIfEmpty {
-                parts.append(detail)
-            }
-            let label = displayLabel(for: line.label)
-            return LedgerRowLine(
-                text: "\(label): \(parts.joined(separator: " · "))",
-                tone: line.tone,
-                lineLimit: label == "Recent note" || label == "Details" ? 2 : 1
-            )
-        }
+        var lines = [snapshot.listSummaryLine]
         if let reviewPresentation {
             lines.append(reviewPresentation.rowLine)
         }
         return lines
-    }
-
-    private func displayLabel(for label: String) -> String {
-        switch label {
-        case "Last event":
-            return "Last"
-        case "Reminder":
-            return "Now"
-        default:
-            return label
-        }
     }
 }
 

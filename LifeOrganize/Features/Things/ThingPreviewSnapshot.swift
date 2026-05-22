@@ -21,6 +21,8 @@ struct ThingPreviewSnapshot {
     let noteCount: Int
     let latestNoteSnippet: String?
     let continuityLines: [ContinuityLine]
+    let recordCount: Int
+    let listSummaryLine: LedgerRowLine
 
     enum UpcomingReminderKind: Equatable {
         case starts
@@ -45,11 +47,14 @@ struct ThingPreviewSnapshot {
 
     init(
         thing: Thing,
+        relatedRules: [LedgerRule] = [],
+        sourceMessages: [ChatMessage] = [],
         now: Date = Date(),
         calendar: Calendar = .current,
         ruleStatus: RuleStatusService = RuleStatusService()
     ) {
         let continuityService = ReminderContinuityPresentationService(statusService: ruleStatus)
+        let allRules = Self.uniqueRules(thing.rules + relatedRules)
         let sortedEvents = thing.events.sorted { lhs, rhs in
             if lhs.occurredAt != rhs.occurredAt {
                 return lhs.occurredAt > rhs.occurredAt
@@ -61,7 +66,7 @@ struct ThingPreviewSnapshot {
         }
         let latestEvent = sortedEvents.first
 
-        let activeReminders = thing.rules
+        let activeReminders = allRules
             .filter { ruleStatus.status(for: $0, at: now) == .active }
             .sorted {
                 switch ($0.expiresAt, $1.expiresAt) {
@@ -79,7 +84,7 @@ struct ThingPreviewSnapshot {
                 }
             }
 
-        let scheduledStarts = thing.rules
+        let scheduledStarts = allRules
             .filter { ruleStatus.status(for: $0, at: now) == .scheduled }
             .map { (rule: $0, date: $0.startsAt, kind: UpcomingReminderKind.starts) }
         let activeExpirations = activeReminders.compactMap { rule in
@@ -131,9 +136,18 @@ struct ThingPreviewSnapshot {
         upcomingReminderKind = upcomingReminder?.kind
         noteCount = thing.notes.count
         latestNoteSnippet = latestNote?.text.nilIfEmpty
+        recordCount = Self.recordCount(
+            events: sortedEvents,
+            rules: allRules,
+            notes: thing.notes,
+            sourceMessages: sourceMessages,
+            thing: thing
+        )
         continuityLines = Self.continuityLines(
             events: sortedEvents,
             fallbackLastEventAt: thing.lastEventAt,
+            sourceMessages: sourceMessages,
+            recordCount: recordCount,
             latestEventMetadataSummary: latestEventMetadataSummary,
             latestEventNoteSnippet: latestEventNoteSnippet,
             activeReminderCount: activeReminders.count,
@@ -145,7 +159,19 @@ struct ThingPreviewSnapshot {
             upcomingReminderDate: upcomingReminderDate,
             latestNoteSnippet: latestNoteSnippet,
             detailsSnippet: detailsSnippet,
-            aliasSummary: aliasSummary,
+            now: now,
+            calendar: calendar
+        )
+        listSummaryLine = Self.listSummaryLine(
+            recordCount: recordCount,
+            activeReminderCount: activeReminders.count,
+            primaryActiveReminderState: primaryActiveReminderState,
+            upcomingReminderTitle: upcomingReminderTitle,
+            upcomingReminderRelativeDueText: upcomingReminderRelativeDueText,
+            latestEventTitle: latestEventTitle,
+            latestEventDate: latestEventDate,
+            latestNoteSnippet: latestNoteSnippet,
+            sourceMessages: sourceMessages,
             now: now,
             calendar: calendar
         )
@@ -222,6 +248,8 @@ struct ThingPreviewSnapshot {
     private static func continuityLines(
         events: [LedgerEvent],
         fallbackLastEventAt: Date?,
+        sourceMessages: [ChatMessage],
+        recordCount: Int,
         latestEventMetadataSummary: String?,
         latestEventNoteSnippet: String?,
         activeReminderCount: Int,
@@ -233,7 +261,6 @@ struct ThingPreviewSnapshot {
         upcomingReminderDate: Date?,
         latestNoteSnippet: String?,
         detailsSnippet: String?,
-        aliasSummary: String?,
         now: Date,
         calendar: Calendar
     ) -> [ContinuityLine] {
@@ -304,11 +331,79 @@ struct ThingPreviewSnapshot {
             lines.append(ContinuityLine(label: "Details", value: detailsSnippet, detail: nil, tone: .neutral))
         }
 
-        if lines.isEmpty {
+        if lines.isEmpty, recordCount > 0 {
+            let latestSourceDate = sourceMessages.map(\.createdAt).max()
+            lines.append(ContinuityLine(
+                label: "History",
+                value: LedgerDisplayFormatting.count(recordCount, singular: "record", plural: "records"),
+                detail: latestSourceDate.map { "Captured \(DateFormatting.shortDate.string(from: $0))" },
+                tone: .info
+            ))
+        } else if lines.isEmpty {
             lines.append(ContinuityLine(label: "History", value: "No records yet", detail: nil, tone: .muted))
         }
 
         return lines
+    }
+
+    private static func listSummaryLine(
+        recordCount: Int,
+        activeReminderCount: Int,
+        primaryActiveReminderState: String?,
+        upcomingReminderTitle: String?,
+        upcomingReminderRelativeDueText: String?,
+        latestEventTitle: String?,
+        latestEventDate: Date?,
+        latestNoteSnippet: String?,
+        sourceMessages: [ChatMessage],
+        now: Date,
+        calendar: Calendar
+    ) -> LedgerRowLine {
+        let recordText = LedgerDisplayFormatting.count(recordCount, singular: "record", plural: "records")
+        if activeReminderCount > 0, let state = primaryActiveReminderState {
+            return LedgerRowLine(text: "\(recordText) · Reminder \(state.lowercased())", tone: .attention)
+        }
+        if let upcomingReminderRelativeDueText {
+            return LedgerRowLine(text: "\(recordText) · Reminder \(upcomingReminderRelativeDueText)", tone: .attention)
+        }
+        if let latestEventTitle {
+            let detail = latestEventDate.map { DateFormatting.ledgerDateSummary($0, calendar: calendar, now: now) }
+            return LedgerRowLine(text: [recordText, detail, latestEventTitle].compactMap { $0 }.joined(separator: " · "), tone: .success)
+        }
+        if latestNoteSnippet != nil {
+            return LedgerRowLine(text: "\(recordText) · Recent note", tone: .note)
+        }
+        if recordCount > 0 {
+            let latestSourceDate = sourceMessages.map(\.createdAt).max()
+            let detail = latestSourceDate.map { "Last touched \(DateFormatting.shortDate.string(from: $0))" }
+            return LedgerRowLine(text: [recordText, detail].compactMap { $0 }.joined(separator: " · "), tone: .info)
+        }
+        return LedgerRowLine(text: "History: No records yet", tone: .muted)
+    }
+
+    private static func recordCount(
+        events: [LedgerEvent],
+        rules: [LedgerRule],
+        notes: [LedgerNote],
+        sourceMessages: [ChatMessage],
+        thing: Thing
+    ) -> Int {
+        var keys = Set<String>()
+        keys.formUnion(events.map { "event:\($0.id.uuidString)" })
+        keys.formUnion(rules.map { "rule:\($0.id.uuidString)" })
+        keys.formUnion(notes.map { "note:\($0.id.uuidString)" })
+        keys.formUnion(sourceMessages.map { "message:\($0.id.uuidString)" })
+        keys.formUnion(thing.sourceMessageIDs.map { "message:\($0.uuidString)" })
+        return keys.count
+    }
+
+    private static func uniqueRules(_ rules: [LedgerRule]) -> [LedgerRule] {
+        var seen = Set<UUID>()
+        return rules.filter { rule in
+            guard !seen.contains(rule.id) else { return false }
+            seen.insert(rule.id)
+            return true
+        }
     }
 
     private static func shouldShowUpcomingReminder(

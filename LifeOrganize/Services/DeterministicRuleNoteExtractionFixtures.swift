@@ -2,6 +2,80 @@ import Foundation
 
 let ruleNoteAndRecallFixtures: [DeterministicMessageExtractionFixture] = [
     DeterministicMessageExtractionFixture(
+        id: "finance_wednesday_afternoon",
+        matches: containsAll("finances", "wednesday afternoon"),
+        responseText: { text, now in
+            canonicalResponse(
+                things: [thing("thing_finance", name: "Finance", category: "finance")],
+                notes: [
+                    note("note_finance_wednesday", text: text, linkedThingRefs: ["thing_finance"])
+                ],
+                dates: [
+                    dateEvidence(
+                        "date_finance_wednesday",
+                        sourceText: "Wednesday afternoon",
+                        date: dateString(byAddingDays: 6, to: now),
+                        dateRole: "note_context",
+                        ownerRef: "note_finance_wednesday",
+                        ownerField: "text",
+                        confidence: 0.72,
+                        resolvedConfidence: 0.72
+                    )
+                ]
+            )
+        }
+    ),
+    DeterministicMessageExtractionFixture(
+        id: "golf_thursday_unless_raining",
+        matches: containsAll("play golf", "thursday", "raining"),
+        responseText: { text, now in
+            canonicalResponse(
+                things: [thing("thing_golf", name: "Golf", category: "project")],
+                notes: [
+                    note("note_golf_weather", text: text, linkedThingRefs: ["thing_golf"])
+                ],
+                dates: [
+                    dateEvidence(
+                        "date_golf_thursday",
+                        sourceText: "Thursday",
+                        date: dateString(byAddingDays: 7, to: now),
+                        dateRole: "note_context",
+                        ownerRef: "note_golf_weather",
+                        ownerField: "text",
+                        confidence: 0.68,
+                        resolvedConfidence: 0.68
+                    )
+                ],
+                confidence: #"{"overall":0.74,"requiresReview":true,"reasons":["conditional_language"]}"#
+            )
+        }
+    ),
+    DeterministicMessageExtractionFixture(
+        id: "sonar_aws_vulnerabilities_monorepo_reminder",
+        matches: containsAll("work on sonar", "aws", "vulns", "monorepo"),
+        responseText: { text, now in
+            canonicalResponse(
+                things: [
+                    thing("thing_sonar", name: "Sonar", category: "work"),
+                    thing("thing_aws", name: "AWS", category: "work"),
+                    thing("thing_vulnerabilities", name: "Vulnerabilities", category: "work"),
+                    thing("thing_monorepo", name: "Monorepo", category: "work")
+                ],
+                rules: [
+                    rule(
+                        "rule_sonar_work",
+                        title: "Work on Sonar, AWS, Vulnerabilities, and monorepo",
+                        thingRef: "thing_monorepo",
+                        ruleType: "reminder",
+                        startsAt: dateString(byAddingDays: 1, to: now),
+                        expiresAt: nil,
+                        rawText: text
+                    )
+                ]
+            )
+        }
+    ),
+    DeterministicMessageExtractionFixture(
         id: "call_dentist_reminder",
         matches: contains("remind me to call dentist"),
         responseText: { _, _ in

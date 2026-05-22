@@ -125,7 +125,7 @@ struct ThingDetailView: View {
             .padding(.horizontal)
             .padding(.vertical, 14)
         }
-        .background(Color(.systemBackground))
+        .background(LedgerScreenBackground().ignoresSafeArea())
         .accessibilityIdentifier("thing-detail")
         .navigationTitle(thing.name)
         .toolbar {

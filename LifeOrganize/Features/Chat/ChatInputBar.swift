@@ -61,11 +61,11 @@ struct ChatInputBar: View {
                         .font(.system(size: 15, weight: .semibold))
                         .frame(width: 28, height: 28)
                         .foregroundStyle(canSend ? Color.white : Color.secondary)
-                        .background(canSend ? Color.accentColor : Color(.tertiarySystemFill))
+                        .background(sendBackground)
                         .clipShape(Circle())
                         .overlay {
                             Circle()
-                                .stroke(Color.secondary.opacity(canSend ? 0 : 0.18), lineWidth: 1)
+                                .stroke(sendBorder, lineWidth: 1)
                         }
                 }
                 .buttonStyle(.plain)
@@ -77,12 +77,33 @@ struct ChatInputBar: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .frame(minHeight: 44)
+            .background(LedgerPalette.surfaceStrong, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(LedgerPalette.hairline, lineWidth: 1)
+            }
+            .padding(.horizontal, 10)
+            .padding(.bottom, 8)
         }
-        .background(.bar)
+        .background(.ultraThinMaterial)
         .overlay(alignment: .top) {
             Divider()
                 .overlay(Color.secondary.opacity(0.18))
         }
+    }
+
+    private var sendBackground: some ShapeStyle {
+        canSend
+            ? AnyShapeStyle(LinearGradient(
+                colors: [LedgerPalette.accent, LedgerPalette.teal],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ))
+            : AnyShapeStyle(Color(.tertiarySystemFill))
+    }
+
+    private var sendBorder: Color {
+        canSend ? Color.white.opacity(0.25) : Color.secondary.opacity(0.18)
     }
 }
 
@@ -91,7 +112,7 @@ private struct TimelineInputMarker: View {
 
     var body: some View {
         RoundedRectangle(cornerRadius: 2)
-            .fill(canSend ? Color.accentColor : Color.secondary.opacity(0.28))
+            .fill(canSend ? LedgerPalette.accent : Color.secondary.opacity(0.28))
             .frame(width: 3, height: 22)
             .accessibilityHidden(true)
     }

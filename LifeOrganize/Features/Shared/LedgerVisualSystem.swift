@@ -59,19 +59,19 @@ enum LedgerTone: Equatable {
         case .neutral:
             return .secondary
         case .link:
-            return .blue
+            return LedgerPalette.accent
         case .success:
-            return .green
+            return LedgerPalette.green
         case .attention:
-            return .orange
+            return LedgerPalette.amber
         case .info:
-            return .teal
+            return LedgerPalette.teal
         case .muted:
             return .secondary
         case .note:
-            return .purple
+            return LedgerPalette.plum
         case .danger:
-            return .red
+            return LedgerPalette.coral
         }
     }
 
@@ -150,6 +150,10 @@ struct LedgerPill: View {
             .padding(.horizontal, size.horizontalPadding)
             .padding(.vertical, size.verticalPadding)
             .background(tone.background, in: Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(tone.foreground.opacity(0.16), lineWidth: 0.75)
+            }
     }
 }
 
@@ -303,7 +307,37 @@ struct LedgerRow<Badges: View, Accessory: View>: View {
         }
         .padding(.vertical, density.verticalPadding)
         .padding(.horizontal, LedgerVisualSystem.Padding.rowHorizontal)
+        .background {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(rowBackground)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(rowBorder, lineWidth: 0.75)
+        }
         .accessibilityElement(children: .combine)
+    }
+
+    private var rowBackground: Color {
+        switch emphasis {
+        case .active, .attention:
+            return LedgerTone.attention.background.opacity(0.72)
+        case .inactive:
+            return LedgerPalette.surface.opacity(0.44)
+        case .normal:
+            return LedgerPalette.surfaceStrong.opacity(0.54)
+        }
+    }
+
+    private var rowBorder: Color {
+        switch emphasis {
+        case .active, .attention:
+            return LedgerTone.attention.foreground.opacity(0.18)
+        case .inactive:
+            return LedgerPalette.hairline.opacity(0.7)
+        case .normal:
+            return LedgerPalette.hairline
+        }
     }
 }
 
@@ -354,7 +388,7 @@ struct LedgerSectionHeader: View {
     var body: some View {
         Text(title)
             .font(LedgerVisualSystem.Typography.sectionHeader)
-            .foregroundStyle(.tertiary)
+            .foregroundStyle(LedgerPalette.accent.opacity(0.74))
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityAddTraits(.isHeader)
     }
@@ -370,84 +404,6 @@ struct LedgerEmptySectionRow: View {
     var body: some View {
         Text(text)
             .foregroundStyle(.secondary)
-    }
-}
-
-struct LedgerNoticeBanner: View {
-    let icon: String
-    let message: String
-    var tone: LedgerTone = .neutral
-    var actionTitle: String?
-    var accessibilityIdentifier: String?
-    var action: (() -> Void)?
-
-    var body: some View {
-        HStack(alignment: .center, spacing: LedgerVisualSystem.Spacing.noticeContentGap) {
-            Image(systemName: icon)
-                .foregroundStyle(tone.foreground)
-                .accessibilityHidden(true)
-
-            Text(message)
-                .font(LedgerVisualSystem.Typography.noticeMessage)
-                .foregroundStyle(tone == .neutral ? .secondary : .primary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Spacer(minLength: LedgerVisualSystem.Spacing.noticeActionGap)
-
-            if let actionTitle, let action {
-                Button(actionTitle, action: action)
-                    .font(LedgerVisualSystem.Typography.noticeAction)
-            }
-        }
-        .padding(.horizontal, LedgerVisualSystem.Padding.noticeHorizontal)
-        .padding(.vertical, LedgerVisualSystem.Padding.noticeVertical)
-        .background(tone == .neutral ? Color(.secondarySystemBackground) : tone.background)
-        .accessibilityIdentifier(accessibilityIdentifier ?? "")
-    }
-}
-
-struct LedgerSearchResultsList: View {
-    let results: [LocalSearchResult]
-    var emptyContent: LedgerEmptyStateContent = .noSearchResults
-
-    var body: some View {
-        if results.isEmpty {
-            LedgerEmptyStateView(content: emptyContent)
-        } else {
-            List(results) { result in
-                NavigationLink(value: result) {
-                    LocalSearchResultRow(result: result)
-                }
-                .accessibilityIdentifier("ledger-search-result-\(result.sourceKind.rawValue)-\(result.stableID.uuidString)")
-                .accessibilityLabel("\(result.sourceKind.displayName): \(result.title)")
-            }
-            .listStyle(.plain)
-            .accessibilityIdentifier("ledger-search-results-list")
-        }
-    }
-}
-
-struct LedgerToolbarIconButton: View {
-    let systemName: String
-    let accessibilityLabel: String
-    var accessibilityIdentifier: String?
-    var accessibilityValue: String?
-    var isActive = false
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .symbolRenderingMode(.hierarchical)
-                .font(.system(size: 17, weight: .semibold))
-                .frame(width: 36, height: 36)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(isActive ? .primary : .secondary)
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityValue(accessibilityValue ?? "")
-        .accessibilityIdentifier(accessibilityIdentifier ?? "")
     }
 }
 

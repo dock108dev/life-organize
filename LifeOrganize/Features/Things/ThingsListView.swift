@@ -63,9 +63,14 @@ struct ThingsListView: View {
                         ThingRow(thing: thing, reviewPresentation: reviewPresentation)
                     }
                     .accessibilityIdentifier("thing-row-\(thing.id.uuidString)")
+                    .listRowInsets(EdgeInsets(top: 5, leading: 12, bottom: 5, trailing: 12))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                     .ledgerReviewItemContextMenu(reviewPresentation?.item, onError: { reviewItemErrorMessage = $0 })
                 }
                 .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .background(LedgerScreenBackground().ignoresSafeArea())
                 .accessibilityIdentifier("things-list")
             }
         }

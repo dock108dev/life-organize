@@ -116,6 +116,7 @@ struct AppRootView: View {
         .environmentObject(sessionState)
         .environmentObject(developerModeState)
         .environment(\.debugAccessPolicy, developerModeState.policy)
+        .tint(LedgerPalette.accent)
         .sheet(item: $activeSheet, onDismiss: reloadAIServiceState) { sheet in
             sheetView(for: sheet)
         }

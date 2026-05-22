@@ -132,7 +132,7 @@ struct EventDetailView: View {
             .padding(.horizontal)
             .padding(.vertical, 14)
         }
-        .background(Color(.systemGroupedBackground))
+        .background(LedgerScreenBackground().ignoresSafeArea())
         .navigationTitle("Event")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

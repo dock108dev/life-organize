@@ -55,6 +55,7 @@ struct RulesListView: View {
                 .accessibilityIdentifier("carry-forward-list")
                 .listSectionSpacing(ReminderListLayout.sectionSpacing)
                 .scrollContentBackground(.hidden)
+                .background(LedgerScreenBackground().ignoresSafeArea())
             }
         }
         .toolbar {

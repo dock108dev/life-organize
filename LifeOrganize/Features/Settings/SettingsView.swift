@@ -55,7 +55,7 @@ struct SettingsView: View {
                 .padding(.vertical, 18)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(LedgerScreenBackground().ignoresSafeArea())
             .navigationTitle("Settings")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

@@ -60,6 +60,9 @@ struct LedgerTimelineSectionChrome<Rows: View>: View {
 
             rows
         }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 10)
+        .ledgerSurface(cornerRadius: 14)
     }
 }
 
@@ -141,8 +144,18 @@ struct LedgerTimelineMarker: View {
 
     var body: some View {
         Circle()
-            .fill(tone.foreground)
+            .fill(
+                LinearGradient(
+                    colors: [tone.foreground, tone.foreground.opacity(0.62)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
             .frame(width: size, height: size)
+            .overlay {
+                Circle()
+                    .stroke(tone.foreground.opacity(0.18), lineWidth: 3)
+            }
             .accessibilityHidden(true)
     }
 }

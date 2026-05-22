@@ -92,7 +92,7 @@ struct LedgerReviewQueueView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                 }
-                .background(Color(.systemBackground))
+                .background(LedgerScreenBackground().ignoresSafeArea())
                 .accessibilityIdentifier("review-queue-list")
             }
         }
@@ -174,7 +174,7 @@ private struct LedgerReviewQueueRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 12)
         .padding(.vertical, 12)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 8))
+        .ledgerSurface(cornerRadius: 12, tint: presentation.isBlocked ? .attention : .info)
         .overlay(alignment: .leading) {
             if presentation.isBlocked {
                 Rectangle()

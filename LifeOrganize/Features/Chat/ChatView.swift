@@ -60,6 +60,8 @@ struct ChatView: View {
         VStack(spacing: 0) {
             if !hasAIServiceCredential {
                 DeviceTokenNotice(onAddKey: onAddKey)
+                    .padding(.horizontal, 14)
+                    .padding(.top, 8)
             }
 
             ScrollViewReader { proxy in
@@ -99,6 +101,7 @@ struct ChatView: View {
                     }
                 }
                 .accessibilityIdentifier("timeline-feed")
+                .background(LedgerScreenBackground().ignoresSafeArea())
                 .scrollDismissesKeyboard(.interactively)
                 .defaultScrollAnchor(.top)
                 .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -138,6 +141,7 @@ struct ChatView: View {
                 }
             }
         }
+        .background(LedgerScreenBackground().ignoresSafeArea())
         .alert(
             "Couldn't Update Review Item",
             isPresented: Binding(

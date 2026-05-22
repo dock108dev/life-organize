@@ -84,7 +84,7 @@ struct RuleDetailView: View {
             .padding(.horizontal)
             .padding(.vertical, 14)
         }
-        .background(Color(.systemBackground))
+        .background(LedgerScreenBackground().ignoresSafeArea())
         .accessibilityIdentifier("carry-forward-detail")
         .navigationTitle("Carry Forward")
         .toolbar {

@@ -71,7 +71,13 @@ struct LedgerEmptyStateView<Actions: View>: View {
         VStack(spacing: LedgerVisualSystem.Spacing.section) {
             Image(systemName: content.symbolName)
                 .font(.system(size: 28, weight: .medium))
-                .foregroundStyle(LedgerTone.neutral.foreground)
+                .foregroundStyle(LedgerPalette.accent)
+                .frame(width: 62, height: 62)
+                .background(LedgerPalette.accent.opacity(0.10), in: RoundedRectangle(cornerRadius: 18))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(LedgerPalette.accent.opacity(0.16), lineWidth: 1)
+                }
                 .accessibilityHidden(true)
 
             VStack(spacing: 6) {
@@ -101,6 +107,8 @@ struct LedgerEmptyStateView<Actions: View>: View {
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 24)
         .padding(.vertical, 28)
+        .ledgerSurface(cornerRadius: 18)
+        .padding(.horizontal, 16)
     }
 }
 

@@ -56,7 +56,7 @@ private extension ExtractionStatus {
             return .orange
         case .failed, .failedNeedsReview:
             return .red
-        case .pending, .pendingKey, .pendingRetry:
+        case .pending, .pendingToken, .pendingRetry:
             return .yellow
         case .extracting:
             return .blue

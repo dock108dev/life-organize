@@ -9,7 +9,7 @@ final class ManualExtractionRetryServiceTests: XCTestCase {
         let message = ChatMessage(role: .assistant, text: "Saved.", extractionStatus: .failed)
         context.insert(message)
 
-        let service = ManualExtractionRetryService(modelContext: context, apiKeyStore: InMemoryAPIKeyStore(key: "test-key"))
+        let service = ManualExtractionRetryService(modelContext: context, deviceTokenStore: InMemoryDeviceTokenStore(token: "test-device-token"))
 
         XCTAssertEqual(try service.canRetry(message), .assistantOrSystemMessage)
     }
@@ -19,16 +19,16 @@ final class ManualExtractionRetryServiceTests: XCTestCase {
         let message = ChatMessage(role: .user, text: "Changed oil.", extractionStatus: .failed)
         context.insert(message)
 
-        let keyStore = InMemoryAPIKeyStore()
-        var service = ManualExtractionRetryService(modelContext: context, apiKeyStore: keyStore)
+        let tokenStore = InMemoryDeviceTokenStore()
+        var service = ManualExtractionRetryService(modelContext: context, deviceTokenStore: tokenStore)
         service.extractorFactory = { store in
-            XCTAssertNotNil(try? store.loadOpenAIAPIKey())
+            XCTAssertNotNil(try? store.loadDeviceToken())
             return StaticMessageExtractionClient(payload: ExtractionResponsePayload(rawResponseText: canonicalExtractionJSON()))
         }
 
         try await service.retry(message)
 
-        XCTAssertNotNil(try keyStore.loadOpenAIAPIKey())
+        XCTAssertNotNil(try tokenStore.loadDeviceToken())
     }
 
     func testBlockedReasonCopyUsesSavedEntryLanguage() {
@@ -57,14 +57,14 @@ final class ManualExtractionRetryServiceTests: XCTestCase {
         context.insert(message)
         context.insert(attempt)
 
-        let service = ManualExtractionRetryService(modelContext: context, apiKeyStore: InMemoryAPIKeyStore(key: "test-key"))
+        let service = ManualExtractionRetryService(modelContext: context, deviceTokenStore: InMemoryDeviceTokenStore(token: "test-device-token"))
 
         XCTAssertEqual(try service.canRetry(message), .createdRecordsExist)
     }
 
     func testRetryCreatesNewAttemptAndKeepsPriorAttemptAudit() async throws {
         let context = makeInMemoryModelContext()
-        let keyStore = InMemoryAPIKeyStore(key: "test-key")
+        let tokenStore = InMemoryDeviceTokenStore(token: "test-device-token")
         let message = ChatMessage(
             role: .user,
             text: "Changed oil.",
@@ -86,7 +86,7 @@ final class ManualExtractionRetryServiceTests: XCTestCase {
 
         var service = ManualExtractionRetryService(
             modelContext: context,
-            apiKeyStore: keyStore,
+            deviceTokenStore: tokenStore,
             dateProvider: TestDateProvider(now: fixedTestNow)
         )
         service.extractorFactory = { _ in

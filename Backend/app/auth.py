@@ -39,7 +39,10 @@ async def require_admin_key(x_admin_api_key: str | None = Header(default=None)) 
         if settings.environment in {"production", "staging"}:
             raise HTTPException(
                 status_code=500,
-                detail={"code": "admin_auth_misconfigured", "detail": "Admin auth is not configured."},
+                detail={
+                    "code": "admin_auth_misconfigured",
+                    "detail": "Admin auth is not configured.",
+                },
             )
         return
     if not x_admin_api_key or not secrets.compare_digest(x_admin_api_key, expected):
@@ -50,7 +53,9 @@ async def require_admin_key(x_admin_api_key: str | None = Header(default=None)) 
 
 
 async def record_device_seen(session: AsyncSession, token_hash: str) -> None:
-    existing = await session.scalar(select(DeviceClient).where(DeviceClient.token_hash == token_hash))
+    existing = await session.scalar(
+        select(DeviceClient).where(DeviceClient.token_hash == token_hash)
+    )
     if existing is None:
         session.add(DeviceClient(token_hash=token_hash, request_count=1))
     else:

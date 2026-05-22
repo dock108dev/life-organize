@@ -7,15 +7,24 @@ final class V1ScopeGuardrailTests: XCTestCase {
         XCTAssertEqual(V1ScopeContract.allowedRootTabs, V1ScopeContract.activeRootTabs)
         XCTAssertEqual(
             V1ScopeContract.activeSettingsRows.map(\.title),
-            ["OpenAI API Key", "Clear Local Data", "Export Local JSON"]
+            ["AI Service Token", "Clear Local Data", "Export Local JSON"]
         )
         XCTAssertEqual(
             V1ScopeContract.allowedSettingsRows.map(\.title),
-            ["OpenAI API Key", "Extraction Debug", "Clear Local Data", "Export Local JSON"]
+            ["AI Service Token", "Extraction Debug", "Clear Local Data", "Export Local JSON"]
         )
         XCTAssertEqual(
             V1ScopeContract.activePersistenceModels.map(\.rawValue),
-            ["ChatMessage", "ExtractionAttempt", "EntityLink", "Thing", "LedgerEvent", "LedgerRule", "LedgerNote", "LedgerReviewItem"]
+            [
+                "ChatMessage",
+                "ExtractionAttempt",
+                "EntityLink",
+                "Thing",
+                "LedgerEvent",
+                "LedgerRule",
+                "LedgerNote",
+                "LedgerReviewItem",
+            ]
         )
         XCTAssertEqual(
             V1ScopeContract.allowedPersistenceModels.map(\.rawValue),
@@ -32,7 +41,7 @@ final class V1ScopeGuardrailTests: XCTestCase {
             ]
         )
         XCTAssertEqual(
-            V1ScopeContract.allowedOpenAIUses,
+            V1ScopeContract.allowedAIServiceUses,
             [.extraction, .normalization, .dateParsing, .recallFormatting, .webLookup, .webImport]
         )
         XCTAssertEqual(V1ScopeContract.allowedSearchModes, [.localSubstring, .webSearch])
@@ -69,13 +78,13 @@ final class V1ScopeGuardrailTests: XCTestCase {
 
         XCTAssertNoBannedProductSurfaceFragments(declarations)
         XCTAssertFalse(
-            containsBannedProductSurfaceFragment("OpenAIExtractionProvider"),
-            "Provider/API implementation names are allowed when they are not user-facing product surfaces."
+            containsBannedProductSurfaceFragment("ServiceExtractionProvider"),
+            "Implementation names are allowed when they are not user-facing product surfaces."
         )
         XCTAssertTrue(containsBannedProductSurfaceFragment("AssistantCoachView"))
         XCTAssertTrue(containsBannedProductSurfaceFragment("AIRecommendationService"))
-        XCTAssertTrue(containsBannedProductSurfaceFragment("AssistantAPIKeyView"))
-        XCTAssertTrue(containsBannedProductSurfaceFragment("OpenAIRecommendationService"))
+        XCTAssertTrue(containsBannedProductSurfaceFragment("AssistantDeviceTokenView"))
+        XCTAssertTrue(containsBannedProductSurfaceFragment("AIServiceRecommendationService"))
     }
 
     func testPersistenceModelsMatchScopeContractAndRejectProductCategoryDrift() throws {
@@ -107,24 +116,24 @@ final class V1ScopeGuardrailTests: XCTestCase {
         XCTAssertEqual(forbiddenDependencies, [])
     }
 
-    func testOpenAIInterfacesStayNarrowAndNonCoaching() throws {
-        let openAISources = try [
-            "LifeOrganize/Services/OpenAIClient.swift",
+    func testAIServiceInterfacesStayNarrowAndNonCoaching() throws {
+        let aiServiceSources = try [
+            "LifeOrganize/Services/AIServiceClient.swift",
             "LifeOrganize/Services/ExtractionService.swift",
         ].map { try sourceFile(relativePath: $0) }
-        let methodNames = try declaredNames(matching: #"\bfunc\s+([A-Za-z_][A-Za-z0-9_]*)\b"#, in: openAISources)
+        let methodNames = try declaredNames(matching: #"\bfunc\s+([A-Za-z_][A-Za-z0-9_]*)\b"#, in: aiServiceSources)
 
         XCTAssertTrue(methodNames.contains("sendExtraction"))
         XCTAssertTrue(methodNames.contains("extractRawResponse"))
         XCTAssertTrue(methodNames.contains("parseDate"))
-        XCTAssertNoBannedFragments(methodNames, bannedFragments: V1ScopeContract.bannedOpenAIInterfaceMethodFragments)
+        XCTAssertNoBannedFragments(methodNames, bannedFragments: V1ScopeContract.bannedAIServiceInterfaceMethodFragments)
     }
 
     func testSearchRemainsLocalSubstringOnly() throws {
         XCTAssertEqual(SearchService.activeMode, .localSubstring)
 
         let searchSource = try sourceFile(relativePath: "LifeOrganize/Services/SearchService.swift")
-        let forbiddenSearchTerms = ["Embedding", "Vector", "semantic", "URLSession", "OpenAI", "remote"]
+        let forbiddenSearchTerms = ["Embedding", "Vector", "semantic", "URLSession", "remote"]
         let matches = forbiddenSearchTerms.filter { searchSource.localizedCaseInsensitiveContains($0) }
 
         XCTAssertEqual(matches, [])
@@ -199,7 +208,7 @@ final class V1ScopeGuardrailTests: XCTestCase {
             "User",
             "Vector",
         ])))
-        XCTAssertTrue(V1ScopeContract.bannedOpenAIInterfaceMethodFragments.isSuperset(of: Set([
+        XCTAssertTrue(V1ScopeContract.bannedAIServiceInterfaceMethodFragments.isSuperset(of: Set([
             "advice",
             "advise",
             "agent",
@@ -211,7 +220,12 @@ final class V1ScopeGuardrailTests: XCTestCase {
             "mood",
             "recommend",
         ])))
-        XCTAssertTrue(V1ScopeContract.bannedNotificationCopyFragments.isSuperset(of: Set(["daily check-in", "daily prompt", "keep your streak", "you haven't checked in"])))
+        XCTAssertTrue(V1ScopeContract.bannedNotificationCopyFragments.isSuperset(of: Set([
+            "daily check-in",
+            "daily prompt",
+            "keep your streak",
+            "you haven't checked in",
+        ])))
     }
 
     func testOperationalReviewAndActionCandidatesAreNotAdviceOrCoaching() {
@@ -261,12 +275,12 @@ final class V1ScopeGuardrailTests: XCTestCase {
             feedCopy.sourceLabel,
             feedCopy.secondaryText,
             appCopy.sourceLabel,
-            SettingsTrustCopy.apiKeyBody,
-            SettingsTrustCopy.savedKeyDetail,
+            SettingsTrustCopy.deviceTokenBody,
+            SettingsTrustCopy.savedTokenDetail,
             SettingsTrustCopy.exportBody,
-            SettingsFeedback.apiKeyReplaced.message,
+            SettingsFeedback.deviceTokenReplaced.message,
             SettingsFeedback.exportReady.message,
-            ManualExtractionRetryError.missingAPIKey.errorDescription,
+            ManualExtractionRetryError.missingServiceToken.errorDescription,
             ManualExtractionRetryBlockedReason.notRequired.message,
             ChatResponseFormatter().rawOnlyFailure(),
             ChatResponseFormatter().extractionFailed(),
@@ -279,7 +293,6 @@ final class V1ScopeGuardrailTests: XCTestCase {
             "Assistant",
             "Organizing",
             "organization",
-            "OpenAI",
             "JSON",
             "provenance",
             "confidence",
@@ -293,7 +306,9 @@ final class V1ScopeGuardrailTests: XCTestCase {
         ]
         XCTAssertNoBannedUserCopyTerms(primaryCopy, bannedTerms: bannedCopyTerms)
     }
+}
 
+extension V1ScopeGuardrailTests {
     private var projectRoot: URL {
         URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
     }

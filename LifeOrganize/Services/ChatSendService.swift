@@ -95,7 +95,7 @@ struct ChatSendService {
 
         guard let webRequestClient else {
             if let attempt {
-                try fail(message: message, attempt: attempt, error: AppError.missingAPIKey)
+                try fail(message: message, attempt: attempt, error: AppError.missingServiceToken)
             } else {
                 persistAssistantMessage(responseFormatter.webLookupUnavailable())
                 try modelContext.save()

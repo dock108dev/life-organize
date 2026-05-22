@@ -1,8 +1,8 @@
 import Foundation
 
 enum AppError: LocalizedError, Equatable {
-    case missingAPIKey
-    case invalidAPIKey
+    case missingServiceToken
+    case invalidServiceToken
     case networkUnavailable
     case timeout
     case rateLimited
@@ -11,9 +11,9 @@ enum AppError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .missingAPIKey:
+        case .missingServiceToken:
             "AI service credential is missing."
-        case .invalidAPIKey:
+        case .invalidServiceToken:
             "AI service credential was rejected."
         case .networkUnavailable:
             "The network is unavailable."

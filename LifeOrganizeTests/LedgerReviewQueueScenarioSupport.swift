@@ -33,8 +33,8 @@ extension LedgerReviewQueueConsistencyScenarioTests {
             role: .user,
             text: "Need to retry this entry when the connection returns.",
             createdAt: scenarioNow,
-            extractionStatus: .pendingKey,
-            extractionErrorCode: .missingAPIKey
+            extractionStatus: .pendingToken,
+            extractionErrorCode: .missingServiceToken
         )
         let partialMessage = ChatMessage(
             id: partialMessageID,
@@ -236,11 +236,11 @@ extension LedgerReviewQueueConsistencyScenarioTests {
 
     func queueService(
         _ context: ModelContext,
-        keyStore: any APIKeyStore = InMemoryAPIKeyStore(key: "test-key")
+        tokenStore: any DeviceTokenStore = InMemoryDeviceTokenStore(token: "test-device-token")
     ) -> LedgerReviewQueueService {
         LedgerReviewQueueService(
             modelContext: context,
-            apiKeyStore: keyStore,
+            deviceTokenStore: tokenStore,
             dateProvider: TestDateProvider(now: scenarioNow)
         )
     }

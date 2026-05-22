@@ -95,7 +95,7 @@ final class TemporalPriorityResolutionTests: XCTestCase {
 
     func testPendingRetryAppliesTemporalPriorityResolution() async throws {
         let context = makeInMemoryModelContext()
-        let keyStore = InMemoryAPIKeyStore(key: "test-key")
+        let tokenStore = InMemoryDeviceTokenStore(token: "test-device-token")
         let message = ChatMessage(
             role: .user,
             text: "I don't want to bowl next year should probably reevaluate that in 90 days though",
@@ -109,7 +109,7 @@ final class TemporalPriorityResolutionTests: XCTestCase {
 
         try await PendingExtractionRetryService(
             modelContext: context,
-            apiKeyStore: keyStore,
+            deviceTokenStore: tokenStore,
             dateProvider: TestDateProvider(now: fixedTestNow),
             extractorFactory: { _ in StaticMessageExtractionClient(payload: self.mistakenLongTermRulePayload()) }
         )
@@ -137,7 +137,7 @@ final class TemporalPriorityResolutionTests: XCTestCase {
 
         var service = ManualExtractionRetryService(
             modelContext: context,
-            apiKeyStore: InMemoryAPIKeyStore(key: "test-key"),
+            deviceTokenStore: InMemoryDeviceTokenStore(token: "test-device-token"),
             dateProvider: TestDateProvider(now: fixedTestNow)
         )
         service.extractorFactory = { _ in

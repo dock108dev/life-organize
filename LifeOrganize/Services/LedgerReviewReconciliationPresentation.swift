@@ -122,7 +122,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
     ) -> LedgerReviewReconciliationAction? {
         if let blockedMessage = entry.blockedMessage {
             if entry.primaryActionTitle == "Connect Service" {
-                return action(.saveKey, "Connect Service", role: .primary, detail: blockedMessage)
+                return action(.connectService, "Connect Service", role: .primary, detail: blockedMessage)
             }
             return action(.blocked, "Next Step Blocked", role: .blocked, detail: blockedMessage, isEnabled: false)
         }

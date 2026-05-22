@@ -1,25 +1,25 @@
 import Foundation
 
-protocol OpenAIExtractionSending {
+protocol AIServiceExtractionSending {
     func sendExtraction(_ request: BackendExtractionRequest) async throws -> ExtractionResponsePayload
 }
 
-protocol OpenAIWebSending {
+protocol AIServiceWebSending {
     func sendWebRequest(_ request: BackendWebRequest) async throws -> BackendWebResponse
 }
 
-protocol OpenAIHTTPSession {
+protocol AIServiceHTTPSession {
     func data(for request: URLRequest) async throws -> (Data, URLResponse)
 }
 
-extension URLSession: OpenAIHTTPSession {}
+extension URLSession: AIServiceHTTPSession {}
 
-struct OpenAIClient {
+struct AIServiceClient {
     let deviceToken: String?
     var baseURL = URL(string: "https://life.dock108.dev")!
-    var session: any OpenAIHTTPSession = URLSession.shared
+    var session: any AIServiceHTTPSession = URLSession.shared
 
-    init(deviceToken: String?, baseURL: URL = URL(string: "https://life.dock108.dev")!, session: any OpenAIHTTPSession = URLSession.shared) {
+    init(deviceToken: String?, baseURL: URL = URL(string: "https://life.dock108.dev")!, session: any AIServiceHTTPSession = URLSession.shared) {
         self.deviceToken = deviceToken
         self.baseURL = baseURL
         self.session = session
@@ -40,7 +40,7 @@ struct OpenAIClient {
 
     private func send<Request: Encodable, Response: Decodable>(_ request: Request, path: String) async throws -> Response {
         guard let deviceToken, !deviceToken.isEmpty else {
-            throw AppError.missingAPIKey
+            throw AppError.missingServiceToken
         }
 
         guard let endpoint = URL(string: path, relativeTo: baseURL)?.absoluteURL else {
@@ -73,7 +73,7 @@ struct OpenAIClient {
                 throw AppError.invalidResponse
             }
         case 401, 403:
-            throw AppError.invalidAPIKey
+            throw AppError.invalidServiceToken
         case 408:
             throw AppError.timeout
         case 429:
@@ -98,5 +98,5 @@ struct OpenAIClient {
     }
 }
 
-extension OpenAIClient: OpenAIExtractionSending {}
-extension OpenAIClient: OpenAIWebSending {}
+extension AIServiceClient: AIServiceExtractionSending {}
+extension AIServiceClient: AIServiceWebSending {}

@@ -13,7 +13,7 @@ struct LedgerReviewQueueView: View {
 
     let origin: LedgerReviewOrigin?
     let focusedItemID: UUID?
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
     let onAddKey: () -> Void
     let onClose: (() -> Void)?
 
@@ -22,13 +22,13 @@ struct LedgerReviewQueueView: View {
     init(
         origin: LedgerReviewOrigin? = nil,
         focusedItemID: UUID? = nil,
-        apiKeyStore: any APIKeyStore = KeychainAPIKeyStore(),
+        deviceTokenStore: any DeviceTokenStore = KeychainDeviceTokenStore(),
         onAddKey: @escaping () -> Void = {},
         onClose: (() -> Void)? = nil
     ) {
         self.origin = origin
         self.focusedItemID = focusedItemID
-        self.apiKeyStore = apiKeyStore
+        self.deviceTokenStore = deviceTokenStore
         self.onAddKey = onAddKey
         self.onClose = onClose
     }
@@ -47,7 +47,7 @@ struct LedgerReviewQueueView: View {
     private var queueService: LedgerReviewQueueService {
         LedgerReviewQueueService(
             modelContext: modelContext,
-            apiKeyStore: apiKeyStore,
+            deviceTokenStore: deviceTokenStore,
             dataGeneration: sessionState.dataGeneration,
             isDataGenerationCurrent: sessionState.isCurrentDataGeneration
         )
@@ -76,7 +76,7 @@ struct LedgerReviewQueueView: View {
                                         events: events,
                                         rules: rules,
                                         notes: notes,
-                                        apiKeyStore: apiKeyStore,
+                                        deviceTokenStore: deviceTokenStore,
                                         onAddKey: onAddKey
                                     )
                                 } label: {

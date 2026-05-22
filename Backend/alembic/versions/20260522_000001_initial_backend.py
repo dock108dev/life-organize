@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from alembic import op
 import sqlalchemy as sa
+
+from alembic import op
 
 revision = "20260522_000001"
 down_revision = None
@@ -14,8 +15,15 @@ def upgrade() -> None:
         "device_clients",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("token_hash", sa.String(length=128), nullable=False),
-        sa.Column("first_seen_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("last_seen_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "first_seen_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.func.now(),
+            nullable=False,
+        ),
+        sa.Column(
+            "last_seen_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.Column("request_count", sa.Integer(), nullable=False, server_default="0"),
         sa.UniqueConstraint("token_hash"),
     )
@@ -31,7 +39,9 @@ def upgrade() -> None:
         sa.Column("model_name", sa.String(length=128), nullable=True),
         sa.Column("openai_request_id", sa.String(length=256), nullable=True),
         sa.Column("error_code", sa.String(length=64), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.Column("notes", sa.Text(), nullable=True),
     )
     op.create_index("ix_ai_request_logs_token_hash", "ai_request_logs", ["token_hash"])

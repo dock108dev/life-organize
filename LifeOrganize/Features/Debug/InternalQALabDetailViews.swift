@@ -5,12 +5,12 @@ struct QAReprocessEntryView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \ChatMessage.createdAt, order: .reverse) private var messages: [ChatMessage]
 
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
     @State private var statusText: String?
     @State private var reprocessingID: UUID?
 
     private var retryableMessages: [ChatMessage] {
-        let service = QAReprocessService(modelContext: modelContext, apiKeyStore: apiKeyStore)
+        let service = QAReprocessService(modelContext: modelContext, deviceTokenStore: deviceTokenStore)
         return (try? service.retryableMessages()) ?? []
     }
 
@@ -60,7 +60,7 @@ struct QAReprocessEntryView: View {
         reprocessingID = messageID
         Task {
             do {
-                try await QAReprocessService(modelContext: modelContext, apiKeyStore: apiKeyStore).reprocess(messageID: messageID)
+                try await QAReprocessService(modelContext: modelContext, deviceTokenStore: deviceTokenStore).reprocess(messageID: messageID)
                 statusText = "Entry reprocessed."
             } catch {
                 statusText = error.localizedDescription

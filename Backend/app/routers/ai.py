@@ -6,7 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import enforce_device_rate_limit, record_device_seen, require_admin_key, require_device_token
+from app.auth import (
+    enforce_device_rate_limit,
+    record_device_seen,
+    require_admin_key,
+    require_device_token,
+)
 from app.db import get_session
 from app.models import AIRequestLog, DeviceClient
 from app.schemas import ExtractionRequest, ExtractionResponse, WebAnswerResponse, WebRequest
@@ -31,7 +36,16 @@ async def extract(
         result = await OpenAIGateway().send_extraction(body)
         model_name = result.model_name
         openai_request_id = result.openai_request_id
-        await _log(session, token_hash, request.url.path, 200, result.latency_ms, model_name, openai_request_id, None)
+        await _log(
+            session,
+            token_hash,
+            request.url.path,
+            200,
+            result.latency_ms,
+            model_name,
+            openai_request_id,
+            None,
+        )
         await session.commit()
         return ExtractionResponse(
             rawResponseText=result.output_text,
@@ -39,9 +53,20 @@ async def extract(
             modelName=result.model_name,
         )
     except OpenAIGatewayError as exc:
-        await _log(session, token_hash, request.url.path, exc.status_code, _elapsed(started), model_name, openai_request_id, exc.code)
+        await _log(
+            session,
+            token_hash,
+            request.url.path,
+            exc.status_code,
+            _elapsed(started),
+            model_name,
+            openai_request_id,
+            exc.code,
+        )
         await session.commit()
-        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "detail": exc.detail}) from exc
+        raise HTTPException(
+            status_code=exc.status_code, detail={"code": exc.code, "detail": exc.detail}
+        ) from exc
 
 
 @router.post("/api/v1/web-requests")
@@ -60,7 +85,16 @@ async def web_request(
         result = await OpenAIGateway().send_web_request(body)
         model_name = result.model_name
         openai_request_id = result.openai_request_id
-        await _log(session, token_hash, request.url.path, 200, result.latency_ms, model_name, openai_request_id, None)
+        await _log(
+            session,
+            token_hash,
+            request.url.path,
+            200,
+            result.latency_ms,
+            model_name,
+            openai_request_id,
+            None,
+        )
         await session.commit()
         if body.mode == "answer":
             return WebAnswerResponse(assistantText=result.output_text, modelName=result.model_name)
@@ -70,9 +104,20 @@ async def web_request(
             modelName=result.model_name,
         )
     except OpenAIGatewayError as exc:
-        await _log(session, token_hash, request.url.path, exc.status_code, _elapsed(started), model_name, openai_request_id, exc.code)
+        await _log(
+            session,
+            token_hash,
+            request.url.path,
+            exc.status_code,
+            _elapsed(started),
+            model_name,
+            openai_request_id,
+            exc.code,
+        )
         await session.commit()
-        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code, "detail": exc.detail}) from exc
+        raise HTTPException(
+            status_code=exc.status_code, detail={"code": exc.code, "detail": exc.detail}
+        ) from exc
 
 
 @router.get("/api/admin/usage", dependencies=[Depends(require_admin_key)])

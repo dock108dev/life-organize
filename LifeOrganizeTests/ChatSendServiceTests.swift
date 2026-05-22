@@ -77,11 +77,11 @@ final class ChatSendServiceTests: XCTestCase {
     }
 
     @MainActor
-    func testMissingAPIKeyKeepsRawMessageAndRecordsAttemptFailure() async throws {
+    func testMissingServiceTokenKeepsRawMessageAndRecordsAttemptFailure() async throws {
         let context = makeInMemoryModelContext()
         let service = ChatSendService(
             modelContext: context,
-            extractor: ThrowingMessageExtractionClient(error: AppError.missingAPIKey),
+            extractor: ThrowingMessageExtractionClient(error: AppError.missingServiceToken),
             dateProvider: TestDateProvider(now: fixedTestNow)
         )
 
@@ -91,27 +91,27 @@ final class ChatSendServiceTests: XCTestCase {
         let attempt = try XCTUnwrap(try context.fetch(FetchDescriptor<ExtractionAttempt>()).first)
 
         XCTAssertEqual(userMessage.text, "No buying domains for 30 days.")
-        XCTAssertEqual(userMessage.extractionStatus, .pendingKey)
-        XCTAssertEqual(userMessage.extractionErrorCode, .missingAPIKey)
+        XCTAssertEqual(userMessage.extractionStatus, .pendingToken)
+        XCTAssertEqual(userMessage.extractionErrorCode, .missingServiceToken)
         XCTAssertEqual(attempt.status, .failed)
-        XCTAssertEqual(attempt.errorCode, .missingAPIKey)
+        XCTAssertEqual(attempt.errorCode, .missingServiceToken)
         XCTAssertEqual(
             try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .assistant }?.text,
             "Saved on this device. Connect to the AI service when you want it organized across your timeline."
         )
-        XCTAssertTrue(attempt.normalizedJSONText.contains("missing_api_key"))
+        XCTAssertTrue(attempt.normalizedJSONText.contains("missing_service_token"))
     }
 
     @MainActor
-    func testPendingKeyMessagesBecomeRetryableAfterKeyIsSaved() throws {
+    func testPendingTokenMessagesBecomeRetryableAfterTokenIsReady() throws {
         let context = makeInMemoryModelContext()
-        let keyStore = InMemoryAPIKeyStore()
+        let tokenStore = InMemoryDeviceTokenStore()
         let pendingMessage = ChatMessage(
             role: .user,
             text: "Book dentist.",
-            extractionStatus: .pendingKey,
+            extractionStatus: .pendingToken,
             extractionError: "AI service credential is missing.",
-            extractionErrorCode: .missingAPIKey
+            extractionErrorCode: .missingServiceToken
         )
         let assistantMessage = ChatMessage(
             role: .assistant,
@@ -122,14 +122,14 @@ final class ChatSendServiceTests: XCTestCase {
         context.insert(pendingMessage)
         context.insert(assistantMessage)
         try context.save()
-        try keyStore.saveOpenAIAPIKey("unit-test-key")
+        try tokenStore.saveDeviceToken("unit-test-device-token")
 
         let changedCount = try PendingExtractionRetryService(
             modelContext: context,
-            apiKeyStore: keyStore,
+            deviceTokenStore: tokenStore,
             dateProvider: TestDateProvider(now: fixedTestNow)
         )
-        .markPendingKeyMessagesRetryable()
+        .markPendingTokenMessagesRetryable()
 
         XCTAssertEqual(changedCount, 1)
         XCTAssertEqual(pendingMessage.extractionStatus, .pendingRetry)
@@ -140,7 +140,7 @@ final class ChatSendServiceTests: XCTestCase {
     }
 
     @MainActor
-    func testRetryRecentPendingMessagesDoesNotAttemptWithoutSavedKey() async throws {
+    func testRetryRecentPendingMessagesDoesNotAttemptWithoutSavedToken() async throws {
         let context = makeInMemoryModelContext()
         let message = ChatMessage(role: .user, text: "Changed filter.", extractionStatus: .pendingRetry)
 
@@ -149,9 +149,9 @@ final class ChatSendServiceTests: XCTestCase {
 
         try await PendingExtractionRetryService(
             modelContext: context,
-            apiKeyStore: InMemoryAPIKeyStore(),
+            deviceTokenStore: InMemoryDeviceTokenStore(),
             extractorFactory: { _ in
-                XCTFail("Extraction should not start without a saved key.")
+                XCTFail("Extraction should not start without a service token.")
                 return StaticMessageExtractionClient(
                     payload: ExtractionResponsePayload(rawResponseText: #"{"events":[]}"#)
                 )

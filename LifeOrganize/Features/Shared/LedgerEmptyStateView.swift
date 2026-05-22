@@ -33,7 +33,7 @@ extension LedgerEmptyStateContent {
         body: "Add a reminder or capture something that should resurface."
     )
 
-    static let settingsNoAPIKey = LedgerEmptyStateContent(
+    static let settingsNoDeviceToken = LedgerEmptyStateContent(
         symbolName: "server.rack",
         title: "AI service token",
         body: "Entries stay local on this device. A private token lets the backend organize new details."

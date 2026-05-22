@@ -22,7 +22,9 @@ class Settings(BaseSettings):
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
     openai_model: str = Field(default="gpt-4.1-mini", alias="OPENAI_MODEL")
     admin_api_key: str | None = Field(default=None, alias="LIFE_ORGANIZE_ADMIN_API_KEY")
-    device_token_signing_secret: str | None = Field(default=None, alias="DEVICE_TOKEN_SIGNING_SECRET")
+    device_token_signing_secret: str | None = Field(
+        default=None, alias="DEVICE_TOKEN_SIGNING_SECRET"
+    )
     request_timeout_seconds: float = Field(default=30, alias="REQUEST_TIMEOUT_SECONDS")
     max_request_bytes: int = Field(default=16_384, alias="MAX_REQUEST_BYTES")
     device_rate_limit_requests: int = Field(default=60, alias="DEVICE_RATE_LIMIT_REQUESTS")

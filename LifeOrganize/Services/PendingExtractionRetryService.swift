@@ -4,23 +4,23 @@ import SwiftData
 @MainActor
 struct PendingExtractionRetryService {
     let modelContext: ModelContext
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
     var dateProvider: any DateProvider = SystemDateProvider()
     var dataGeneration: UUID?
     var isDataGenerationCurrent: (UUID) -> Bool = { _ in true }
     var extractorFactory: (String) -> any MessageExtractionClient = { token in
-        OpenAIMessageExtractionClient(apiKey: token)
+        AIServiceMessageExtractionClient(deviceToken: token)
     }
 
     @discardableResult
-    func markPendingKeyMessagesRetryable() throws -> Int {
-        guard try apiKeyStore.loadOpenAIAPIKey() != nil else {
+    func markPendingTokenMessagesRetryable() throws -> Int {
+        guard try deviceTokenStore.loadDeviceToken() != nil else {
             return 0
         }
 
         let messages = try modelContext.fetch(FetchDescriptor<ChatMessage>())
         let pendingMessages = messages.filter { message in
-            message.role == .user && message.extractionStatus == .pendingKey
+            message.role == .user && message.extractionStatus == .pendingToken
         }
 
         for message in pendingMessages {
@@ -38,7 +38,7 @@ struct PendingExtractionRetryService {
     }
 
     func retryRecentPendingMessages(limit: Int = 10) async throws {
-        guard let deviceToken = try apiKeyStore.loadOpenAIAPIKey() else {
+        guard let deviceToken = try deviceTokenStore.loadDeviceToken() else {
             return
         }
 
@@ -46,7 +46,7 @@ struct PendingExtractionRetryService {
         let messages = try modelContext.fetch(FetchDescriptor<ChatMessage>())
             .filter { message in
                 guard message.role == .user else { return false }
-                guard message.extractionStatus == .pendingRetry || message.extractionStatus == .pendingKey else {
+                guard message.extractionStatus == .pendingRetry || message.extractionStatus == .pendingToken else {
                     return false
                 }
                 guard let nextRetryAt = message.nextExtractionRetryAt else { return true }

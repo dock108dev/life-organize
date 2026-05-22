@@ -16,13 +16,13 @@ final class ChatViewModel: ObservableObject {
         draft = suggestion.draftText
     }
 
-    func inputPlaceholder(hasOpenAIAPIKey: Bool) -> String {
-        hasOpenAIAPIKey ? "Ask what is due or add a note" : "Capture something locally"
+    func inputPlaceholder(hasAIServiceCredential: Bool) -> String {
+        hasAIServiceCredential ? "Ask what is due or add a note" : "Capture something locally"
     }
 
     func sendDraft(
         modelContext: ModelContext,
-        apiKeyStore: any APIKeyStore,
+        deviceTokenStore: any DeviceTokenStore,
         dataGeneration: UUID,
         isDataGenerationCurrent: @escaping (UUID) -> Bool,
         onRawMessagePersisted: @escaping (UUID) -> Void = { _ in }
@@ -38,8 +38,8 @@ final class ChatViewModel: ObservableObject {
             do {
                 let service = ChatSendService(
                     modelContext: modelContext,
-                    extractor: AppRuntimeConfiguration.current.messageExtractionClient(apiKeyStore: apiKeyStore),
-                    webRequestClient: AppRuntimeConfiguration.current.webRequestClient(apiKeyStore: apiKeyStore),
+                    extractor: AppRuntimeConfiguration.current.messageExtractionClient(deviceTokenStore: deviceTokenStore),
+                    webRequestClient: AppRuntimeConfiguration.current.webRequestClient(deviceTokenStore: deviceTokenStore),
                     dateProvider: AppRuntimeConfiguration.current.dateProvider,
                     dataGeneration: dataGeneration,
                     isDataGenerationCurrent: isDataGenerationCurrent

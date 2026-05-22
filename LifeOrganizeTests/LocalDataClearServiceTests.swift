@@ -4,9 +4,9 @@ import XCTest
 
 @MainActor
 final class LocalDataClearServiceTests: XCTestCase {
-    func testClearDeletesLedgerRecordsReviewItemsAndKeepsSavedKey() throws {
+    func testClearDeletesLedgerRecordsReviewItemsAndKeepsSavedToken() throws {
         let context = makeInMemoryModelContext()
-        let keyStore = InMemoryAPIKeyStore()
+        let tokenStore = InMemoryDeviceTokenStore()
         let createdAt = fixedTestNow
         let message = ChatMessage(role: .user, text: "Changed oil.", createdAt: createdAt, extractionStatus: .succeeded)
         let attempt = ExtractionAttempt(sourceMessage: message)
@@ -58,7 +58,7 @@ final class LocalDataClearServiceTests: XCTestCase {
             updatedAt: createdAt
         )
 
-        try keyStore.saveOpenAIAPIKey("unit-test-key")
+        try tokenStore.saveDeviceToken("unit-test-device-token")
         context.insert(message)
         context.insert(attempt)
         context.insert(thing)
@@ -72,18 +72,18 @@ final class LocalDataClearServiceTests: XCTestCase {
         try LocalDataClearService(modelContext: context).clearLedgerData()
 
         try assertStoreIsEmpty(context)
-        XCTAssertEqual(try keyStore.loadOpenAIAPIKey(), "unit-test-key")
+        XCTAssertEqual(try tokenStore.loadDeviceToken(), "unit-test-device-token")
         XCTAssertTrue(LedgerFeedProjection().sections(messages: [], events: [], reminders: [], notes: []).isEmpty)
         XCTAssertTrue(SearchService().records(things: [], events: [], rules: [], notes: [], messages: []).isEmpty)
-        XCTAssertTrue(try LedgerReviewQueueService(modelContext: context, apiKeyStore: keyStore).entries(from: []).isEmpty)
+        XCTAssertTrue(try LedgerReviewQueueService(modelContext: context, deviceTokenStore: tokenStore).entries(from: []).isEmpty)
     }
 
-    func testCancelledClearLeavesLocalDataAndSavedKeyUnchanged() throws {
+    func testCancelledClearLeavesLocalDataAndSavedTokenUnchanged() throws {
         let context = makeInMemoryModelContext()
-        let keyStore = InMemoryAPIKeyStore()
+        let tokenStore = InMemoryDeviceTokenStore()
         let message = ChatMessage(role: .user, text: "Keep this.", extractionStatus: .notRequired)
 
-        try keyStore.saveOpenAIAPIKey("unit-test-key")
+        try tokenStore.saveDeviceToken("unit-test-device-token")
         context.insert(message)
         try context.save()
 
@@ -92,7 +92,7 @@ final class LocalDataClearServiceTests: XCTestCase {
 
         XCTAssertEqual(flow.step, .exportPrompt)
         XCTAssertEqual(try context.fetch(FetchDescriptor<ChatMessage>()).map(\.text), ["Keep this."])
-        XCTAssertEqual(try keyStore.loadOpenAIAPIKey(), "unit-test-key")
+        XCTAssertEqual(try tokenStore.loadDeviceToken(), "unit-test-device-token")
     }
 
     func testStaleExtractionCompletionAfterClearCannotRecreateRecords() async throws {

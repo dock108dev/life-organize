@@ -57,7 +57,7 @@ final class ChatMessage {
         }
 
         switch extractionStatus {
-        case .pending, .extracting, .pendingKey, .pendingRetry, .partiallySucceeded, .failed, .failedNeedsReview,
+        case .pending, .extracting, .pendingToken, .pendingRetry, .partiallySucceeded, .failed, .failedNeedsReview,
              .needsReview:
             return true
         case .notRequired, .succeeded:
@@ -137,7 +137,7 @@ enum ChatRole: String, Codable, CaseIterable {
 enum ExtractionStatus: String, Codable, CaseIterable {
     case notRequired = "not_required"
     case pending
-    case pendingKey = "pending_key"
+    case pendingToken = "pending_token"
     case pendingRetry = "pending_retry"
     case extracting
     case succeeded
@@ -148,8 +148,8 @@ enum ExtractionStatus: String, Codable, CaseIterable {
 }
 
 enum ExtractionErrorCode: String, Codable, CaseIterable {
-    case missingAPIKey = "missing_api_key"
-    case invalidAPIKey = "invalid_api_key"
+    case missingServiceToken = "missing_service_token"
+    case invalidServiceToken = "invalid_service_token"
     case networkUnavailable = "network_unavailable"
     case timeout
     case rateLimited = "rate_limited"

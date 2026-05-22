@@ -313,10 +313,10 @@ final class LocalJSONExportServiceTests: XCTestCase {
         XCTAssertEqual(service.exportFilename(for: try makeDate("2026-05-17T18:30:00Z")), "life-ledger-export-2026-05-17-1430.json")
     }
 
-    func testExportDataDecodesAndDoesNotContainAPIKey() throws {
+    func testExportDataDecodesAndDoesNotContainDeviceToken() throws {
         let context = makeInMemoryModelContext()
-        let keyStore = InMemoryAPIKeyStore()
-        try keyStore.saveOpenAIAPIKey("unit-test-secret-key")
+        let tokenStore = InMemoryDeviceTokenStore()
+        try tokenStore.saveDeviceToken("unit-test-device-token")
         context.insert(ChatMessage(role: .user, text: "Changed oil.", createdAt: try makeDate("2026-05-17T13:42:10Z")))
         try context.save()
 
@@ -325,7 +325,7 @@ final class LocalJSONExportServiceTests: XCTestCase {
         let json = String(decoding: data, as: UTF8.self)
 
         XCTAssertEqual(decoded.records.chatMessages.first?.text, "Changed oil.")
-        XCTAssertFalse(json.contains("unit-test-secret-key"))
+        XCTAssertFalse(json.contains("unit-test-device-token"))
         XCTAssertFalse(json.localizedCaseInsensitiveContains("authorization"))
     }
 

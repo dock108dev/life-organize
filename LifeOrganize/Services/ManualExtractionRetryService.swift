@@ -4,12 +4,12 @@ import SwiftData
 @MainActor
 struct ManualExtractionRetryService {
     let modelContext: ModelContext
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
     var dateProvider: any DateProvider = AppRuntimeConfiguration.current.dateProvider
     var dataGeneration: UUID?
     var isDataGenerationCurrent: (UUID) -> Bool = { _ in true }
-    var extractorFactory: (any APIKeyStore) -> any MessageExtractionClient = { apiKeyStore in
-        AppRuntimeConfiguration.current.messageExtractionClient(apiKeyStore: apiKeyStore)
+    var extractorFactory: (any DeviceTokenStore) -> any MessageExtractionClient = { deviceTokenStore in
+        AppRuntimeConfiguration.current.messageExtractionClient(deviceTokenStore: deviceTokenStore)
     }
 
     func canRetry(_ message: ChatMessage) throws -> ManualExtractionRetryBlockedReason? {
@@ -26,7 +26,7 @@ struct ManualExtractionRetryService {
             return .createdRecordsExist
         case .notRequired:
             return .notRequired
-        case .pendingKey, .pendingRetry, .failed:
+        case .pendingToken, .pendingRetry, .failed:
             break
         case .failedNeedsReview, .needsReview:
             if try hasCreatedRecords(for: message) {
@@ -43,13 +43,13 @@ struct ManualExtractionRetryService {
             throw ManualExtractionRetryError.notRetryable(blockedReason)
         }
 
-        guard try apiKeyStore.ensureDeviceToken().isEmpty == false else {
-            throw ManualExtractionRetryError.missingAPIKey
+        guard try deviceTokenStore.ensureDeviceToken().isEmpty == false else {
+            throw ManualExtractionRetryError.missingServiceToken
         }
 
         let service = ChatSendService(
             modelContext: modelContext,
-            extractor: extractorFactory(apiKeyStore),
+            extractor: extractorFactory(deviceTokenStore),
             dateProvider: dateProvider,
             dataGeneration: dataGeneration,
             isDataGenerationCurrent: isDataGenerationCurrent
@@ -72,12 +72,12 @@ struct ManualExtractionRetryService {
 }
 
 enum ManualExtractionRetryError: LocalizedError, Equatable {
-    case missingAPIKey
+    case missingServiceToken
     case notRetryable(ManualExtractionRetryBlockedReason)
 
     var errorDescription: String? {
         switch self {
-        case .missingAPIKey:
+        case .missingServiceToken:
             return "This entry is saved on this device. Connect to the AI service, then retry it."
         case .notRetryable(let reason):
             return reason.message

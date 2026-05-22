@@ -114,18 +114,18 @@ final class LedgerCopyRestraintTests: XCTestCase {
 
     private func settingsTrustText() -> [String] {
         [
-            SettingsTrustCopy.apiKeyTitle,
-            SettingsTrustCopy.apiKeyBody,
-            SettingsTrustCopy.noKeyDetail,
-            SettingsTrustCopy.savedKeyDetail,
+            SettingsTrustCopy.deviceTokenTitle,
+            SettingsTrustCopy.deviceTokenBody,
+            SettingsTrustCopy.noTokenDetail,
+            SettingsTrustCopy.savedTokenDetail,
             SettingsTrustCopy.exportTitle,
             SettingsTrustCopy.exportBody,
             SettingsTrustCopy.clearTitle,
             SettingsTrustCopy.clearBody,
             SettingsTrustCopy.clearDeletes,
             SettingsTrustCopy.clearKeeps,
-            SettingsFeedback.apiKeySaved.message,
-            SettingsFeedback.apiKeyRemoved.message,
+            SettingsFeedback.deviceTokenSaved.message,
+            SettingsFeedback.deviceTokenRemoved.message,
             SettingsFeedback.exportReady.message,
             SettingsFeedback.localDataCleared.message,
         ]

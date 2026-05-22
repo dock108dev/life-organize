@@ -11,14 +11,14 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
             message("Failed with review", status: .failedNeedsReview),
             message("Needs review", status: .needsReview),
             message("Partial", status: .partiallySucceeded),
-            message("Waiting for key", status: .pendingKey),
+            message("Waiting for key", status: .pendingToken),
             message("Retry later", status: .pendingRetry),
         ]
         messages.forEach(context.insert)
         try context.save()
 
         let items = try generationService(context).refresh()
-        let entries = try queueService(context, keyStore: InMemoryAPIKeyStore()).entries(from: items)
+        let entries = try queueService(context, tokenStore: InMemoryDeviceTokenStore()).entries(from: items)
 
         XCTAssertEqual(entries.filter { $0.correctionClass == .quickReview }.count, 6)
         XCTAssertTrue(entries.contains { $0.title == "Entry recovery is available" && $0.primaryActionTitle == "Retry Now" })
@@ -389,11 +389,11 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
 
     private func queueService(
         _ context: ModelContext,
-        keyStore: any APIKeyStore = InMemoryAPIKeyStore(key: "test-key")
+        tokenStore: any DeviceTokenStore = InMemoryDeviceTokenStore(token: "test-device-token")
     ) -> LedgerReviewQueueService {
         LedgerReviewQueueService(
             modelContext: context,
-            apiKeyStore: keyStore,
+            deviceTokenStore: tokenStore,
             dateProvider: TestDateProvider(now: fixedTestNow)
         )
     }

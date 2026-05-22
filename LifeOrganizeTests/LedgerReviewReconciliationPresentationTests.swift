@@ -311,7 +311,7 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
 
         let note = try LedgerReviewQueueService(
             modelContext: context,
-            apiKeyStore: InMemoryAPIKeyStore(),
+            deviceTokenStore: InMemoryDeviceTokenStore(),
             dateProvider: TestDateProvider(now: fixedTestNow)
         )
         .saveAsNote(item, body: "Original Entry:\nGarage code changed.")

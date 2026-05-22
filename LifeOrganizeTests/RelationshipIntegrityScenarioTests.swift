@@ -45,7 +45,7 @@ final class RelationshipIntegrityScenarioTests: XCTestCase {
         )
         let queue = LedgerReviewQueueService(
             modelContext: context,
-            apiKeyStore: InMemoryAPIKeyStore(key: "test-key"),
+            deviceTokenStore: InMemoryDeviceTokenStore(token: "test-device-token"),
             dateProvider: TestDateProvider(now: timing.now)
         )
         try queue.reassignRecords(from: reviewItem, to: target.id)
@@ -82,7 +82,7 @@ final class RelationshipIntegrityScenarioTests: XCTestCase {
 
         var retry = ManualExtractionRetryService(
             modelContext: context,
-            apiKeyStore: InMemoryAPIKeyStore(key: "test-key"),
+            deviceTokenStore: InMemoryDeviceTokenStore(token: "test-device-token"),
             dateProvider: TestDateProvider(now: fixedTestNow)
         )
         retry.extractorFactory = { _ in DeterministicMessageExtractionClient() }

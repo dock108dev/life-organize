@@ -9,20 +9,20 @@ extension ChatSendService {
         detail: String
     ) {
         let formatter = ChatResponseFormatter()
-        if case AppError.missingAPIKey = error {
+        if case AppError.missingServiceToken = error {
             return (
-                .pendingKey,
-                .missingAPIKey,
+                .pendingToken,
+                .missingServiceToken,
                 formatter.extractionUnavailable(
                     reason: "Connect to the AI service when you want it organized across your timeline."
                 ),
                 "AI service credential is missing."
             )
         }
-        if case AppError.invalidAPIKey = error {
+        if case AppError.invalidServiceToken = error {
             return (
-                .pendingKey,
-                .invalidAPIKey,
+                .pendingToken,
+                .invalidServiceToken,
                 formatter.extractionUnavailable(reason: "Reconnect the AI service in Settings."),
                 "AI service credential was rejected."
             )

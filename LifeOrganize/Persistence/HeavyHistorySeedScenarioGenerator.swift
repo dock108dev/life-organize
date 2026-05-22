@@ -237,7 +237,7 @@ private extension HeavyHistorySeedScenarioGenerator {
         }
 
         private func messageRecords(things: [HeavyHistoryThingSpec]) -> [ChatMessageExport] {
-            let reviewStatuses: [ExtractionStatus] = [.pending, .extracting, .pendingKey, .pendingRetry, .partiallySucceeded, .failed, .failedNeedsReview, .needsReview]
+            let reviewStatuses: [ExtractionStatus] = [.pending, .extracting, .pendingToken, .pendingRetry, .partiallySucceeded, .failed, .failedNeedsReview, .needsReview]
             let reviewMessages = (0..<72).map { index in
                 message(index, role: .user, status: reviewStatuses[index % reviewStatuses.count], text: "HH review \(index): \(keywords[index % keywords.count]) entry for \(things[(index * 2) % things.count].name) needs review.", date: historicalDate(index, stride: 13, phase: index % 8))
             }

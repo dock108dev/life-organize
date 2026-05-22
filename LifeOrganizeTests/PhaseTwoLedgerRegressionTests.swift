@@ -153,7 +153,7 @@ final class PhaseTwoLedgerRegressionTests: XCTestCase {
 
         var retryService = ManualExtractionRetryService(
             modelContext: context,
-            apiKeyStore: InMemoryAPIKeyStore(key: "test-key"),
+            deviceTokenStore: InMemoryDeviceTokenStore(token: "test-device-token"),
             dateProvider: TestDateProvider(now: fixedTestNow)
         )
         retryService.extractorFactory = { _ in DeterministicMessageExtractionClient() }

@@ -180,16 +180,16 @@ struct QAFakeDateStore {
 @MainActor
 struct QAReprocessService {
     let modelContext: ModelContext
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
 
     func retryableMessages() throws -> [ChatMessage] {
         let messages = try modelContext.fetch(FetchDescriptor<ChatMessage>(sortBy: [SortDescriptor(\.createdAt, order: .reverse)]))
-        let retry = ManualExtractionRetryService(modelContext: modelContext, apiKeyStore: apiKeyStore)
+        let retry = ManualExtractionRetryService(modelContext: modelContext, deviceTokenStore: deviceTokenStore)
         return try messages.filter { try retry.canRetry($0) == nil }
     }
 
     func reprocess(_ message: ChatMessage) async throws {
-        try await ManualExtractionRetryService(modelContext: modelContext, apiKeyStore: apiKeyStore).retry(message)
+        try await ManualExtractionRetryService(modelContext: modelContext, deviceTokenStore: deviceTokenStore).retry(message)
     }
 
     func reprocess(messageID: UUID) async throws {

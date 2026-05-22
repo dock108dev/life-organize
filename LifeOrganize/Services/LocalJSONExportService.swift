@@ -178,8 +178,8 @@ struct LocalJSONExportService {
 
     private func recoveryAction(for message: ChatMessage) -> String? {
         switch message.extractionStatus {
-        case .pendingKey:
-            if message.extractionErrorCode == .invalidAPIKey {
+        case .pendingToken:
+            if message.extractionErrorCode == .invalidServiceToken {
                 return "Reconnect the AI service, then retry this entry."
             }
             return "Connect the AI service, then retry this entry."

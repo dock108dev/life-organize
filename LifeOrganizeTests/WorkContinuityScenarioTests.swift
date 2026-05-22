@@ -106,7 +106,7 @@ final class WorkContinuityScenarioTests: XCTestCase {
         let reviewItem = try XCTUnwrap(try context.fetch(FetchDescriptor<LedgerReviewItem>()).first)
         let queue = LedgerReviewQueueService(
             modelContext: context,
-            apiKeyStore: InMemoryAPIKeyStore(key: "test-key"),
+            deviceTokenStore: InMemoryDeviceTokenStore(token: "test-device-token"),
             dateProvider: TestDateProvider(now: fixedTestNow)
         )
         let entry = try queue.entry(for: reviewItem)

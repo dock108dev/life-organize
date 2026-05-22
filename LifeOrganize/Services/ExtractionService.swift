@@ -5,19 +5,19 @@ protocol MessageExtractionClient {
     func extractRawResponse(for text: String, now: Date) async throws -> ExtractionResponsePayload
 }
 
-struct OpenAIMessageExtractionClient: MessageExtractionClient {
+struct AIServiceMessageExtractionClient: MessageExtractionClient {
     private let deviceTokenProvider: () throws -> String?
     private let serviceBaseURL: URL
-    var client: (any OpenAIExtractionSending)?
+    var client: (any AIServiceExtractionSending)?
 
-    init(apiKey: String?, serviceBaseURL: URL = AppRuntimeConfiguration.defaultAIServiceBaseURL, client: (any OpenAIExtractionSending)? = nil) {
-        self.deviceTokenProvider = { apiKey }
+    init(deviceToken: String?, serviceBaseURL: URL = AppRuntimeConfiguration.defaultAIServiceBaseURL, client: (any AIServiceExtractionSending)? = nil) {
+        self.deviceTokenProvider = { deviceToken }
         self.serviceBaseURL = serviceBaseURL
         self.client = client
     }
 
-    init(apiKeyStore: any APIKeyStore, serviceBaseURL: URL = AppRuntimeConfiguration.defaultAIServiceBaseURL, client: (any OpenAIExtractionSending)? = nil) {
-        self.deviceTokenProvider = { try apiKeyStore.ensureDeviceToken() }
+    init(deviceTokenStore: any DeviceTokenStore, serviceBaseURL: URL = AppRuntimeConfiguration.defaultAIServiceBaseURL, client: (any AIServiceExtractionSending)? = nil) {
+        self.deviceTokenProvider = { try deviceTokenStore.ensureDeviceToken() }
         self.serviceBaseURL = serviceBaseURL
         self.client = client
     }
@@ -25,13 +25,13 @@ struct OpenAIMessageExtractionClient: MessageExtractionClient {
     func extractRawResponse(for text: String, now: Date) async throws -> ExtractionResponsePayload {
         let deviceToken = try deviceTokenProvider()
         guard let deviceToken, !deviceToken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw AppError.missingAPIKey
+            throw AppError.missingServiceToken
         }
 
         let request = Self.backendRequest(for: text, now: now)
         let requestData = try? Self.encoder.encode(request)
         let requestJSON = requestData.flatMap { String(data: $0, encoding: .utf8) }
-        var payload = try await (client ?? OpenAIClient(deviceToken: deviceToken, baseURL: serviceBaseURL)).sendExtraction(request)
+        var payload = try await (client ?? AIServiceClient(deviceToken: deviceToken, baseURL: serviceBaseURL)).sendExtraction(request)
         if payload.requestJSON == nil {
             payload.requestJSON = requestJSON
         }
@@ -48,73 +48,7 @@ struct OpenAIMessageExtractionClient: MessageExtractionClient {
         )
     }
 
-    static func request(for text: String, now: Date, timeZone: TimeZone = .current) -> OpenAIRequest {
-        OpenAIRequest(
-            model: ExtractionContract.modelName,
-            input: [
-                OpenAIInputMessage(
-                    role: "system",
-                    content: [
-                        OpenAIInputContent(
-                            type: "input_text",
-                            text: strictInstructions
-                        ),
-                    ]
-                ),
-                OpenAIInputMessage(
-                    role: "user",
-                    content: [
-                        OpenAIInputContent(
-                            type: "input_text",
-                            text: OpenAIUserPayload.string(for: text, now: now, timeZone: timeZone)
-                        ),
-                    ]
-                ),
-            ],
-            text: OpenAITextOptions(
-                format: OpenAIResponseFormat(
-                    type: "json_schema",
-                    name: OpenAIExtractionSchema.name,
-                    strict: true,
-                    schema: OpenAIExtractionSchema.value
-                )
-            )
-        )
-    }
-
     private static let encoder = JSONEncoder()
-
-    private static let strictInstructions = """
-    You extract structured data for a local personal ledger app.
-    Return JSON that matches the provided schema exactly.
-    Do not provide advice, coaching, emotional analysis, or conversation.
-    Extract only what the user said or what is obvious from the provided current date and timezone.
-    Resolve relative dates using currentDate, currentDateTime, and timezone. Never use server time.
-    If a date is ambiguous, set date to null, lower confidence, and add an error.
-    Use null instead of guessing and empty arrays when there are no entities of a type.
-    Use only the eventType values in the schema: generic, maintenance, purchase, visit, replacement,
-    cleaning, renewal, appointment, project, note, reminder, measurement, status_change, and other.
-    Choose other instead of inventing a new event ontology.
-    For ruleType, use reminder for one-time due reminders, restriction for do-not-do commitments,
-    waiting_period for temporary waiting windows, deadline for due-by commitments, and preference
-    only for standing preferences. Preserve recurring wording as text; do not claim recurring automation.
-    Temporal priority order is: explicit reevaluate, revisit, check again, review later, remind me,
-    or follow-up language first; then actionable relative durations such as in 90 days; then long-term
-    contextual references such as next year or long term. For review/reminder language, use a reminder
-    Rule with startsAt set to the actionable date and expiresAt null. Do not turn the review date into
-    a restriction expiration unless the user uses clear until, through, from/to, or waiting-window language.
-    Prefer Events or reminder Rules for actions, purchases, maintenance, visits, cleaning, renewals,
-    appointments, projects, and anything due in the future. Do not store those as standalone Notes.
-    Use top-level Notes sparingly for durable freeform facts that are not actions or obligations,
-    such as codes, locations, identifiers, and plain memory facts. Link Notes to Things when possible.
-    Event note is only a short annotation attached to that Event. Do not use it as a replacement for a
-    standalone Note when the user provides broader freeform context.
-    Treat top-level DateExtraction entries as evidence. Link them with ownerRef and ownerField when the
-    date clearly belongs to one event, rule, note, or recall query; otherwise use null and unknown.
-    Put practical scalar details in metadata when present, including mileage, amount, quantity, vendor,
-    location, due_date, identifiers, units, and short source spans. Omit malformed metadata rather than guessing.
-    """
-
 }
 
 enum ExtractionService {

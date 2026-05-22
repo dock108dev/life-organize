@@ -12,7 +12,7 @@ struct LedgerReviewQueueDetailView: View {
     let events: [LedgerEvent]
     let rules: [LedgerRule]
     let notes: [LedgerNote]
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
     let onAddKey: () -> Void
 
     @State private var reminderDate = DateFormatting.normalizedDateOnly(Date())
@@ -36,7 +36,7 @@ struct LedgerReviewQueueDetailView: View {
     private var service: LedgerReviewQueueService {
         LedgerReviewQueueService(
             modelContext: modelContext,
-            apiKeyStore: apiKeyStore,
+            deviceTokenStore: deviceTokenStore,
             dataGeneration: sessionState.dataGeneration,
             isDataGenerationCurrent: sessionState.isCurrentDataGeneration
         )
@@ -168,7 +168,7 @@ struct LedgerReviewQueueDetailView: View {
     @ViewBuilder
     private func actionControl(_ action: LedgerReviewReconciliationAction) -> some View {
         switch action.kind {
-        case .saveKey:
+        case .connectService:
             Button(action.title, action: onAddKey)
         case .retry:
             Button(action.title) {
@@ -438,7 +438,7 @@ private extension LedgerReviewReconciliationAction {
             return "review-queue-dismiss-button"
         case .openRecord, .mergeThing, .reassignRecords, .buildReminderDraft, .adjustReminderTiming:
             return "review-queue-edit-button"
-        case .saveKey, .retry, .confirm, .saveAsNote, .snooze:
+        case .connectService, .retry, .confirm, .saveAsNote, .snooze:
             return "review-queue-accept-button"
         case .blocked:
             return "review-queue-blocked-action"

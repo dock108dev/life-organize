@@ -102,7 +102,7 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
         let partialEntry = try keyedQueue.entry(for: partial)
         let duplicateEntry = try keyedQueue.entry(for: duplicate)
         let conflictEntry = try keyedQueue.entry(for: conflict)
-        let recoveryEntry = try queueService(context, keyStore: InMemoryAPIKeyStore()).entry(for: recovery)
+        let recoveryEntry = try queueService(context, tokenStore: InMemoryDeviceTokenStore()).entry(for: recovery)
 
         assertEntry(ambiguousEntry, for: ambiguous, correctionClass: .quickReview, blocked: false)
         assertEntry(partialEntry, for: partial, correctionClass: .quickReview, blocked: true)
@@ -233,8 +233,8 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
             targetID: fixture.recoveryMessage.id,
             label: "Recovery entry"
         )
-        var keylessQueue = queueService(context, keyStore: InMemoryAPIKeyStore())
-        keylessQueue.extractorFactory = { _ in
+        var tokenlessQueue = queueService(context, tokenStore: InMemoryDeviceTokenStore())
+        tokenlessQueue.extractorFactory = { _ in
             StaticMessageExtractionClient(
                 payload: ExtractionResponsePayload(
                     rawResponseText: canonicalExtractionJSON(
@@ -252,11 +252,11 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
                 )
             )
         }
-        let entriesBeforeRetry = try keylessQueue.entries(from: items, origin: origin)
+        let entriesBeforeRetry = try tokenlessQueue.entries(from: items, origin: origin)
 
-        try await keylessQueue.retryEntry(recovery)
+        try await tokenlessQueue.retryEntry(recovery)
 
-        let entriesAfterRetry = try keylessQueue.entries(from: items, origin: origin)
+        let entriesAfterRetry = try tokenlessQueue.entries(from: items, origin: origin)
 
         XCTAssertEqual(entriesBeforeRetry.map(\.itemID), [recovery.id])
         XCTAssertEqual(entriesAfterRetry.map(\.itemID), [])

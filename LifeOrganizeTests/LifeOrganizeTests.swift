@@ -35,18 +35,18 @@ final class LifeOrganizeTests: XCTestCase {
         _ = ModelContainerFactory.make(inMemory: true)
     }
 
-    func testAPIKeyStoreTrimsReplacesAndDeletesKey() throws {
-        let store = InMemoryAPIKeyStore()
+    func testDeviceTokenStoreTrimsReplacesAndDeletesToken() throws {
+        let store = InMemoryDeviceTokenStore()
 
-        try store.saveOpenAIAPIKey("  unit-test-key-old  ")
-        XCTAssertEqual(try store.loadOpenAIAPIKey(), "unit-test-key-old")
+        try store.saveDeviceToken("  unit-test-device-token-old  ")
+        XCTAssertEqual(try store.loadDeviceToken(), "unit-test-device-token-old")
 
-        try store.saveOpenAIAPIKey("unit-test-key-new")
-        XCTAssertEqual(try store.loadOpenAIAPIKey(), "unit-test-key-new")
+        try store.saveDeviceToken("unit-test-device-token-new")
+        XCTAssertEqual(try store.loadDeviceToken(), "unit-test-device-token-new")
 
-        try store.deleteOpenAIAPIKey()
-        XCTAssertNil(try store.loadOpenAIAPIKey())
-        XCTAssertThrowsError(try store.saveOpenAIAPIKey("   "))
+        try store.deleteDeviceToken()
+        XCTAssertNil(try store.loadDeviceToken())
+        XCTAssertThrowsError(try store.saveDeviceToken("   "))
     }
 
     func testRuleStatusMarksExpiredRulesInactive() {
@@ -264,9 +264,9 @@ final class LifeOrganizeTests: XCTestCase {
     }
 
     @MainActor
-    func testClearLocalDataDeletesLedgerRecordsAndKeepsAPIKey() throws {
+    func testClearLocalDataDeletesLedgerRecordsAndKeepsDeviceToken() throws {
         let context = makeInMemoryModelContext()
-        let keyStore = InMemoryAPIKeyStore()
+        let tokenStore = InMemoryDeviceTokenStore()
         let message = ChatMessage(role: .user, text: "Changed oil.", extractionStatus: .succeeded)
         let attempt = ExtractionAttempt(sourceMessage: message)
         let thing = Thing(name: "Oil Change")
@@ -274,7 +274,7 @@ final class LifeOrganizeTests: XCTestCase {
         let rule = LedgerRule(title: "No domains", sourceMessage: message)
         let note = LedgerNote(text: "Remember filter size.", sourceMessage: message, linkedThings: [thing])
 
-        try keyStore.saveOpenAIAPIKey("unit-test-key")
+        try tokenStore.saveDeviceToken("unit-test-device-token")
         context.insert(message)
         context.insert(attempt)
         context.insert(thing)
@@ -291,6 +291,6 @@ final class LifeOrganizeTests: XCTestCase {
         XCTAssertEqual(try context.fetch(FetchDescriptor<LedgerRule>()).count, 0)
         XCTAssertEqual(try context.fetch(FetchDescriptor<LedgerNote>()).count, 0)
         XCTAssertEqual(try context.fetch(FetchDescriptor<Thing>()).count, 0)
-        XCTAssertEqual(try keyStore.loadOpenAIAPIKey(), "unit-test-key")
+        XCTAssertEqual(try tokenStore.loadDeviceToken(), "unit-test-device-token")
     }
 }

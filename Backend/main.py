@@ -7,7 +7,6 @@ from app.middleware.request_size import RequestSizeLimitMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.routers.ai import router as ai_router
 
-
 app = FastAPI(
     title="life-organize-backend",
     version="0.1.0",

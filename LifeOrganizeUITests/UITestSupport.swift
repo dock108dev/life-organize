@@ -4,7 +4,7 @@ extension XCTestCase {
     func launchUITestApp(
         extraArguments: [String] = [],
         resetStore: Bool = false,
-        resetAPIKey: Bool = false,
+        resetDeviceToken: Bool = false,
         useInMemoryStore: Bool = false
     ) -> XCUIApplication {
         let app = XCUIApplication()
@@ -26,8 +26,8 @@ extension XCTestCase {
         if resetStore {
             app.launchArguments.append("-reset-store")
         }
-        if resetAPIKey {
-            app.launchArguments.append("-reset-api-key")
+        if resetDeviceToken {
+            app.launchArguments.append("-reset-device-token")
         }
         app.launch()
         return app

@@ -8,7 +8,9 @@ from app.schemas import ExtractionRequest, WebRequest
 from app.services.openai_gateway import OpenAIGateway, _output_text
 
 
-def test_extraction_payload_uses_strict_schema_and_local_date_context(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_extraction_payload_uses_strict_schema_and_local_date_context(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("OPENAI_MODEL", "test-model")
     request = ExtractionRequest(
         text='Changed the "hallway" filter today.',

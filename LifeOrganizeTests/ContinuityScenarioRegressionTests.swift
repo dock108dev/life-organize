@@ -304,7 +304,7 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
 
         let queue = LedgerReviewQueueService(
             modelContext: context,
-            apiKeyStore: InMemoryAPIKeyStore(key: "test-key"),
+            deviceTokenStore: InMemoryDeviceTokenStore(token: "test-device-token"),
             dateProvider: TestDateProvider(now: now)
         )
         let entry = try queue.entry(for: correctionItem)
@@ -328,17 +328,17 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
 
     func testLocalFirstRecoveryExportAndClearSafeguardsPreserveUserControl() async throws {
         let context = makeInMemoryModelContext()
-        let keyStore = InMemoryAPIKeyStore(key: "unit-test-key")
+        let tokenStore = InMemoryDeviceTokenStore(token: "unit-test-device-token")
         let now = fixedTestNow
 
         try await ChatSendService(
             modelContext: context,
-            extractor: ThrowingMessageExtractionClient(error: AppError.missingAPIKey),
+            extractor: ThrowingMessageExtractionClient(error: AppError.missingServiceToken),
             dateProvider: TestDateProvider(now: now)
         ).send("Replaced Home Air Filters.")
         try await ChatSendService(
             modelContext: context,
-            extractor: ThrowingMessageExtractionClient(error: AppError.invalidAPIKey),
+            extractor: ThrowingMessageExtractionClient(error: AppError.invalidServiceToken),
             dateProvider: TestDateProvider(now: now.addingTimeInterval(1))
         ).send("Changed car oil at 40,000 miles.")
         try await ChatSendService(
@@ -355,8 +355,8 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
             "Changed car oil at 40,000 miles.",
             "Bought dog food.",
         ])
-        XCTAssertEqual(userMessages.map(\.extractionStatus), [.pendingKey, .pendingKey, .pendingRetry])
-        XCTAssertEqual(userMessages.map(\.extractionErrorCode), [.missingAPIKey, .invalidAPIKey, .serverError])
+        XCTAssertEqual(userMessages.map(\.extractionStatus), [.pendingToken, .pendingToken, .pendingRetry])
+        XCTAssertEqual(userMessages.map(\.extractionErrorCode), [.missingServiceToken, .invalidServiceToken, .serverError])
         XCTAssertNil(userMessages[0].nextExtractionRetryAt)
         XCTAssertNil(userMessages[1].nextExtractionRetryAt)
         XCTAssertEqual(userMessages[2].nextExtractionRetryAt, now.addingTimeInterval(62))
@@ -422,11 +422,11 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
         try assertStoreIsEmpty(staleContext)
 
         try LocalDataClearService(modelContext: context).clearLedgerData()
-        XCTAssertEqual(try keyStore.loadOpenAIAPIKey(), "unit-test-key")
+        XCTAssertEqual(try tokenStore.loadDeviceToken(), "unit-test-device-token")
         try assertStoreIsEmpty(context)
         XCTAssertTrue(LedgerFeedProjection().sections(messages: [], events: [], reminders: [], notes: []).isEmpty)
         XCTAssertTrue(SearchService().records(things: [], events: [], rules: [], notes: [], messages: []).isEmpty)
-        XCTAssertTrue(try LedgerReviewQueueService(modelContext: context, apiKeyStore: keyStore).entries(from: []).isEmpty)
+        XCTAssertTrue(try LedgerReviewQueueService(modelContext: context, deviceTokenStore: tokenStore).entries(from: []).isEmpty)
         assertNoLeakedPrimarySurfaceTerms(
             feedSurface + reviewItems.flatMap { [$0.title, $0.detail, $0.actionTitle ?? ""] } + surfaceText(from: searchResults)
         )

@@ -4,11 +4,11 @@ struct ChatMessageExtractionDebugView: View {
     @Environment(\.debugAccessPolicy) private var debugAccessPolicy
 
     let message: ChatMessage
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
 
-    init(message: ChatMessage, apiKeyStore: any APIKeyStore = KeychainAPIKeyStore()) {
+    init(message: ChatMessage, deviceTokenStore: any DeviceTokenStore = KeychainDeviceTokenStore()) {
         self.message = message
-        self.apiKeyStore = apiKeyStore
+        self.deviceTokenStore = deviceTokenStore
     }
 
     var body: some View {
@@ -41,13 +41,13 @@ struct ChatMessageExtractionDebugView: View {
                     }
 
                     Section("Retry") {
-                        ManualExtractionRetryButton(message: message, apiKeyStore: apiKeyStore)
+                        ManualExtractionRetryButton(message: message, deviceTokenStore: deviceTokenStore)
                     }
 
                     Section("Attempts") {
                         ForEach(message.extractionAttempts.sorted { $0.startedAt > $1.startedAt }) { attempt in
                             NavigationLink {
-                                ExtractionAttemptDebugView(attempt: attempt, apiKeyStore: apiKeyStore)
+                                ExtractionAttemptDebugView(attempt: attempt, deviceTokenStore: deviceTokenStore)
                             } label: {
                                 VStack(alignment: .leading, spacing: 5) {
                                     ExtractionAttemptStatusChip(status: attempt.status)

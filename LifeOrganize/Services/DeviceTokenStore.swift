@@ -1,23 +1,23 @@
 import Foundation
 import Security
 
-protocol APIKeyStore: AnyObject {
-    func loadOpenAIAPIKey() throws -> String?
-    func saveOpenAIAPIKey(_ key: String) throws
-    func deleteOpenAIAPIKey() throws
+protocol DeviceTokenStore: AnyObject {
+    func loadDeviceToken() throws -> String?
+    func saveDeviceToken(_ token: String) throws
+    func deleteDeviceToken() throws
     func ensureDeviceToken() throws -> String
 }
 
-enum APIKeyStoreError: LocalizedError, Equatable {
-    case emptyKey
-    case invalidKeyData
+enum DeviceTokenStoreError: LocalizedError, Equatable {
+    case emptyToken
+    case invalidTokenData
     case keychainFailure(OSStatus)
 
     var errorDescription: String? {
         switch self {
-        case .emptyKey:
+        case .emptyToken:
             "Service token cannot be empty."
-        case .invalidKeyData:
+        case .invalidTokenData:
             "Saved service token could not be read."
         case .keychainFailure:
             "Could not update the saved service token."
@@ -25,7 +25,7 @@ enum APIKeyStoreError: LocalizedError, Equatable {
     }
 }
 
-final class KeychainAPIKeyStore: APIKeyStore {
+final class KeychainDeviceTokenStore: DeviceTokenStore {
     private let service: String
     private let account = "lifeorganize_device_token"
 
@@ -33,7 +33,7 @@ final class KeychainAPIKeyStore: APIKeyStore {
         self.service = service
     }
 
-    func loadOpenAIAPIKey() throws -> String? {
+    func loadDeviceToken() throws -> String? {
         var query = baseQuery()
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         query[kSecReturnData as String] = true
@@ -44,19 +44,19 @@ final class KeychainAPIKeyStore: APIKeyStore {
             return nil
         }
         guard status == errSecSuccess else {
-            throw APIKeyStoreError.keychainFailure(status)
+            throw DeviceTokenStoreError.keychainFailure(status)
         }
         guard let data = result as? Data,
-              let key = String(data: data, encoding: .utf8) else {
-            throw APIKeyStoreError.invalidKeyData
+              let token = String(data: data, encoding: .utf8) else {
+            throw DeviceTokenStoreError.invalidTokenData
         }
-        return key
+        return token
     }
 
-    func saveOpenAIAPIKey(_ key: String) throws {
-        let normalized = key.trimmingCharacters(in: .whitespacesAndNewlines)
+    func saveDeviceToken(_ token: String) throws {
+        let normalized = token.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalized.isEmpty else {
-            throw APIKeyStoreError.emptyKey
+            throw DeviceTokenStoreError.emptyToken
         }
 
         let data = Data(normalized.utf8)
@@ -69,7 +69,7 @@ final class KeychainAPIKeyStore: APIKeyStore {
             return
         }
         if addStatus != errSecDuplicateItem {
-            throw APIKeyStoreError.keychainFailure(addStatus)
+            throw DeviceTokenStoreError.keychainFailure(addStatus)
         }
 
         let updateStatus = SecItemUpdate(
@@ -77,24 +77,24 @@ final class KeychainAPIKeyStore: APIKeyStore {
             [kSecValueData as String: data] as CFDictionary
         )
         guard updateStatus == errSecSuccess else {
-            throw APIKeyStoreError.keychainFailure(updateStatus)
+            throw DeviceTokenStoreError.keychainFailure(updateStatus)
         }
     }
 
-    func deleteOpenAIAPIKey() throws {
+    func deleteDeviceToken() throws {
         let status = SecItemDelete(baseQuery() as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else {
-            throw APIKeyStoreError.keychainFailure(status)
+            throw DeviceTokenStoreError.keychainFailure(status)
         }
     }
 
     func ensureDeviceToken() throws -> String {
-        if let existing = try loadOpenAIAPIKey()?.trimmingCharacters(in: .whitespacesAndNewlines),
+        if let existing = try loadDeviceToken()?.trimmingCharacters(in: .whitespacesAndNewlines),
            !existing.isEmpty {
             return existing
         }
         let token = UUID().uuidString + "." + UUID().uuidString
-        try saveOpenAIAPIKey(token)
+        try saveDeviceToken(token)
         return token
     }
 
@@ -107,35 +107,35 @@ final class KeychainAPIKeyStore: APIKeyStore {
     }
 }
 
-final class InMemoryAPIKeyStore: APIKeyStore {
-    private var key: String?
+final class InMemoryDeviceTokenStore: DeviceTokenStore {
+    private var token: String?
 
-    init(key: String? = nil) {
-        self.key = key
+    init(token: String? = nil) {
+        self.token = token
     }
 
-    func loadOpenAIAPIKey() throws -> String? {
-        key
+    func loadDeviceToken() throws -> String? {
+        token
     }
 
-    func saveOpenAIAPIKey(_ key: String) throws {
-        let normalized = key.trimmingCharacters(in: .whitespacesAndNewlines)
+    func saveDeviceToken(_ token: String) throws {
+        let normalized = token.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalized.isEmpty else {
-            throw APIKeyStoreError.emptyKey
+            throw DeviceTokenStoreError.emptyToken
         }
-        self.key = normalized
+        self.token = normalized
     }
 
-    func deleteOpenAIAPIKey() throws {
-        key = nil
+    func deleteDeviceToken() throws {
+        token = nil
     }
 
     func ensureDeviceToken() throws -> String {
-        if let key, !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return key
+        if let token, !token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return token
         }
-        let token = UUID().uuidString + "." + UUID().uuidString
-        key = token
-        return token
+        let generatedToken = UUID().uuidString + "." + UUID().uuidString
+        token = generatedToken
+        return generatedToken
     }
 }

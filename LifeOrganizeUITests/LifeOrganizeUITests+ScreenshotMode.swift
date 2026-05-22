@@ -11,14 +11,13 @@ extension LifeOrganizeScenarioUITests {
 
         XCTAssertTrue(app.staticTexts["Timeline"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["timeline-feed"].exists)
-        XCTAssertFalse(app.descendants(matching: .any)["api-key-notice"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["device-token-notice"].exists)
     }
 
     func testScreenshotModeRepeatedLaunchesReachSameFirstVisibleState() throws {
         let arguments = [
             "-screenshot-seed=default",
             "-screenshot-start=things",
-            "-screenshot-api-key=missing",
             "-screenshot-locale=en_US",
             "-screenshot-time-zone=America/New_York",
             "-screenshot-calendar=gregorian",

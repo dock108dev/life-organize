@@ -43,8 +43,24 @@ class OpenAIGateway:
         return {
             "model": settings.openai_model,
             "input": [
-                {"role": "system", "content": [{"type": "input_text", "text": _EXTRACTION_INSTRUCTIONS}]},
-                {"role": "user", "content": [{"type": "input_text", "text": _user_payload(request.text, request.currentDate, request.currentDateTime, request.timezone)}]},
+                {
+                    "role": "system",
+                    "content": [{"type": "input_text", "text": _EXTRACTION_INSTRUCTIONS}],
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": _user_payload(
+                                request.text,
+                                request.currentDate,
+                                request.currentDateTime,
+                                request.timezone,
+                            ),
+                        }
+                    ],
+                },
             ],
             "text": {
                 "format": {
@@ -70,8 +86,24 @@ class OpenAIGateway:
         payload: dict = {
             "model": settings.openai_model,
             "input": [
-                {"role": "system", "content": [{"type": "input_text", "text": _web_instructions(request.mode)}]},
-                {"role": "user", "content": [{"type": "input_text", "text": _user_payload(request.text, request.currentDate, request.currentDateTime, request.timezone)}]},
+                {
+                    "role": "system",
+                    "content": [{"type": "input_text", "text": _web_instructions(request.mode)}],
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": _user_payload(
+                                request.text,
+                                request.currentDate,
+                                request.currentDateTime,
+                                request.timezone,
+                            ),
+                        }
+                    ],
+                },
             ],
             "tools": [
                 {
@@ -109,24 +141,30 @@ class OpenAIGateway:
         except httpx.TimeoutException as exc:
             raise OpenAIGatewayError("timeout", 408, "OpenAI request timed out.") from exc
         except httpx.HTTPError as exc:
-            raise OpenAIGatewayError("network_unavailable", 502, "OpenAI network request failed.") from exc
+            raise OpenAIGatewayError(
+                "network_unavailable", 502, "OpenAI network request failed."
+            ) from exc
 
         latency_ms = int((time.perf_counter() - started) * 1000)
         request_id = response.headers.get("x-request-id")
         if response.status_code == 429:
             raise OpenAIGatewayError("rate_limited", 429, "OpenAI rate limit reached.")
-        if 500 <= response.status_code:
+        if response.status_code >= 500:
             raise OpenAIGatewayError("openai_server_error", 502, "OpenAI server error.")
         if response.status_code in {401, 403}:
             raise OpenAIGatewayError("openai_auth_error", 502, "OpenAI authentication failed.")
         if response.status_code < 200 or response.status_code >= 300:
-            raise OpenAIGatewayError("openai_invalid_response", 502, "OpenAI returned an invalid response.")
+            raise OpenAIGatewayError(
+                "openai_invalid_response", 502, "OpenAI returned an invalid response."
+            )
 
         try:
             body = response.json()
             output_text = _output_text(body)
         except Exception as exc:
-            raise OpenAIGatewayError("invalid_model_response", 422, "OpenAI response did not include output text.") from exc
+            raise OpenAIGatewayError(
+                "invalid_model_response", 422, "OpenAI response did not include output text."
+            ) from exc
 
         return GatewayResult(
             output_text=output_text,

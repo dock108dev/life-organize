@@ -20,9 +20,9 @@ final class FirstRunEmptyStateTests: XCTestCase {
             LedgerEmptyStateContent.rules.body,
             "Add a reminder or capture something that should resurface."
         )
-        XCTAssertEqual(LedgerEmptyStateContent.settingsNoAPIKey.title, "AI service token")
+        XCTAssertEqual(LedgerEmptyStateContent.settingsNoDeviceToken.title, "AI service token")
         XCTAssertEqual(
-            LedgerEmptyStateContent.settingsNoAPIKey.body,
+            LedgerEmptyStateContent.settingsNoDeviceToken.body,
             "Entries stay local on this device. A private token lets the backend organize new details."
         )
         XCTAssertEqual(LedgerEmptyStateContent.searchLanding.title, "Search")
@@ -62,9 +62,9 @@ final class FirstRunEmptyStateTests: XCTestCase {
     func testChatInputPlaceholderExplainsLocalOnlyMode() {
         let viewModel = ChatViewModel()
 
-        XCTAssertEqual(viewModel.inputPlaceholder(hasOpenAIAPIKey: true), "Ask what is due or add a note")
+        XCTAssertEqual(viewModel.inputPlaceholder(hasAIServiceCredential: true), "Ask what is due or add a note")
         XCTAssertEqual(
-            viewModel.inputPlaceholder(hasOpenAIAPIKey: false),
+            viewModel.inputPlaceholder(hasAIServiceCredential: false),
             "Capture something locally"
         )
     }
@@ -78,7 +78,7 @@ final class FirstRunEmptyStateTests: XCTestCase {
 
         viewModel.sendDraft(
             modelContext: context,
-            apiKeyStore: InMemoryAPIKeyStore(),
+            deviceTokenStore: InMemoryDeviceTokenStore(),
             dataGeneration: UUID(),
             isDataGenerationCurrent: { _ in true }
         ) { messageID in
@@ -92,7 +92,7 @@ final class FirstRunEmptyStateTests: XCTestCase {
     }
 
     @MainActor
-    func testChatSendDraftPersistsRawMessageWithoutAPIKeyBeforeClearingDraft() async throws {
+    func testChatSendDraftPersistsRawMessageWithoutDeviceTokenBeforeClearingDraft() async throws {
         let context = makeInMemoryModelContext()
         let viewModel = ChatViewModel()
         let rawMessagePersisted = expectation(description: "Raw message persisted")
@@ -100,7 +100,7 @@ final class FirstRunEmptyStateTests: XCTestCase {
 
         viewModel.sendDraft(
             modelContext: context,
-            apiKeyStore: InMemoryAPIKeyStore(),
+            deviceTokenStore: InMemoryDeviceTokenStore(),
             dataGeneration: UUID(),
             isDataGenerationCurrent: { _ in true }
         ) { _ in

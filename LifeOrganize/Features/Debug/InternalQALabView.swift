@@ -4,7 +4,7 @@ import SwiftUI
 struct InternalQALabView: View {
     @Environment(\.debugAccessPolicy) private var debugAccessPolicy
 
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
 
     var body: some View {
         Group {
@@ -38,19 +38,19 @@ struct InternalQALabView: View {
 
                     Section("Processing") {
                         NavigationLink {
-                            QAReprocessEntryView(apiKeyStore: apiKeyStore)
+                            QAReprocessEntryView(deviceTokenStore: deviceTokenStore)
                         } label: {
                             Label("Reprocess Entry", systemImage: "arrow.clockwise")
                         }
 
                         NavigationLink {
-                            ExtractionDebugListView(apiKeyStore: apiKeyStore)
+                            ExtractionDebugListView(deviceTokenStore: deviceTokenStore)
                         } label: {
                             Label("Extraction Attempts", systemImage: "list.bullet.rectangle")
                         }
 
                         NavigationLink {
-                            ExtractionDebugListView(apiKeyStore: apiKeyStore, initialFilter: .failed)
+                            ExtractionDebugListView(deviceTokenStore: deviceTokenStore, initialFilter: .failed)
                         } label: {
                             Label("Failed Extractions", systemImage: "exclamationmark.triangle")
                         }

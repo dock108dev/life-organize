@@ -121,7 +121,7 @@ struct LedgerReviewItemGenerationService {
         messages.compactMap { message in
             guard message.role == .user else { return nil }
             switch message.extractionStatus {
-            case .pendingKey, .pendingRetry:
+            case .pendingToken, .pendingRetry:
                 return recoveryDefinition(for: message)
             case .partiallySucceeded, .failed, .failedNeedsReview, .needsReview:
                 return reviewDefinition(for: message)
@@ -135,8 +135,8 @@ struct LedgerReviewItemGenerationService {
         let detail: String
         let actionTitle: String
         switch message.extractionStatus {
-        case .pendingKey:
-            if message.extractionErrorCode == .invalidAPIKey {
+        case .pendingToken:
+            if message.extractionErrorCode == .invalidServiceToken {
                 detail = "The original entry is saved locally. Retry this entry to reconnect its details."
             } else {
                 detail = "The original entry is saved locally. Retry this entry to connect its details."
@@ -200,7 +200,7 @@ struct LedgerReviewItemGenerationService {
                 ? "The original entry is saved locally. Retry this entry or review details."
                 : "This entry created records and still needs review. Edit the records instead of retrying."
             actionTitle = createdRecordEvidence.isEmpty ? "Retry Now" : "Open Records"
-        case .notRequired, .pending, .pendingKey, .pendingRetry, .extracting, .succeeded:
+        case .notRequired, .pending, .pendingToken, .pendingRetry, .extracting, .succeeded:
             detail = "The original entry is saved locally and can be reviewed."
             actionTitle = "Review Entry"
         }

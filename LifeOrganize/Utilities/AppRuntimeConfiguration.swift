@@ -14,14 +14,13 @@ struct AppRuntimeConfiguration {
     var isScreenshotMode: Bool
     var usesDeterministicExtractor: Bool
     var shouldResetStore: Bool
-    var shouldResetAPIKey: Bool
+    var shouldResetDeviceToken: Bool
     var shouldSkipLaunchMaintenance: Bool
     var enablesDeveloperMode: Bool
     var seedScenarioIDs: [String]
     var initialTab: AppTab?
     var initialSheet: AppInitialSheet?
     var screenshotSeed: ScreenshotSeed?
-    var screenshotAPIKeyMode: ScreenshotAPIKeyMode?
     var screenshotSearchQuery: String?
     var screenshotLocale: Locale?
     var screenshotTimeZone: TimeZone?
@@ -46,12 +45,11 @@ struct AppRuntimeConfiguration {
         usesDeterministicExtractor = arguments.contains("-use-fake-extractor") || screenshotMode
         shouldResetFreshInstallState = arguments.contains("--reset-db")
         shouldResetStore = arguments.contains("-reset-store") || shouldResetFreshInstallState || screenshotMode
-        shouldResetAPIKey = arguments.contains("-reset-api-key") || shouldResetFreshInstallState || screenshotMode
+        shouldResetDeviceToken = arguments.contains("-reset-device-token") || shouldResetFreshInstallState || screenshotMode
         shouldSkipLaunchMaintenance = arguments.contains("-skip-launch-maintenance") || arguments.contains("--skip-launch-maintenance")
         enablesDeveloperMode = arguments.contains("-enable-developer-mode")
         usesInMemoryAutomationStore = arguments.contains("-use-in-memory-store") || arguments.contains("--use-in-memory-store")
         screenshotSeed = Self.screenshotSeed(from: arguments)
-        screenshotAPIKeyMode = Self.screenshotAPIKeyMode(from: arguments) ?? (screenshotMode ? .missing : nil)
         screenshotSearchQuery = Self.argumentValue(from: arguments, prefixes: ["-screenshot-search-query="])
         screenshotLocale = Self.screenshotLocale(from: arguments)
         screenshotTimeZone = Self.screenshotTimeZone(from: arguments)
@@ -84,24 +82,24 @@ struct AppRuntimeConfiguration {
     }
 
     @MainActor
-    func messageExtractionClient(apiKeyStore: any APIKeyStore) -> any MessageExtractionClient {
+    func messageExtractionClient(deviceTokenStore: any DeviceTokenStore) -> any MessageExtractionClient {
         if usesDeterministicExtractor {
             return DeterministicMessageExtractionClient()
         }
-        return OpenAIMessageExtractionClient(apiKeyStore: apiKeyStore, serviceBaseURL: aiServiceBaseURL)
+        return AIServiceMessageExtractionClient(deviceTokenStore: deviceTokenStore, serviceBaseURL: aiServiceBaseURL)
     }
 
     @MainActor
-    func webRequestClient(apiKeyStore: any APIKeyStore) -> (any WebRequestClient)? {
+    func webRequestClient(deviceTokenStore: any DeviceTokenStore) -> (any WebRequestClient)? {
         guard !usesDeterministicExtractor else { return nil }
-        return OpenAIWebRequestClient(apiKeyStore: apiKeyStore, serviceBaseURL: aiServiceBaseURL)
+        return AIServiceWebRequestClient(deviceTokenStore: deviceTokenStore, serviceBaseURL: aiServiceBaseURL)
     }
 
-    func apiKeyStore() -> any APIKeyStore {
+    func deviceTokenStore() -> any DeviceTokenStore {
         if isAutomationRuntime {
-            return InMemoryAPIKeyStore(key: screenshotAPIKeyMode == .present ? Self.screenshotAPIKey : nil)
+            return InMemoryDeviceTokenStore()
         }
-        return KeychainAPIKeyStore()
+        return KeychainDeviceTokenStore()
     }
 
     func userDefaults() -> UserDefaults {
@@ -132,7 +130,7 @@ struct AppRuntimeConfiguration {
         if shouldResetStore {
             Self.removeStore(at: Self.uiTestingStoreURL())
         }
-        if shouldResetAPIKey {
+        if shouldResetDeviceToken {
             Self.resetAppDefaults(in: defaults)
         }
     }
@@ -239,10 +237,6 @@ struct AppRuntimeConfiguration {
 
     private static func screenshotStart(from arguments: [String]) -> ScreenshotStart? {
         argumentValue(from: arguments, prefixes: ["-screenshot-start="]).flatMap(ScreenshotStart.init(argumentValue:))
-    }
-
-    private static func screenshotAPIKeyMode(from arguments: [String]) -> ScreenshotAPIKeyMode? {
-        argumentValue(from: arguments, prefixes: ["-screenshot-api-key="]).flatMap(ScreenshotAPIKeyMode.init(argumentValue:))
     }
 
     private static func aiServiceBaseURL(from arguments: [String]) -> URL {
@@ -382,8 +376,6 @@ struct AppRuntimeConfiguration {
         )
     }
 
-    private static let screenshotAPIKey = "sk-screenshot-key-1234"
-
     private static let defaultScreenshotNow: Date = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime]
@@ -483,15 +475,6 @@ enum ScreenshotStart: String {
         default:
             return nil
         }
-    }
-}
-
-enum ScreenshotAPIKeyMode: String {
-    case missing
-    case present
-
-    init?(argumentValue: String) {
-        self.init(rawValue: argumentValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())
     }
 }
 

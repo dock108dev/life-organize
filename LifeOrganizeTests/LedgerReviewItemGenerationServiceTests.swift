@@ -140,17 +140,17 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
 
     func testRecoveryItemsExplainConcreteLocalNextStep() throws {
         let context = makeInMemoryModelContext()
-        let missingKey = ChatMessage(
+        let missingToken = ChatMessage(
             role: .user,
-            text: "Needs saved key.",
-            extractionStatus: .pendingKey,
-            extractionErrorCode: .missingAPIKey
+            text: "Needs service token.",
+            extractionStatus: .pendingToken,
+            extractionErrorCode: .missingServiceToken
         )
-        let invalidKey = ChatMessage(
+        let invalidToken = ChatMessage(
             role: .user,
             text: "Needs updated key.",
-            extractionStatus: .pendingKey,
-            extractionErrorCode: .invalidAPIKey
+            extractionStatus: .pendingToken,
+            extractionErrorCode: .invalidServiceToken
         )
         let timedOut = ChatMessage(
             role: .user,
@@ -158,7 +158,7 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
             extractionStatus: .pendingRetry,
             extractionErrorCode: .timeout
         )
-        [missingKey, invalidKey, timedOut].forEach(context.insert)
+        [missingToken, invalidToken, timedOut].forEach(context.insert)
         try context.save()
 
         let details = Set(try service(context).refresh().map(\.detail))
@@ -190,7 +190,7 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
         let item = try XCTUnwrap(items.first { $0.kind == .extractionReview && $0.targetID == message.id })
         let entry = try LedgerReviewQueueService(
             modelContext: context,
-            apiKeyStore: InMemoryAPIKeyStore(key: "sk-test-key")
+            deviceTokenStore: InMemoryDeviceTokenStore(token: "sk-test-device-token")
         ).entry(for: item)
 
         XCTAssertEqual(item.state, .candidate)

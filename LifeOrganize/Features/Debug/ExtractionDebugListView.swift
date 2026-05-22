@@ -36,10 +36,10 @@ struct ExtractionDebugListView: View {
     @State private var filter: Filter
     @State private var searchText = ""
 
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
 
-    init(apiKeyStore: any APIKeyStore = KeychainAPIKeyStore(), initialFilter: Filter = .all) {
-        self.apiKeyStore = apiKeyStore
+    init(deviceTokenStore: any DeviceTokenStore = KeychainDeviceTokenStore(), initialFilter: Filter = .all) {
+        self.deviceTokenStore = deviceTokenStore
         self._filter = State(initialValue: initialFilter)
     }
 
@@ -60,7 +60,7 @@ struct ExtractionDebugListView: View {
                     Section {
                         ForEach(filteredAttempts) { attempt in
                             NavigationLink {
-                                ExtractionAttemptDebugView(attempt: attempt, apiKeyStore: apiKeyStore)
+                                ExtractionAttemptDebugView(attempt: attempt, deviceTokenStore: deviceTokenStore)
                             } label: {
                                 ExtractionAttemptRow(attempt: attempt)
                             }

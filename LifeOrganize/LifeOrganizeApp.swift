@@ -5,7 +5,7 @@ import SwiftUI
 struct LifeOrganizeApp: App {
     private let runtime: AppRuntimeConfiguration
     private let modelContainer: ModelContainer
-    private let apiKeyStore: any APIKeyStore
+    private let deviceTokenStore: any DeviceTokenStore
     @StateObject private var developerModeState: DeveloperModeState
 
     init() {
@@ -13,11 +13,11 @@ struct LifeOrganizeApp: App {
         self.runtime = runtime
         let defaults = runtime.userDefaults()
         runtime.resetLaunchStateIfNeeded(defaults: defaults)
-        let apiKeyStore: any APIKeyStore = runtime.apiKeyStore()
-        if runtime.shouldResetAPIKey && runtime.isAutomationRuntime && runtime.screenshotAPIKeyMode != .present {
-            try? apiKeyStore.deleteOpenAIAPIKey()
+        let deviceTokenStore: any DeviceTokenStore = runtime.deviceTokenStore()
+        if runtime.shouldResetDeviceToken && runtime.isAutomationRuntime {
+            try? deviceTokenStore.deleteDeviceToken()
         }
-        self.apiKeyStore = apiKeyStore
+        self.deviceTokenStore = deviceTokenStore
         let container = ModelContainerFactory.make(configuration: runtime.modelContainer())
         do {
             try SeedScenarioLoader.load(
@@ -44,7 +44,7 @@ struct LifeOrganizeApp: App {
                 selectedTab: runtime.initialTab ?? AppRootView.initialTab,
                 initialSheet: runtime.initialSheet,
                 searchText: runtime.screenshotSearchQuery ?? "",
-                apiKeyStore: apiKeyStore,
+                deviceTokenStore: deviceTokenStore,
                 developerModeState: developerModeState
             )
             .environment(\.locale, runtime.screenshotLocale ?? Locale.current)

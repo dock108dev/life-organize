@@ -185,7 +185,7 @@ struct LedgerFeedRowContent {
         switch message.extractionStatus {
         case .pending, .extracting:
             return LedgerBadgePresentation(semantic: .statusSaving)
-        case .pendingKey:
+        case .pendingToken:
             return LedgerBadgePresentation(semantic: .statusSavedLocal)
         case .pendingRetry:
             return LedgerBadgePresentation(semantic: .statusRetryPending, tone: .info)

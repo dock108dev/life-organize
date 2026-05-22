@@ -3,13 +3,13 @@ enum V1ScopeContract {
     static let allowedRootTabs: [AppTab] = activeRootTabs
 
     static let activeSettingsRows: [SettingsRow] = [
-        .openAIAPIKey,
+        .serviceToken,
         .clearLocalData,
         .exportLocalJSON,
     ]
 
     static let allowedSettingsRows: [SettingsRow] = [
-        .openAIAPIKey,
+        .serviceToken,
         .extractionDebug,
         .clearLocalData,
         .exportLocalJSON,
@@ -30,7 +30,7 @@ enum V1ScopeContract {
         .reminder,
     ]
 
-    static let allowedOpenAIUses: [OpenAIUse] = [
+    static let allowedAIServiceUses: [AIServiceUse] = [
         .extraction,
         .normalization,
         .dateParsing,
@@ -105,7 +105,7 @@ enum V1ScopeContract {
     static let internalProviderNameFragments: Set<String> = [
         "API",
         "HTTP",
-        "OpenAI",
+        
         "Keychain",
     ]
 
@@ -163,7 +163,7 @@ enum V1ScopeContract {
         "WidgetKit",
     ]
 
-    static let bannedOpenAIInterfaceMethodFragments: Set<String> = [
+    static let bannedAIServiceInterfaceMethodFragments: Set<String> = [
         "advice",
         "advise",
         "agent",
@@ -194,7 +194,7 @@ enum V1ScopeContract {
     ]
 
     enum SettingsRow: String, CaseIterable {
-        case openAIAPIKey = "OpenAI API Key"
+        case serviceToken = "AI Service Token"
         case extractionDebug = "Extraction Debug"
         case clearLocalData = "Clear Local Data"
         case exportLocalJSON = "Export Local JSON"
@@ -216,7 +216,7 @@ enum V1ScopeContract {
         case reminder = "LedgerReminder"
     }
 
-    enum OpenAIUse: String, CaseIterable {
+    enum AIServiceUse: String, CaseIterable {
         case extraction
         case normalization
         case dateParsing

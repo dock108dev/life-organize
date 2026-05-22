@@ -22,7 +22,7 @@ final class HeavyHistoryScenarioTests: XCTestCase {
         let attentionStatuses = Set([
             ExtractionStatus.pending.rawValue,
             ExtractionStatus.extracting.rawValue,
-            ExtractionStatus.pendingKey.rawValue,
+            ExtractionStatus.pendingToken.rawValue,
             ExtractionStatus.pendingRetry.rawValue,
             ExtractionStatus.partiallySucceeded.rawValue,
             ExtractionStatus.failed.rawValue,

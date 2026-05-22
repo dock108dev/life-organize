@@ -65,7 +65,7 @@ struct AppRootView: View {
     @State private var activeSheet: AppRootSheet?
     @State private var hasAIServiceCredential = false
     @State private var maintenanceErrorMessage: String?
-    private let apiKeyStore: any APIKeyStore
+    private let deviceTokenStore: any DeviceTokenStore
     private let searchText: String
 
     @MainActor
@@ -73,13 +73,13 @@ struct AppRootView: View {
         selectedTab: AppTab = .log,
         initialSheet: AppInitialSheet? = nil,
         searchText: String = "",
-        apiKeyStore: any APIKeyStore = KeychainAPIKeyStore(),
+        deviceTokenStore: any DeviceTokenStore = KeychainDeviceTokenStore(),
         developerModeState: DeveloperModeState? = nil
     ) {
         _selectedTab = State(initialValue: selectedTab)
         _activeSheet = State(initialValue: initialSheet.map(AppRootSheet.init))
         self.developerModeState = developerModeState ?? DeveloperModeState()
-        self.apiKeyStore = apiKeyStore
+        self.deviceTokenStore = deviceTokenStore
         self.searchText = searchText
     }
 
@@ -90,8 +90,8 @@ struct AppRootView: View {
                 isShowingSearch: sheetBinding(for: .search),
                 isShowingReviewQueue: sheetBinding(for: .reviewQueue),
                 toolbarState: toolbarState,
-                hasOpenAIAPIKey: hasAIServiceCredential,
-                apiKeyStore: apiKeyStore
+                hasAIServiceCredential: hasAIServiceCredential,
+                deviceTokenStore: deviceTokenStore
             )
             .appTabItem(.log, resetToken: sessionState.resetToken)
 
@@ -169,7 +169,7 @@ struct AppRootView: View {
 
     private func reloadAIServiceState() {
         do {
-            hasAIServiceCredential = try !apiKeyStore.ensureDeviceToken().isEmpty
+            hasAIServiceCredential = try !deviceTokenStore.ensureDeviceToken().isEmpty
         } catch {
             hasAIServiceCredential = false
         }
@@ -195,7 +195,7 @@ struct AppRootView: View {
     private func sheetView(for sheet: AppRootSheet) -> some View {
         switch sheet {
         case .settings:
-            SettingsView(apiKeyStore: apiKeyStore) {
+            SettingsView(deviceTokenStore: deviceTokenStore) {
                 selectedTab = .log
                 activeSheet = nil
             }
@@ -209,7 +209,7 @@ struct AppRootView: View {
             .environment(\.debugAccessPolicy, developerModeState.policy)
         case .reviewQueue:
             NavigationStack {
-                LedgerReviewQueueView(apiKeyStore: apiKeyStore) {
+                LedgerReviewQueueView(deviceTokenStore: deviceTokenStore) {
                     activeSheet = .settings
                 } onClose: {
                     activeSheet = nil
@@ -225,14 +225,14 @@ private struct LogNavigationRoot: View {
     @Binding var isShowingSearch: Bool
     @Binding var isShowingReviewQueue: Bool
     let toolbarState: AppToolbarState
-    let hasOpenAIAPIKey: Bool
-    let apiKeyStore: any APIKeyStore
+    let hasAIServiceCredential: Bool
+    let deviceTokenStore: any DeviceTokenStore
 
     var body: some View {
         NavigationStack {
             ChatView(
-                hasOpenAIAPIKey: hasOpenAIAPIKey,
-                apiKeyStore: apiKeyStore,
+                hasAIServiceCredential: hasAIServiceCredential,
+                deviceTokenStore: deviceTokenStore,
                 onAddKey: { isShowingSettings = true }
             )
                 .navigationTitle(AppTab.log.title)

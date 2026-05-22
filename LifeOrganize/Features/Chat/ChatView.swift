@@ -12,17 +12,17 @@ struct ChatView: View {
     @StateObject private var viewModel = ChatViewModel()
     @FocusState private var isComposerFocused: Bool
     @State private var reviewItemErrorMessage: String?
-    let hasOpenAIAPIKey: Bool
-    let apiKeyStore: any APIKeyStore
+    let hasAIServiceCredential: Bool
+    let deviceTokenStore: any DeviceTokenStore
     let onAddKey: () -> Void
 
     init(
-        hasOpenAIAPIKey: Bool = false,
-        apiKeyStore: any APIKeyStore = KeychainAPIKeyStore(),
+        hasAIServiceCredential: Bool = false,
+        deviceTokenStore: any DeviceTokenStore = KeychainDeviceTokenStore(),
         onAddKey: @escaping () -> Void = {}
     ) {
-        self.hasOpenAIAPIKey = hasOpenAIAPIKey
-        self.apiKeyStore = apiKeyStore
+        self.hasAIServiceCredential = hasAIServiceCredential
+        self.deviceTokenStore = deviceTokenStore
         self.onAddKey = onAddKey
     }
 
@@ -45,8 +45,8 @@ struct ChatView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if !hasOpenAIAPIKey {
-                APIKeyNotice(onAddKey: onAddKey)
+            if !hasAIServiceCredential {
+                DeviceTokenNotice(onAddKey: onAddKey)
             }
 
             ScrollViewReader { proxy in
@@ -64,7 +64,7 @@ struct ChatView: View {
                                 LedgerFeedSectionView(
                                     section: section,
                                     reviewItems: reviewItems,
-                                    apiKeyStore: apiKeyStore,
+                                    deviceTokenStore: deviceTokenStore,
                                     onAddKey: onAddKey,
                                     onReviewItemError: { reviewItemErrorMessage = $0 }
                                 )
@@ -89,14 +89,14 @@ struct ChatView: View {
 
                         ChatInputBar(
                             text: $viewModel.draft,
-                            placeholder: viewModel.inputPlaceholder(hasOpenAIAPIKey: hasOpenAIAPIKey),
+                            placeholder: viewModel.inputPlaceholder(hasAIServiceCredential: hasAIServiceCredential),
                             isCommittingSend: viewModel.isCommittingSend,
                             isOrganizing: viewModel.isOrganizing,
                             isFocused: $isComposerFocused
                         ) {
                             viewModel.sendDraft(
                                 modelContext: modelContext,
-                                apiKeyStore: apiKeyStore,
+                                deviceTokenStore: deviceTokenStore,
                                 dataGeneration: sessionState.dataGeneration,
                                 isDataGenerationCurrent: sessionState.isCurrentDataGeneration
                             ) { messageID in
@@ -163,7 +163,7 @@ struct ChatView: View {
     }
 }
 
-private struct APIKeyNotice: View {
+private struct DeviceTokenNotice: View {
     let onAddKey: () -> Void
 
     var body: some View {
@@ -171,7 +171,7 @@ private struct APIKeyNotice: View {
             icon: "wifi.exclamationmark",
             message: "Timeline capture is local on this device until the AI service is reachable.",
             actionTitle: "Settings",
-            accessibilityIdentifier: "api-key-notice",
+            accessibilityIdentifier: "device-token-notice",
             action: onAddKey
         )
     }

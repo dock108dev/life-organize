@@ -6,7 +6,7 @@ extension LifeOrganizeScenarioUITests {
         waitUntilReady(in: app)
         XCTAssertTrue(app.navigationBars["Timeline"].waitForFastExistence(timeout: 10))
         XCTAssertTrue(app.descendants(matching: .any)["timeline-feed"].exists)
-        XCTAssertFalse(app.descendants(matching: .any)["api-key-notice"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["device-token-notice"].exists)
         XCTAssertTrue(app.buttons["Log something"].exists)
         XCTAssertFalse(app.buttons.matching(identifierPrefix: "timeline-row-").firstMatch.exists)
 
@@ -116,7 +116,6 @@ extension LifeOrganizeScenarioUITests {
             "-fixed-now=\(fixedNow)",
             "-screenshot-seed=\(seed)",
             "-screenshot-start=\(start)",
-            "-screenshot-api-key=missing",
             "-screenshot-locale=en_US",
             "-screenshot-time-zone=America/New_York",
             "-screenshot-calendar=gregorian",

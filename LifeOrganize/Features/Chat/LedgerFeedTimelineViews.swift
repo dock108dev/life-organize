@@ -30,7 +30,7 @@ enum LedgerFeedTimelineLayout {
 struct LedgerFeedSectionView: View {
     let section: LedgerFeedSection
     let reviewItems: [LedgerReviewItem]
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
     let onAddKey: () -> Void
     let onReviewItemError: (String) -> Void
 
@@ -47,7 +47,7 @@ struct LedgerFeedSectionView: View {
                     LedgerFeedRowLink(
                         item: item,
                         reviewPresentation: reviewPresentation,
-                        apiKeyStore: apiKeyStore,
+                        deviceTokenStore: deviceTokenStore,
                         onAddKey: onAddKey,
                         onReviewItemError: onReviewItemError
                     )
@@ -74,7 +74,7 @@ struct LedgerFeedSectionView: View {
 private struct LedgerFeedRowLink: View {
     let item: LedgerFeedItem
     let reviewPresentation: LedgerReviewItemPresentation?
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
     let onAddKey: () -> Void
     let onReviewItemError: (String) -> Void
 
@@ -84,7 +84,7 @@ private struct LedgerFeedRowLink: View {
                 LedgerReviewQueueView(
                     origin: origin,
                     focusedItemID: reviewPresentation.item.id,
-                    apiKeyStore: apiKeyStore,
+                    deviceTokenStore: deviceTokenStore,
                     onAddKey: onAddKey
                 )
             } label: {

@@ -25,7 +25,7 @@ final class LedgerFeedProjectionTests: XCTestCase {
         let earlierThisWeek = try Self.date(2026, 5, 18, 12, calendar: calendar)
         let older = try Self.date(2026, 5, 10, 12, calendar: calendar)
 
-        let olderMessage = ChatMessage(role: .user, text: "Older note", createdAt: createdEarly, extractionStatus: .pendingKey)
+        let olderMessage = ChatMessage(role: .user, text: "Older note", createdAt: createdEarly, extractionStatus: .pendingToken)
         let newerMessage = ChatMessage(role: .user, text: "Changed oil today", createdAt: createdLate, extractionStatus: .pending)
         let assistantMessage = ChatMessage(role: .assistant, text: "Event saved", createdAt: createdMorning)
         let todayEvent = LedgerEvent(
@@ -308,7 +308,7 @@ final class LedgerFeedProjectionTests: XCTestCase {
         let attentionStatuses: [ExtractionStatus] = [
             .pending,
             .extracting,
-            .pendingKey,
+            .pendingToken,
             .pendingRetry,
             .partiallySucceeded,
             .failed,

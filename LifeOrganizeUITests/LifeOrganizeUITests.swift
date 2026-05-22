@@ -31,12 +31,12 @@ final class LifeOrganizeUITests: XCTestCase {
         let app = launchApp(resetStore: true)
 
         XCTAssertTrue(app.staticTexts["Timeline"].waitForFastExistence(timeout: 5))
-        XCTAssertFalse(app.descendants(matching: .any)["api-key-notice"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["device-token-notice"].exists)
 
         app.buttons["Settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["AI service"].exists)
-        XCTAssertTrue(app.staticTexts["api-key-status"].exists)
+        XCTAssertTrue(app.staticTexts["device-token-status"].exists)
         app.buttons["Done"].tap()
 
         send("No buying domains for 30 days.", in: app)
@@ -53,15 +53,15 @@ final class LifeOrganizeUITests: XCTestCase {
         app.buttons["Settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForFastExistence(timeout: 5))
 
-        XCTAssertTrue(app.staticTexts["api-key-status"].waitForFastExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["api-key-save-button"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["device-token-status"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["device-token-save-button"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Refresh Token"].exists)
 
         app.terminate()
 
         let cleanApp = launchApp(resetStore: true)
         cleanApp.buttons["Settings"].tap()
-        XCTAssertTrue(cleanApp.staticTexts["api-key-status"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(cleanApp.staticTexts["device-token-status"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(cleanApp.buttons["Refresh Token"].exists)
     }
 
@@ -152,7 +152,7 @@ final class LifeOrganizeUITests: XCTestCase {
             resetStore: false,
             extraArguments: [
                 "--reset-db",
-                "-reset-api-key",
+                "-reset-device-token",
                 "-fixed-now=2026-05-20T08:00:00-04:00",
                 "--seed-scenario=ambiguous_dog_grooming"
             ]
@@ -265,7 +265,7 @@ final class LifeOrganizeUITests: XCTestCase {
 
         relaunchedApp.buttons["settings-entry"].tap()
         XCTAssertTrue(relaunchedApp.navigationBars["Settings"].waitForFastExistence(timeout: 5))
-        XCTAssertTrue(relaunchedApp.staticTexts["api-key-status"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(relaunchedApp.staticTexts["device-token-status"].waitForFastExistence(timeout: 5))
         relaunchedApp.buttons["settings-done-button"].tap()
         XCTAssertTrue(relaunchedApp.navigationBars["Timeline"].waitForFastExistence(timeout: 5))
     }
@@ -278,7 +278,7 @@ final class LifeOrganizeUITests: XCTestCase {
         launchUITestApp(
             extraArguments: extraArguments,
             resetStore: resetStore,
-            resetAPIKey: resetStore,
+            resetDeviceToken: resetStore,
             useInMemoryStore: useInMemoryStore
         )
     }

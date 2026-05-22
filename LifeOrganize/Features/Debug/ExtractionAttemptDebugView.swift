@@ -15,12 +15,12 @@ struct ExtractionAttemptDebugView: View {
     }
 
     let attempt: ExtractionAttempt
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
     @State private var tab: Tab = .overview
 
-    init(attempt: ExtractionAttempt, apiKeyStore: any APIKeyStore = KeychainAPIKeyStore()) {
+    init(attempt: ExtractionAttempt, deviceTokenStore: any DeviceTokenStore = KeychainDeviceTokenStore()) {
         self.attempt = attempt
-        self.apiKeyStore = apiKeyStore
+        self.deviceTokenStore = deviceTokenStore
     }
 
     var body: some View {
@@ -37,7 +37,7 @@ struct ExtractionAttemptDebugView: View {
 
                     switch tab {
                     case .overview:
-                        ExtractionAttemptOverview(attempt: attempt, apiKeyStore: apiKeyStore)
+                        ExtractionAttemptOverview(attempt: attempt, deviceTokenStore: deviceTokenStore)
                     case .request:
                         DebugTextViewer(title: "Request JSON", text: attempt.requestJSON)
                     case .raw:
@@ -99,7 +99,7 @@ struct DeveloperModeRequiredView: View {
 
 private struct ExtractionAttemptOverview: View {
     let attempt: ExtractionAttempt
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
 
     var body: some View {
         Form {
@@ -140,7 +140,7 @@ private struct ExtractionAttemptOverview: View {
             }
 
             Section("Retry") {
-                ManualExtractionRetryButton(message: attempt.sourceMessage, apiKeyStore: apiKeyStore)
+                ManualExtractionRetryButton(message: attempt.sourceMessage, deviceTokenStore: deviceTokenStore)
             }
         }
     }

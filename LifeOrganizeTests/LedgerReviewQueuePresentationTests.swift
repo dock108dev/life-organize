@@ -55,13 +55,13 @@ final class LedgerReviewQueuePresentationTests: XCTestCase {
         XCTAssertEqual(presentation.badges.map(\.role), [.action, .category])
     }
 
-    func testPendingKeyRecoveryKeepsRetryActionForDetailRouting() throws {
+    func testPendingTokenRecoveryKeepsRetryActionForDetailRouting() throws {
         let context = makeInMemoryModelContext()
         let message = ChatMessage(
             role: .user,
             text: "Changed car oil.",
-            extractionStatus: .pendingKey,
-            extractionErrorCode: .missingAPIKey
+            extractionStatus: .pendingToken,
+            extractionErrorCode: .missingServiceToken
         )
         context.insert(message)
         try context.save()
@@ -70,7 +70,7 @@ final class LedgerReviewQueuePresentationTests: XCTestCase {
         let item = try XCTUnwrap(items.first { $0.kind == .localRecovery })
         let entry = try LedgerReviewQueueService(
             modelContext: context,
-            apiKeyStore: InMemoryAPIKeyStore()
+            deviceTokenStore: InMemoryDeviceTokenStore()
         ).entry(for: item)
 
         let row = LedgerReviewQueueRowPresentation(item: item, entry: entry, now: fixedTestNow)

@@ -26,7 +26,7 @@ final class LedgerFeedRowContentTests: XCTestCase {
 
     func testMessageStatusTextCoversLocalRetryPartialAndFailureStates() {
         let expectedStatuses: [(ExtractionStatus, String?, LedgerFeedRowContent.SecondaryTone)] = [
-            (.pendingKey, "Saved", .muted),
+            (.pendingToken, "Saved", .muted),
             (.pendingRetry, "Retry later", .info),
             (.partiallySucceeded, "Review", .attention),
             (.failed, "Failed", .danger),

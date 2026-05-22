@@ -2,13 +2,13 @@ import XCTest
 @testable import LifeOrganize
 
 final class SettingsTrustSurfaceTests: XCTestCase {
-    func testTrustCopyFramesKeyAsOptionalTimelineConnection() {
-        XCTAssertEqual(SettingsTrustCopy.apiKeyTitle, "AI service")
-        XCTAssertTrue(SettingsTrustCopy.apiKeyBody.contains("Entries stay local"))
-        XCTAssertTrue(SettingsTrustCopy.apiKeyBody.contains("connect new timeline details"))
-        XCTAssertTrue(SettingsTrustCopy.noKeyDetail.contains("Local-only mode"))
-        XCTAssertTrue(SettingsTrustCopy.savedKeyDetail.contains("Keychain"))
-        XCTAssertTrue(SettingsTrustCopy.savedKeyDetail.contains("not included in local data exports"))
+    func testTrustCopyFramesServiceTokenAsOptionalTimelineConnection() {
+        XCTAssertEqual(SettingsTrustCopy.deviceTokenTitle, "AI service")
+        XCTAssertTrue(SettingsTrustCopy.deviceTokenBody.contains("Entries stay local"))
+        XCTAssertTrue(SettingsTrustCopy.deviceTokenBody.contains("connect new timeline details"))
+        XCTAssertTrue(SettingsTrustCopy.noTokenDetail.contains("Local-only mode"))
+        XCTAssertTrue(SettingsTrustCopy.savedTokenDetail.contains("Keychain"))
+        XCTAssertTrue(SettingsTrustCopy.savedTokenDetail.contains("not included in local data exports"))
     }
 
     func testExportCopyExplainsLocalDataCopyWithoutDebugLanguage() {
@@ -17,7 +17,7 @@ final class SettingsTrustSurfaceTests: XCTestCase {
         XCTAssertTrue(SettingsTrustCopy.exportBody.contains("saved entries, links, and local history"))
     }
 
-    func testClearDataCopyDistinguishesDeletedLedgerDataFromSavedKey() {
+    func testClearDataCopyDistinguishesDeletedLedgerDataFromSavedToken() {
         XCTAssertEqual(SettingsTrustCopy.clearTitle, "Reset this device")
         XCTAssertTrue(SettingsTrustCopy.clearDeletes.contains("timeline history"))
         XCTAssertTrue(SettingsTrustCopy.clearDeletes.contains("Things"))
@@ -28,30 +28,30 @@ final class SettingsTrustSurfaceTests: XCTestCase {
         XCTAssertEqual(SettingsSafetyRowContent.clearsLocalRecords.title, "Clears local records")
         XCTAssertEqual(SettingsSafetyRowContent.clearsLocalRecords.pillText, "Clears")
         XCTAssertEqual(SettingsSafetyRowContent.clearsLocalRecords.tone, .danger)
-        XCTAssertEqual(SettingsSafetyRowContent.keepsSavedKey.title, "Keeps service token")
-        XCTAssertEqual(SettingsSafetyRowContent.keepsSavedKey.pillText, "Keeps")
-        XCTAssertEqual(SettingsSafetyRowContent.keepsSavedKey.tone, .success)
+        XCTAssertEqual(SettingsSafetyRowContent.keepsSavedToken.title, "Keeps service token")
+        XCTAssertEqual(SettingsSafetyRowContent.keepsSavedToken.pillText, "Keeps")
+        XCTAssertEqual(SettingsSafetyRowContent.keepsSavedToken.tone, .success)
     }
 
     func testFeedbackMessagesGiveConfirmationAndNextSteps() {
-        XCTAssertFalse(SettingsFeedback.apiKeySaved.isError)
-        XCTAssertTrue(SettingsFeedback.apiKeySaved.message.contains("connect across your timeline"))
-        XCTAssertTrue(SettingsFeedback.apiKeyRemoved.message.contains("Timeline capture still works locally"))
+        XCTAssertFalse(SettingsFeedback.deviceTokenSaved.isError)
+        XCTAssertTrue(SettingsFeedback.deviceTokenSaved.message.contains("connect across your timeline"))
+        XCTAssertTrue(SettingsFeedback.deviceTokenRemoved.message.contains("Timeline capture still works locally"))
         XCTAssertTrue(SettingsFeedback.exportReady.message.contains("save or share"))
         XCTAssertTrue(SettingsFeedback.localDataCleared.message.contains("service token stayed in place"))
 
         XCTAssertTrue(SettingsFeedback.exportFailed.isError)
         XCTAssertTrue(SettingsFeedback.exportFailed.message.contains("local data was not changed"))
-        XCTAssertTrue(SettingsFeedback.apiKeyReadFailed.message.contains("Reopen Settings"))
+        XCTAssertTrue(SettingsFeedback.deviceTokenReadFailed.message.contains("Reopen Settings"))
         XCTAssertTrue(SettingsFeedback.clearDataFailed.message.contains("Try again"))
     }
 
     func testPrimarySettingsCopyAvoidsInternalProcessLanguage() {
         let copy = [
-            SettingsTrustCopy.apiKeyTitle,
-            SettingsTrustCopy.apiKeyBody,
-            SettingsTrustCopy.noKeyDetail,
-            SettingsTrustCopy.savedKeyDetail,
+            SettingsTrustCopy.deviceTokenTitle,
+            SettingsTrustCopy.deviceTokenBody,
+            SettingsTrustCopy.noTokenDetail,
+            SettingsTrustCopy.savedTokenDetail,
             SettingsTrustCopy.exportTitle,
             SettingsTrustCopy.exportBody,
             SettingsTrustCopy.clearTitle,
@@ -60,7 +60,7 @@ final class SettingsTrustSurfaceTests: XCTestCase {
             SettingsTrustCopy.clearKeeps,
             SettingsClearDataCopy.exportPrompt,
             SettingsClearDataCopy.exportFailedBody,
-            SettingsFeedback.apiKeyReplaced.message,
+            SettingsFeedback.deviceTokenReplaced.message,
             SettingsFeedback.exportReady.message,
             SettingsFeedback.localDataCleared.message,
         ].joined(separator: " ")
@@ -86,10 +86,10 @@ final class SettingsTrustSurfaceTests: XCTestCase {
         let normalSettingsCopy = [
             "Trust & Preferences",
             "Local controls for what carries forward.",
-            SettingsTrustCopy.apiKeyTitle,
-            SettingsTrustCopy.apiKeyBody,
-            SettingsTrustCopy.noKeyDetail,
-            SettingsTrustCopy.savedKeyDetail,
+            SettingsTrustCopy.deviceTokenTitle,
+            SettingsTrustCopy.deviceTokenBody,
+            SettingsTrustCopy.noTokenDetail,
+            SettingsTrustCopy.savedTokenDetail,
             SettingsTrustCopy.exportTitle,
             SettingsTrustCopy.exportBody,
             SettingsTrustCopy.clearTitle,

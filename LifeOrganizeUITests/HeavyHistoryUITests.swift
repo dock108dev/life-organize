@@ -12,7 +12,7 @@ extension LifeOrganizeScenarioUITests {
             "-use-fake-extractor",
             "-disable-animations",
             "-reset-store",
-            "-reset-api-key",
+            "-reset-device-token",
             "-use-in-memory-store",
             "-skip-launch-maintenance",
             "-fixed-now=2026-05-21T12:00:00-04:00",

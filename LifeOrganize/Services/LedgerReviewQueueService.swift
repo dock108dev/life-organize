@@ -55,12 +55,12 @@ struct LedgerReviewOrigin: Equatable {
 @MainActor
 struct LedgerReviewQueueService {
     let modelContext: ModelContext
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
     var dateProvider: any DateProvider = AppRuntimeConfiguration.current.dateProvider
     var dataGeneration: UUID?
     var isDataGenerationCurrent: (UUID) -> Bool = { _ in true }
-    var extractorFactory: (any APIKeyStore) -> any MessageExtractionClient = { apiKeyStore in
-        AppRuntimeConfiguration.current.messageExtractionClient(apiKeyStore: apiKeyStore)
+    var extractorFactory: (any DeviceTokenStore) -> any MessageExtractionClient = { deviceTokenStore in
+        AppRuntimeConfiguration.current.messageExtractionClient(deviceTokenStore: deviceTokenStore)
     }
 
     func entries(
@@ -100,7 +100,7 @@ struct LedgerReviewQueueService {
         }
         var service = ManualExtractionRetryService(
             modelContext: modelContext,
-            apiKeyStore: apiKeyStore,
+            deviceTokenStore: deviceTokenStore,
             dateProvider: dateProvider,
             dataGeneration: dataGeneration,
             isDataGenerationCurrent: isDataGenerationCurrent
@@ -286,11 +286,11 @@ struct LedgerReviewQueueService {
         guard correctionClass == .quickReview, let message = try targetMessage(for: item) else {
             return nil
         }
-        if let reason = try ManualExtractionRetryService(modelContext: modelContext, apiKeyStore: apiKeyStore).canRetry(message) {
+        if let reason = try ManualExtractionRetryService(modelContext: modelContext, deviceTokenStore: deviceTokenStore).canRetry(message) {
             return reason.message
         }
-        if try apiKeyStore.ensureDeviceToken().isEmpty {
-            return ManualExtractionRetryError.missingAPIKey.errorDescription
+        if try deviceTokenStore.ensureDeviceToken().isEmpty {
+            return ManualExtractionRetryError.missingServiceToken.errorDescription
         }
         return nil
     }
@@ -426,7 +426,7 @@ private extension ExtractionStatus {
         switch self {
         case .succeeded, .notRequired:
             return true
-        case .pending, .extracting, .pendingKey, .pendingRetry, .partiallySucceeded, .failed, .failedNeedsReview,
+        case .pending, .extracting, .pendingToken, .pendingRetry, .partiallySucceeded, .failed, .failedNeedsReview,
              .needsReview:
             return false
         }

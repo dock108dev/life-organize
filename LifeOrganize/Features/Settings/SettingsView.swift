@@ -7,26 +7,24 @@ struct SettingsView: View {
     @EnvironmentObject private var sessionState: AppSessionState
     @EnvironmentObject private var developerModeState: DeveloperModeState
 
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
     let onLocalDataCleared: () -> Void
 
-    @State private var draftAPIKey = ""
-    @State private var savedKeyDescription: String?
+    @State private var savedTokenDescription: String?
     @State private var feedback: SettingsFeedback?
-    @State private var isShowingRemoveKeyConfirmation = false
+    @State private var isShowingResetTokenConfirmation = false
     @State private var isShowingClearDataConfirmation = false
     @State private var isShowingClearDataSheet = false
     @State private var clearDataFlow = SettingsClearDataFlow()
     @State private var clearDataConfirmationText = ""
     @State private var exportShareItem: ExportShareItem?
     @State private var isShowingExportFailure = false
-    @FocusState private var isAPIKeyFieldFocused: Bool
 
     init(
-        apiKeyStore: any APIKeyStore = KeychainAPIKeyStore(),
+        deviceTokenStore: any DeviceTokenStore = KeychainDeviceTokenStore(),
         onLocalDataCleared: @escaping () -> Void = {}
     ) {
-        self.apiKeyStore = apiKeyStore
+        self.deviceTokenStore = deviceTokenStore
         self.onLocalDataCleared = onLocalDataCleared
     }
 
@@ -36,10 +34,10 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     header
                     feedbackNotice
-                    missingKeyNotice
+                    missingTokenNotice
 
                     settingsDivider
-                    apiKeySection
+                    deviceTokenSection
                     settingsDivider
                     exportSection
                     settingsDivider
@@ -68,17 +66,25 @@ struct SettingsView: View {
                 }
             }
             .task {
-                reloadSavedKeyState()
+                reloadSavedTokenState()
             }
-            .confirmationDialog("Reset service token?", isPresented: $isShowingRemoveKeyConfirmation, titleVisibility: .visible) {
+            .confirmationDialog(
+                "Reset service token?",
+                isPresented: $isShowingResetTokenConfirmation,
+                titleVisibility: .visible
+            ) {
                 Button("Reset service token", role: .destructive) {
-                    deleteAPIKey()
+                    deleteDeviceToken()
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("New entries will still be saved locally. The app will create a new token the next time the AI service is used.")
+                Text("New entries will still be saved locally. The app will create a new token next time.")
             }
-            .confirmationDialog("Clear local data?", isPresented: $isShowingClearDataConfirmation, titleVisibility: .visible) {
+            .confirmationDialog(
+                "Clear local data?",
+                isPresented: $isShowingClearDataConfirmation,
+                titleVisibility: .visible
+            ) {
                 Button("Continue", role: .destructive) {
                     clearDataConfirmationText = ""
                     clearDataFlow = SettingsClearDataFlow()
@@ -123,17 +129,17 @@ struct SettingsView: View {
         }
     }
 
-    @ViewBuilder private var missingKeyNotice: some View {
-        if savedKeyDescription == nil {
+    @ViewBuilder private var missingTokenNotice: some View {
+        if savedTokenDescription == nil {
             VStack(alignment: .leading, spacing: 8) {
-                Text(LedgerEmptyStateContent.settingsNoAPIKey.title)
+                Text(LedgerEmptyStateContent.settingsNoDeviceToken.title)
                     .font(.subheadline.weight(.semibold))
 
                 LedgerNoticeBanner(
                     icon: "wifi.exclamationmark",
-                    message: LedgerEmptyStateContent.settingsNoAPIKey.body,
+                    message: LedgerEmptyStateContent.settingsNoDeviceToken.body,
                     actionTitle: "Prepare Service",
-                    accessibilityIdentifier: "settings-no-api-key",
+                    accessibilityIdentifier: "settings-no-device-token",
                     action: prepareServiceToken
                 )
             }
@@ -156,33 +162,39 @@ struct SettingsView: View {
             .overlay(Color(.separator).opacity(0.35))
     }
 
-    private var apiKeySection: some View {
+    private var deviceTokenSection: some View {
         VStack(alignment: .leading, spacing: LedgerVisualSystem.Spacing.section) {
-            sectionHeader(title: SettingsTrustCopy.apiKeyTitle, icon: "server.rack", tone: savedKeyDescription == nil ? .neutral : .success) {
-                if let savedKeyDescription {
-                    LedgerPill(text: savedKeyDescription, tone: .success, size: .small)
+            sectionHeader(
+                title: SettingsTrustCopy.deviceTokenTitle,
+                icon: "server.rack",
+                tone: savedTokenDescription == nil ? .neutral : .success
+            ) {
+                if let savedTokenDescription {
+                    LedgerPill(text: savedTokenDescription, tone: .success, size: .small)
                 } else {
                     LedgerPill(text: "Local only", tone: .muted, size: .small)
                 }
             }
 
-            Text(SettingsTrustCopy.apiKeyBody)
+            Text(SettingsTrustCopy.deviceTokenBody)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text(savedKeyDescription == nil ? SettingsTrustCopy.noKeyDetail : SettingsTrustCopy.savedKeyDetail)
+            Text(savedTokenDescription == nil
+                ? SettingsTrustCopy.noTokenDetail
+                : SettingsTrustCopy.savedTokenDetail)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("api-key-status")
+                .accessibilityIdentifier("device-token-status")
 
             HStack(spacing: 10) {
-                Button(savedKeyDescription == nil ? "Prepare Service" : "Refresh Token") {
-                    savedKeyDescription == nil ? prepareServiceToken() : (isShowingRemoveKeyConfirmation = true)
+                Button(savedTokenDescription == nil ? "Prepare Service" : "Refresh Token") {
+                    savedTokenDescription == nil ? prepareServiceToken() : (isShowingResetTokenConfirmation = true)
                 }
                 .buttonStyle(.borderedProminent)
-                .accessibilityIdentifier("api-key-save-button")
+                .accessibilityIdentifier("device-token-save-button")
             }
         }
     }
@@ -218,7 +230,7 @@ struct SettingsView: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 SettingsSafetyRow(content: .clearsLocalRecords)
-                SettingsSafetyRow(content: .keepsSavedKey)
+                SettingsSafetyRow(content: .keepsSavedToken)
             }
 
             Button(V1ScopeContract.SettingsRow.clearLocalData.title, role: .destructive) {
@@ -244,19 +256,19 @@ struct SettingsView: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 NavigationLink {
-                    ExtractionDebugListView(apiKeyStore: apiKeyStore)
+                    ExtractionDebugListView(deviceTokenStore: deviceTokenStore)
                 } label: {
                     Label("Extraction Attempts", systemImage: "list.bullet.rectangle")
                 }
 
                 NavigationLink {
-                    ExtractionDebugListView(apiKeyStore: apiKeyStore, initialFilter: .failed)
+                    ExtractionDebugListView(deviceTokenStore: deviceTokenStore, initialFilter: .failed)
                 } label: {
                     Label("Failed Extractions", systemImage: "exclamationmark.triangle")
                 }
 
                 NavigationLink {
-                    InternalQALabView(apiKeyStore: apiKeyStore)
+                    InternalQALabView(deviceTokenStore: deviceTokenStore)
                 } label: {
                     Label("Internal QA Lab", systemImage: "testtube.2")
                 }
@@ -290,14 +302,6 @@ struct SettingsView: View {
         .accessibilityElement(children: .combine)
     }
 
-    private var apiKeyPlaceholder: String {
-        savedKeyDescription == nil ? "Service token" : "Service token ready"
-    }
-
-    private var trimmedDraftAPIKey: String {
-        draftAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
     private var versionFooter: some View {
         VStack(spacing: 10) {
             VStack(spacing: 4) {
@@ -319,72 +323,47 @@ struct SettingsView: View {
         return "\(version) (\(build))"
     }
 
-    private func reloadSavedKeyState() {
+}
+
+extension SettingsView {
+    private func reloadSavedTokenState() {
         do {
-            savedKeyDescription = try apiKeyStore.loadOpenAIAPIKey().map(maskedKeyDescription)
+            savedTokenDescription = try deviceTokenStore.loadDeviceToken().map(maskedTokenDescription)
         } catch {
-            savedKeyDescription = nil
-            feedback = .apiKeyReadFailed
+            savedTokenDescription = nil
+            feedback = .deviceTokenReadFailed
         }
     }
 
-    private func saveAPIKey() {
+    private func deleteDeviceToken() {
         do {
-            let isReplacingKey = savedKeyDescription != nil
-            try apiKeyStore.saveOpenAIAPIKey(trimmedDraftAPIKey)
-            draftAPIKey = ""
-            isAPIKeyFieldFocused = false
-            reloadSavedKeyState()
-            feedback = isReplacingKey ? .apiKeyReplaced : .apiKeySaved
-
-            let retryService = PendingExtractionRetryService(
-                modelContext: modelContext,
-                apiKeyStore: apiKeyStore,
-                dataGeneration: sessionState.dataGeneration,
-                isDataGenerationCurrent: sessionState.isCurrentDataGeneration
-            )
-            try retryService.markPendingKeyMessagesRetryable()
-            Task {
-                try? await retryService.retryRecentPendingMessages()
-            }
-        } catch APIKeyStoreError.emptyKey {
-            feedback = .apiKeyEmpty
+            try deviceTokenStore.deleteDeviceToken()
+            _ = try deviceTokenStore.ensureDeviceToken()
+            reloadSavedTokenState()
+            feedback = .deviceTokenReplaced
         } catch {
-            feedback = .apiKeySaveFailed
-        }
-    }
-
-    private func deleteAPIKey() {
-        do {
-            try apiKeyStore.deleteOpenAIAPIKey()
-            draftAPIKey = ""
-            isAPIKeyFieldFocused = false
-            _ = try apiKeyStore.ensureDeviceToken()
-            reloadSavedKeyState()
-            feedback = .apiKeyReplaced
-        } catch {
-            feedback = .apiKeyRemoveFailed
+            feedback = .deviceTokenRemoveFailed
         }
     }
 
     private func prepareServiceToken() {
         do {
-            _ = try apiKeyStore.ensureDeviceToken()
-            reloadSavedKeyState()
-            feedback = .apiKeySaved
+            _ = try deviceTokenStore.ensureDeviceToken()
+            reloadSavedTokenState()
+            feedback = .deviceTokenSaved
 
             let retryService = PendingExtractionRetryService(
                 modelContext: modelContext,
-                apiKeyStore: apiKeyStore,
+                deviceTokenStore: deviceTokenStore,
                 dataGeneration: sessionState.dataGeneration,
                 isDataGenerationCurrent: sessionState.isCurrentDataGeneration
             )
-            try retryService.markPendingKeyMessagesRetryable()
+            try retryService.markPendingTokenMessagesRetryable()
             Task {
                 try? await retryService.retryRecentPendingMessages()
             }
         } catch {
-            feedback = .apiKeySaveFailed
+            feedback = .deviceTokenSaveFailed
         }
     }
 
@@ -425,8 +404,8 @@ struct SettingsView: View {
         }
     }
 
-    private func maskedKeyDescription(_ key: String) -> String {
-        let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+    private func maskedTokenDescription(_ token: String) -> String {
+        let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.count > 8 else {
             return "Saved on this device"
         }

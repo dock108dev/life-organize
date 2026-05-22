@@ -6,7 +6,7 @@ struct ManualExtractionRetryButton: View {
     @EnvironmentObject private var sessionState: AppSessionState
 
     let message: ChatMessage?
-    let apiKeyStore: any APIKeyStore
+    let deviceTokenStore: any DeviceTokenStore
 
     @State private var hasAIServiceCredential = false
     @State private var isRetrying = false
@@ -27,7 +27,7 @@ struct ManualExtractionRetryButton: View {
             }
         }
         .task {
-            reloadAPIKeyState()
+            reloadDeviceTokenState()
         }
     }
 
@@ -46,16 +46,16 @@ struct ManualExtractionRetryButton: View {
             return "Connect to the AI service in Settings to retry."
         }
         do {
-            let service = ManualExtractionRetryService(modelContext: modelContext, apiKeyStore: apiKeyStore)
+            let service = ManualExtractionRetryService(modelContext: modelContext, deviceTokenStore: deviceTokenStore)
             return try service.canRetry(message)?.message
         } catch {
             return "Retry availability could not be checked."
         }
     }
 
-    private func reloadAPIKeyState() {
+    private func reloadDeviceTokenState() {
         do {
-            hasAIServiceCredential = try apiKeyStore.ensureDeviceToken().isEmpty == false
+            hasAIServiceCredential = try deviceTokenStore.ensureDeviceToken().isEmpty == false
         } catch {
             hasAIServiceCredential = false
         }
@@ -69,13 +69,13 @@ struct ManualExtractionRetryButton: View {
         Task {
             defer {
                 isRetrying = false
-                reloadAPIKeyState()
+                reloadDeviceTokenState()
             }
 
             do {
                 let service = ManualExtractionRetryService(
                     modelContext: modelContext,
-                    apiKeyStore: apiKeyStore,
+                    deviceTokenStore: deviceTokenStore,
                     dataGeneration: sessionState.dataGeneration,
                     isDataGenerationCurrent: sessionState.isCurrentDataGeneration
                 )

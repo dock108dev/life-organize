@@ -74,7 +74,7 @@ struct SettingsClearDataSheet: View {
 
                     VStack(alignment: .leading, spacing: 8) {
                         SettingsSafetyRow(content: .clearsLocalRecords)
-                        SettingsSafetyRow(content: .keepsSavedKey)
+                        SettingsSafetyRow(content: .keepsSavedToken)
                     }
 
                     if flow.offersExportBeforeClear {

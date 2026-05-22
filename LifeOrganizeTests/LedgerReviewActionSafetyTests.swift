@@ -167,7 +167,7 @@ final class LedgerReviewActionSafetyTests: XCTestCase {
     private func queueService(_ context: ModelContext) -> LedgerReviewQueueService {
         LedgerReviewQueueService(
             modelContext: context,
-            apiKeyStore: InMemoryAPIKeyStore(key: "test-key"),
+            deviceTokenStore: InMemoryDeviceTokenStore(token: "test-device-token"),
             dateProvider: TestDateProvider(now: fixedTestNow)
         )
     }

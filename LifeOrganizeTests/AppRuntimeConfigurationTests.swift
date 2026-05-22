@@ -8,7 +8,7 @@ final class AppRuntimeConfigurationTests: XCTestCase {
             "LifeOrganize",
             "-ui-testing",
             "-reset-store",
-            "-reset-api-key",
+            "-reset-device-token",
             "-use-fake-extractor",
             "-fixed-now=2027-01-15T08:00:00-05:00",
             "-screenshot-mode",
@@ -20,7 +20,7 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         XCTAssertTrue(configuration.isUITesting)
         XCTAssertTrue(configuration.isAutomationRuntime)
         XCTAssertTrue(configuration.shouldResetStore)
-        XCTAssertTrue(configuration.shouldResetAPIKey)
+        XCTAssertTrue(configuration.shouldResetDeviceToken)
         XCTAssertTrue(configuration.usesDeterministicExtractor)
         XCTAssertTrue(configuration.isScreenshotMode)
         XCTAssertNotNil(configuration.fixedNow)
@@ -36,7 +36,7 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         ])
 
         XCTAssertTrue(configuration.shouldResetStore)
-        XCTAssertTrue(configuration.shouldResetAPIKey)
+        XCTAssertTrue(configuration.shouldResetDeviceToken)
         XCTAssertTrue(configuration.requestsFreshInstallReset)
     }
 
@@ -84,13 +84,12 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         XCTAssertTrue(configuration.isUITesting)
         XCTAssertTrue(configuration.usesDeterministicExtractor)
         XCTAssertTrue(configuration.shouldResetStore)
-        XCTAssertTrue(configuration.shouldResetAPIKey)
+        XCTAssertTrue(configuration.shouldResetDeviceToken)
         XCTAssertTrue(configuration.disablesAnimations)
         XCTAssertEqual(configuration.seedScenarioIDs, ["operational_home"])
         XCTAssertEqual(configuration.initialTab, nil)
-        XCTAssertEqual(configuration.screenshotAPIKeyMode, .missing)
         XCTAssertNotNil(configuration.fixedNow)
-        XCTAssertNil(try configuration.apiKeyStore().loadOpenAIAPIKey())
+        XCTAssertNil(try configuration.deviceTokenStore().loadDeviceToken())
     }
 
     func testScreenshotModeParsesScenarioPresentationAndRouteArguments() throws {
@@ -100,7 +99,6 @@ final class AppRuntimeConfigurationTests: XCTestCase {
             "-screenshot-seed=search",
             "-screenshot-start=search",
             "-screenshot-search-query=oil",
-            "-screenshot-api-key=present",
             "-screenshot-locale=en_US",
             "-screenshot-time-zone=America/New_York",
             "-screenshot-calendar=gregorian",
@@ -111,13 +109,12 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         XCTAssertEqual(configuration.initialTab, .log)
         XCTAssertEqual(configuration.initialSheet, .search)
         XCTAssertEqual(configuration.screenshotSearchQuery, "oil")
-        XCTAssertEqual(configuration.screenshotAPIKeyMode, .present)
         XCTAssertEqual(configuration.screenshotLocale?.identifier, "en_US")
         XCTAssertEqual(configuration.screenshotTimeZone?.identifier, "America/New_York")
         XCTAssertEqual(configuration.screenshotCalendar?.identifier, .gregorian)
         XCTAssertEqual(configuration.screenshotCalendar?.timeZone.identifier, "America/New_York")
         XCTAssertEqual(configuration.screenshotAppearance, .dark)
-        XCTAssertEqual(try configuration.apiKeyStore().loadOpenAIAPIKey(), "sk-screenshot-key-1234")
+        XCTAssertNil(try configuration.deviceTokenStore().loadDeviceToken())
     }
 
     func testScreenshotSeedCatalogCoversRequiredScenarioStates() {

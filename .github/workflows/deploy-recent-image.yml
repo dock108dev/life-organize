@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   deploy-recent-image:
@@ -20,7 +21,7 @@ jobs:
       - name: Deploy selected image tag over SSH
         uses: appleboy/ssh-action@v1.2.5
         env:
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_ACTOR: ${{ github.actor }}
           GH_REPO: ${{ github.repository }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}

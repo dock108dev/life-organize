@@ -10,11 +10,13 @@ The deployment flow mirrors the sports-data-admin backend:
 
 ## Required GitHub Secrets
 
-- `GHCR_TOKEN`: token with package read/write and repository read access.
 - `DEPLOY_HOST`: server host, for example `37.27.222.59`.
 - `DEPLOY_USER`: SSH user, for example `mike`.
 - `DEPLOY_SSH_KEY`: private SSH key for the deploy user.
 - `DEPLOY_PATH`: server checkout path, recommended `/opt/life-organize`.
+
+GHCR build and deploy authentication uses the built-in `GITHUB_TOKEN`; no
+custom `GHCR_TOKEN` repository secret is required.
 
 ## Required Server Files
 

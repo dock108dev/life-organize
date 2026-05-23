@@ -26,6 +26,8 @@ The iOS project has Debug and Release configurations, automatic signing, deploym
 
 The backend lives in `Backend/`, runs as a small FastAPI service with Postgres, and owns the shared OpenAI key. Keep provider credentials in backend secrets only.
 
+Backend CI/CD is scoped to GitHub Actions and Docker deployment for now. It builds and publishes the backend image, SSHes to the deploy host, runs Alembic migrations, recreates the API container, and refreshes the Caddy site block when needed. See [Backend deployment](docs/ops/deployment.md).
+
 ## Docs
 
 - [Current app state](docs/current-app-state.md)

@@ -1,0 +1,113 @@
+name: Deploy Recent Backend Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy"
+        required: false
+        default: latest
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-recent-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Deploy selected image tag over SSH
+        uses: appleboy/ssh-action@v1.2.5
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
+          GH_REPO: ${{ github.repository }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          GH_REF: ${{ github.ref_name }}
+          IMAGE_TAG: ${{ github.event.inputs.image_tag }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: GHCR_TOKEN,GH_ACTOR,GH_REPO,DEPLOY_PATH,GH_REF,IMAGE_TAG
+          script: |
+            set -euo pipefail
+
+            BASE_DIR="$DEPLOY_PATH"
+            REPO_URL="https://x-access-token:${GHCR_TOKEN}@github.com/${GH_REPO}.git"
+            BRANCH="${GH_REF}"
+
+            echo "Ensuring base directory exists..."
+            mkdir -p "$BASE_DIR"
+            cd "$BASE_DIR"
+
+            if [ ! -d ".git" ]; then
+              git init
+              git remote add origin "$REPO_URL"
+            else
+              git remote set-url origin "$REPO_URL"
+            fi
+
+            git fetch origin
+            git checkout -B "$BRANCH" "origin/$BRANCH"
+            git reset --hard "origin/$BRANCH"
+
+            if [ ! -f "Backend/infra/Caddyfile" ]; then
+              echo "ERROR: Backend/infra/Caddyfile missing in repo checkout"
+              exit 1
+            fi
+
+            if [ ! -f "/etc/caddy/Caddyfile" ]; then
+              echo "ERROR: /etc/caddy/Caddyfile not found on server"
+              exit 1
+            fi
+
+            if ! sudo -n true 2>/dev/null; then
+              echo "ERROR: deploy user requires passwordless sudo for Caddy update commands."
+              exit 1
+            fi
+
+            sudo python3 Backend/infra/scripts/update_caddy_site_block.py \
+              Backend/infra/Caddyfile \
+              /etc/caddy/Caddyfile \
+              life.dock108.dev
+            sudo caddy validate --config /etc/caddy/Caddyfile
+            sudo systemctl reload caddy
+
+            if [ ! -f "Backend/.env" ]; then
+              echo "ERROR: Backend/.env file missing in $BASE_DIR"
+              exit 1
+            fi
+
+            cd Backend/infra
+            export IMAGE_TAG
+
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
+            docker image prune -af --filter "until=1h" 2>/dev/null || true
+            docker builder prune -af 2>/dev/null || true
+
+            docker compose --env-file ../.env --profile prod pull --policy always
+            docker compose --env-file ../.env --profile prod run --rm migrate
+            docker compose --env-file ../.env --profile prod up -d --remove-orphans --force-recreate postgres api
+
+            for i in $(seq 1 30); do
+              if docker inspect lifeorganize-api --format='{{.State.Health.Status}}' 2>/dev/null | grep -q healthy; then
+                echo "API container healthy"
+                break
+              fi
+              STATUS=$(docker inspect lifeorganize-api --format='{{.State.Status}}' 2>/dev/null || echo "missing")
+              if [ "$STATUS" = "exited" ] || [ "$STATUS" = "missing" ]; then
+                docker logs lifeorganize-api --tail=80 2>/dev/null || true
+                exit 1
+              fi
+              sleep 5
+            done
+
+            FINAL_STATUS=$(docker inspect lifeorganize-api --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+            if [ "$FINAL_STATUS" != "healthy" ]; then
+              docker logs lifeorganize-api --tail=80 2>/dev/null || true
+              exit 1
+            fi
+
+            docker compose --env-file ../.env --profile prod ps

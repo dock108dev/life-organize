@@ -61,6 +61,31 @@ services:
       timeout: 5s
       retries: 5
 
+  migrate:
+    image: ghcr.io/dock108dev/life-organize-api:${IMAGE_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: Backend/infra/api.Dockerfile
+    container_name: lifeorganize-migrate
+    profiles: ["dev", "prod"]
+    logging: *default-logging
+    command: ["alembic", "-c", "/app/alembic.ini", "upgrade", "head"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-lifeorganize}:${POSTGRES_PASSWORD:-lifeorganize}@postgres:5432/${POSTGRES_DB:-lifeorganize}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      RUN_MIGRATIONS: "false"
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.5}
+      LIFE_ORGANIZE_ADMIN_API_KEY: ${LIFE_ORGANIZE_ADMIN_API_KEY:-}
+      DEVICE_TOKEN_SIGNING_SECRET: ${DEVICE_TOKEN_SIGNING_SECRET:-development-device-token-secret}
+      DEVICE_RATE_LIMIT_REQUESTS: ${DEVICE_RATE_LIMIT_REQUESTS:-60}
+      DEVICE_RATE_LIMIT_WINDOW_SECONDS: ${DEVICE_RATE_LIMIT_WINDOW_SECONDS:-3600}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+
 volumes:
   postgres-data:
 

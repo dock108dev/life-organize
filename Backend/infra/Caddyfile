@@ -1,4 +1,5 @@
 # Merge this site block into the host Caddyfile.
+# The backend binds to 127.0.0.1:8787 so it can share the SDA host safely.
 
 life.dock108.dev {
 	encode gzip
@@ -12,5 +13,5 @@ life.dock108.dev {
 		Content-Security-Policy "default-src 'none'; frame-ancestors 'none'"
 	}
 
-	reverse_proxy localhost:8000
+	reverse_proxy 127.0.0.1:8787
 }

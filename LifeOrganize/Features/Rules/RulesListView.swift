@@ -7,6 +7,7 @@ struct RulesListView: View {
     @State private var isAddingRule = false
     @State private var showsPaused = false
     @State private var reviewItemErrorMessage: String?
+    @AppStorage("ledger.context.rules.dismissed") private var isRulesContextDismissed = false
     private let continuityService = ReminderContinuityPresentationService()
     let onOpenLog: () -> Void
 
@@ -44,10 +45,14 @@ struct RulesListView: View {
                 }
             } else {
                 List {
-                    LedgerContextPanel(content: .rules)
+                    if !isRulesContextDismissed {
+                        LedgerContextPanel(content: .rules) {
+                            isRulesContextDismissed = true
+                        }
                         .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 8, trailing: 12))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
+                    }
 
                     ForEach(visibleLanes, id: \.title) { lane in
                         let laneRules = rules(in: lane)

@@ -155,6 +155,7 @@ struct ChatSendService {
                 now: message.createdAt
             )
             attempt.normalizedJSONText = try envelope.jsonString()
+            let warningsRequiringReview = Self.warningsRequiringReview(envelope.warnings)
             let createdRecords = try createEntities(from: envelope, sourceMessage: message, attempt: attempt)
             let recallAnswer = try recallAnswer(from: envelope)
             if !hasCreatedEntities(attempt), let recallAnswer {
@@ -177,7 +178,7 @@ struct ChatSendService {
                     detail: warning.message,
                     normalizedJSON: ExtractionEnvelope.empty(warnings: envelope.warnings + [warning])
                 )
-            } else if envelope.warnings.isEmpty {
+            } else if warningsRequiringReview.isEmpty {
                 message.extractionStatus = .succeeded
                 message.extractionError = nil
                 message.extractionErrorCode = nil
@@ -220,6 +221,7 @@ struct ChatSendService {
         }
         attempt.completedAt = dateProvider.now
         try modelContext.save()
+        try refreshReviewItems()
     }
 
     func fail(message: ChatMessage, attempt: ExtractionAttempt, error: Error) throws {
@@ -244,6 +246,23 @@ struct ChatSendService {
         }
         attempt.completedAt = dateProvider.now
         try modelContext.save()
+        try refreshReviewItems()
+    }
+
+    private func refreshReviewItems() throws {
+        _ = try LedgerReviewItemGenerationService(modelContext: modelContext, now: { dateProvider.now }).refresh()
+    }
+
+    private static func warningsRequiringReview(_ warnings: [ExtractionWarning]) -> [ExtractionWarning] {
+        warnings.filter { warning in
+            guard warning.code == "requires_review" else { return true }
+            let reasons = warning.message
+                .split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty && $0 != "none" }
+            guard !reasons.isEmpty else { return false }
+            return reasons.contains { $0 != "low_information_message" }
+        }
     }
 
     private func recordFailure(

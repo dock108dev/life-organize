@@ -13,6 +13,7 @@ struct ChatView: View {
     @FocusState private var isComposerFocused: Bool
     @State private var reviewItemErrorMessage: String?
     @State private var showsOlderTimeline = false
+    @AppStorage("ledger.context.timeline.dismissed") private var isTimelineContextDismissed = false
     let hasAIServiceCredential: Bool
     let deviceTokenStore: any DeviceTokenStore
     let onAddKey: () -> Void
@@ -75,7 +76,11 @@ struct ChatView: View {
                             .frame(maxWidth: .infinity, minHeight: 300)
                     } else {
                         LazyVStack(alignment: .leading, spacing: LedgerFeedTimelineLayout.sectionSpacing) {
-                            LedgerContextPanel(content: .timeline)
+                            if !isTimelineContextDismissed {
+                                LedgerContextPanel(content: .timeline) {
+                                    isTimelineContextDismissed = true
+                                }
+                            }
 
                             ForEach(visibleFeedSections) { section in
                                 LedgerFeedSectionView(

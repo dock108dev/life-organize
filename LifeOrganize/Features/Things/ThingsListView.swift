@@ -10,6 +10,7 @@ struct ThingsListView: View {
     @State private var searchText = ""
     @State private var isAddingThing = false
     @State private var reviewItemErrorMessage: String?
+    @AppStorage("ledger.context.things.dismissed") private var isThingsContextDismissed = false
     let onOpenLog: () -> Void
 
     init(onOpenLog: @escaping () -> Void = {}) {
@@ -58,10 +59,14 @@ struct ThingsListView: View {
                 }
             } else {
                 List {
-                    LedgerContextPanel(content: .things)
+                    if !isThingsContextDismissed {
+                        LedgerContextPanel(content: .things) {
+                            isThingsContextDismissed = true
+                        }
                         .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 8, trailing: 12))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
+                    }
 
                     ForEach(sortedThings) { thing in
                         let reviewPresentation = reviewPresentation(for: thing)

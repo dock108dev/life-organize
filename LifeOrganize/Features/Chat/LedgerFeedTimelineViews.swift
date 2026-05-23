@@ -267,6 +267,9 @@ private struct LedgerFeedRow: View {
         if let reviewPresentation {
             return reviewPresentation.badge
         }
+        if content.secondaryBadge?.semantic == .actionReview {
+            return nil
+        }
         return content.secondaryBadge
     }
 

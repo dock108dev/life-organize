@@ -124,11 +124,44 @@ struct LedgerReviewItemGenerationService {
             case .pendingToken, .pendingRetry:
                 return recoveryDefinition(for: message)
             case .partiallySucceeded, .failed, .failedNeedsReview, .needsReview:
+                guard !isSoftExtractionReview(message) else { return nil }
                 return reviewDefinition(for: message)
             case .notRequired, .pending, .extracting, .succeeded:
                 return nil
             }
         }
+    }
+
+    private func isSoftExtractionReview(_ message: ChatMessage) -> Bool {
+        guard message.extractionStatus == .partiallySucceeded || message.extractionStatus == .needsReview else {
+            return false
+        }
+        guard !createdRecordsEvidence(for: message).isEmpty,
+              let envelope = latestEnvelopeForSoftReview(for: message),
+              !envelope.warnings.isEmpty else {
+            return false
+        }
+        return envelope.warnings.allSatisfy(isSoftReviewWarning)
+    }
+
+    private func isSoftReviewWarning(_ warning: ExtractionWarning) -> Bool {
+        guard warning.code == "requires_review" else { return false }
+        let reasons = warning.message
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty && $0 != "none" }
+        guard !reasons.isEmpty else { return true }
+        return reasons.allSatisfy { $0 == "low_information_message" }
+    }
+
+    private func latestEnvelopeForSoftReview(for message: ChatMessage) -> ExtractionEnvelope? {
+        message.extractionAttempts
+            .sorted { $0.startedAt > $1.startedAt }
+            .compactMap { attempt -> ExtractionEnvelope? in
+                guard let data = attempt.normalizedJSONText.data(using: .utf8) else { return nil }
+                return try? JSONDecoder().decode(ExtractionEnvelope.self, from: data)
+            }
+            .first
     }
 
     private func recoveryDefinition(for message: ChatMessage) -> ReviewItemDefinition {

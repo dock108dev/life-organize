@@ -121,6 +121,58 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
         XCTAssertTrue(items.allSatisfy { !$0.evidence.isEmpty || $0.kind == .normalizationCandidate })
     }
 
+    func testSoftLowInformationExtractionDoesNotGenerateReviewItem() throws {
+        let context = makeInMemoryModelContext()
+        let message = ChatMessage(
+            role: .user,
+            text: "Still have a hole in the wall and unsure what to do with it.",
+            extractionStatus: .partiallySucceeded
+        )
+        let envelope = ExtractionEnvelope.empty(
+            warnings: [ExtractionWarning(code: "requires_review", message: "low_information_message")]
+        )
+        let attempt = ExtractionAttempt(
+            status: .partiallySucceeded,
+            normalizedJSONText: try envelope.jsonString(),
+            createdNoteIDs: [UUID()],
+            sourceMessage: message
+        )
+
+        context.insert(message)
+        context.insert(attempt)
+        try context.save()
+
+        let items = try service(context).refresh()
+
+        XCTAssertFalse(items.contains { $0.kind == .extractionReview && $0.targetID == message.id })
+    }
+
+    func testActionableExtractionWarningStillGeneratesReviewItem() throws {
+        let context = makeInMemoryModelContext()
+        let message = ChatMessage(
+            role: .user,
+            text: "Changed oil today.",
+            extractionStatus: .partiallySucceeded
+        )
+        let envelope = ExtractionEnvelope.empty(
+            warnings: [ExtractionWarning(code: "requires_review", message: "possible_duplicate")]
+        )
+        let attempt = ExtractionAttempt(
+            status: .partiallySucceeded,
+            normalizedJSONText: try envelope.jsonString(),
+            createdEventIDs: [UUID()],
+            sourceMessage: message
+        )
+
+        context.insert(message)
+        context.insert(attempt)
+        try context.save()
+
+        let item = try XCTUnwrap(try service(context).refresh().first { $0.kind == .extractionReview })
+
+        XCTAssertEqual(item.targetID, message.id)
+    }
+
     func testDedupePreventsRepeatedPromptAfterDismissal() throws {
         let context = makeInMemoryModelContext()
         let message = ChatMessage(role: .user, text: "Needs retry.", extractionStatus: .pendingRetry)

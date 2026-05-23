@@ -3,7 +3,7 @@ import Foundation
 enum ExtractionContract {
     static let schemaVersion = 1
     static let promptVersion = "openai-extractor-v1"
-    static let modelName = "gpt-4.1-mini"
+    static let modelName = "gpt-5.5"
 }
 
 struct ExtractionResponsePayload: Equatable {

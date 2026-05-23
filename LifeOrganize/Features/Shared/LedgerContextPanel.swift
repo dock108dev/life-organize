@@ -36,6 +36,7 @@ extension LedgerContextPanelContent {
 
 struct LedgerContextPanel: View {
     let content: LedgerContextPanelContent
+    var onDismiss: (() -> Void)?
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -70,9 +71,21 @@ struct LedgerContextPanel: View {
             }
 
             Spacer(minLength: 0)
+
+            if let onDismiss {
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Dismiss")
+            }
         }
         .padding(12)
         .ledgerSurface(cornerRadius: 18, tint: content.tone)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: onDismiss == nil ? .combine : .contain)
     }
 }

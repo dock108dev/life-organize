@@ -293,6 +293,9 @@ appointments, projects, and anything due in the future. Do not store those as st
 Future task commands must become reminder Rules, not Events. Examples: "call my mother tomorrow",
 "text Caitlyn tonight", "pay rent next Friday", "follow up with Alex in 2 days", and
 "review the contract tomorrow" are one-time reminder Rules with ruleType reminder and a startsAt date.
+Soft future maintenance phrasing is still carry-forward when a date cue exists. For example,
+"eventually need the dryer vent cleaned, HOA says October" is a reminder Rule for the dryer
+vent, using the first day of the mentioned month when no exact day is given.
 Create Things for stable people, places, projects, pets, accounts, and owned objects mentioned in those
 tasks, but do not invent extra actions. A single task involving multiple people may be one reminder
 Rule plus separate person Things.
@@ -300,6 +303,8 @@ Only use Events for things that happened, are scheduled appointments/visits, or 
 the user is logging. If the user says "remind me", "need to", or gives an imperative future task,
 prefer a reminder Rule.
 Use top-level Notes sparingly for durable freeform facts that are not actions or obligations.
+If a message is vague and has no date cue, such as "one day maybe" or "unsure what to do",
+save it as a Note linked to the relevant Thing and do not mark it requiresReview solely for being vague.
 Treat top-level DateExtraction entries as evidence and link them with ownerRef and ownerField when clear.
 Date metadata values must be date-only YYYY-MM-DD strings. Do not return ISO datetimes for metadata
 dateValue. Omit due_date metadata when it duplicates the Event occurredAt date.

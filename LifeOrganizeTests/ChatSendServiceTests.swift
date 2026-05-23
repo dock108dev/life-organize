@@ -463,6 +463,106 @@ final class ChatSendServiceTests: XCTestCase {
     }
 
     @MainActor
+    func testLowInformationReviewReasonDoesNotCreateReviewWhenRecordsAreSaved() async throws {
+        let context = makeInMemoryModelContext()
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: StaticMessageExtractionClient(
+                payload: ExtractionResponsePayload(
+                    rawResponseText: canonicalExtractionJSON(
+                        things: [canonicalThing("thing_1", name: "Hole In Wall", category: "home_maintenance")],
+                        notes: [
+                            canonicalNote(
+                                "note_1",
+                                text: "Still have a hole in the wall and unsure what to do with it.",
+                                linkedThingRefs: ["thing_1"]
+                            )
+                        ],
+                        confidence: #"{"overall":0.62,"requiresReview":true,"reasons":["low_information_message"]}"#
+                    )
+                )
+            ),
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+
+        _ = try await service.send("Still have a hole in the wall and unsure what to do with it.")
+
+        let userMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .user })
+        let attempt = try XCTUnwrap(try context.fetch(FetchDescriptor<ExtractionAttempt>()).first)
+        let content = LedgerFeedRowContent(item: .message(userMessage))
+
+        XCTAssertEqual(userMessage.extractionStatus, .succeeded)
+        XCTAssertNil(userMessage.extractionErrorCode)
+        XCTAssertEqual(attempt.status, .succeeded)
+        XCTAssertNil(content.secondaryBadge)
+        XCTAssertTrue(try context.fetch(FetchDescriptor<LedgerReviewItem>()).isEmpty)
+    }
+
+    @MainActor
+    func testActionableReviewWarningRefreshesReviewItemsAfterSend() async throws {
+        let context = makeInMemoryModelContext()
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: StaticMessageExtractionClient(
+                payload: ExtractionResponsePayload(
+                    rawResponseText: canonicalExtractionJSON(
+                        things: [canonicalThing("thing_1", name: "Oil Change", category: "vehicle")],
+                        events: [
+                            canonicalEvent("event_1", title: "Changed oil", thingRef: "thing_1", occurredAt: "2027-01-15")
+                        ],
+                        confidence: #"{"overall":0.64,"requiresReview":true,"reasons":["possible_duplicate"]}"#
+                    )
+                )
+            ),
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+
+        _ = try await service.send("Changed oil today.")
+
+        let userMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .user })
+        let reviewItem = try XCTUnwrap(try context.fetch(FetchDescriptor<LedgerReviewItem>()).first)
+
+        XCTAssertEqual(userMessage.extractionStatus, .partiallySucceeded)
+        XCTAssertEqual(reviewItem.targetType, .chatMessage)
+        XCTAssertEqual(reviewItem.targetID, userMessage.id)
+    }
+
+    @MainActor
+    func testMonthPrecisionReminderDatePersistsOnFirstDayOfMonth() async throws {
+        let context = makeInMemoryModelContext()
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: StaticMessageExtractionClient(
+                payload: ExtractionResponsePayload(
+                    rawResponseText: canonicalExtractionJSON(
+                        things: [canonicalThing("thing_1", name: "Dryer vent", category: "home_maintenance")],
+                        rules: [
+                            canonicalRule(
+                                "rule_1",
+                                title: "Clean dryer vent",
+                                thingRef: "thing_1",
+                                startsAt: "2026-10",
+                                expiresAt: nil,
+                                ruleType: "reminder"
+                            )
+                        ]
+                    )
+                )
+            ),
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+
+        _ = try await service.send("Eventually need the dryer vent cleaned. HOA says October.")
+
+        let reminder = try XCTUnwrap(try context.fetch(FetchDescriptor<LedgerRule>()).first)
+
+        XCTAssertEqual(
+            DateFormatting.dateOnlyString(reminder.startsAt, calendar: DateFormatting.utcGregorianCalendar, timeZone: DateFormatting.utcGregorianCalendar.timeZone),
+            "2026-10-01"
+        )
+    }
+
+    @MainActor
     func testNoteOnlyConfirmationPreservesQuotedText() async throws {
         let context = makeInMemoryModelContext()
         let service = ChatSendService(

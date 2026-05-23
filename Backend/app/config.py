@@ -20,7 +20,7 @@ class Settings(BaseSettings):
         alias="DATABASE_URL",
     )
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
-    openai_model: str = Field(default="gpt-4.1-mini", alias="OPENAI_MODEL")
+    openai_model: str = Field(default="gpt-5.5", alias="OPENAI_MODEL")
     admin_api_key: str | None = Field(default=None, alias="LIFE_ORGANIZE_ADMIN_API_KEY")
     device_token_signing_secret: str | None = Field(
         default=None, alias="DEVICE_TOKEN_SIGNING_SECRET"

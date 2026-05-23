@@ -4,6 +4,8 @@ x-logging: &default-logging
     max-size: "10m"
     max-file: "3"
 
+name: lifeorganize
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -40,7 +42,7 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-development}
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-false}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.5}
       LIFE_ORGANIZE_ADMIN_API_KEY: ${LIFE_ORGANIZE_ADMIN_API_KEY:-}
       DEVICE_TOKEN_SIGNING_SECRET: ${DEVICE_TOKEN_SIGNING_SECRET:-development-device-token-secret}
       DEVICE_RATE_LIMIT_REQUESTS: ${DEVICE_RATE_LIMIT_REQUESTS:-60}
@@ -52,7 +54,7 @@ services:
       - internal
       - app
     ports:
-      - "8000:8000"
+      - "127.0.0.1:${API_PORT:-8787}:8000"
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')\""]
       interval: 10s

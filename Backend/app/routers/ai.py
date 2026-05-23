@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.admin_events import admin_events
 from app.auth import (
     enforce_device_rate_limit,
     record_device_seen,
@@ -32,10 +33,29 @@ async def extract(
     started = time.perf_counter()
     model_name: str | None = None
     openai_request_id: str | None = None
+    admin_events.emit(
+        "info",
+        "request",
+        "Extraction request received",
+        endpoint=request.url.path,
+        text_length=len(body.text),
+        schema_version=body.schemaVersion,
+        timezone=body.timezone,
+    )
     try:
         result = await OpenAIGateway().send_extraction(body)
         model_name = result.model_name
         openai_request_id = result.openai_request_id
+        admin_events.emit(
+            "info",
+            "request",
+            "Extraction request completed",
+            endpoint=request.url.path,
+            status_code=200,
+            latency_ms=result.latency_ms,
+            model_name=model_name,
+            openai_request_id=openai_request_id,
+        )
         await _log(
             session,
             token_hash,
@@ -53,6 +73,17 @@ async def extract(
             modelName=result.model_name,
         )
     except OpenAIGatewayError as exc:
+        admin_events.emit(
+            "error",
+            "request",
+            "Extraction request failed",
+            endpoint=request.url.path,
+            status_code=exc.status_code,
+            latency_ms=_elapsed(started),
+            model_name=model_name,
+            openai_request_id=openai_request_id,
+            error_code=exc.code,
+        )
         await _log(
             session,
             token_hash,
@@ -81,10 +112,30 @@ async def web_request(
     started = time.perf_counter()
     model_name: str | None = None
     openai_request_id: str | None = None
+    admin_events.emit(
+        "info",
+        "request",
+        "Web request received",
+        endpoint=request.url.path,
+        mode=body.mode,
+        text_length=len(body.text),
+        timezone=body.timezone,
+    )
     try:
         result = await OpenAIGateway().send_web_request(body)
         model_name = result.model_name
         openai_request_id = result.openai_request_id
+        admin_events.emit(
+            "info",
+            "request",
+            "Web request completed",
+            endpoint=request.url.path,
+            mode=body.mode,
+            status_code=200,
+            latency_ms=result.latency_ms,
+            model_name=model_name,
+            openai_request_id=openai_request_id,
+        )
         await _log(
             session,
             token_hash,
@@ -104,6 +155,18 @@ async def web_request(
             modelName=result.model_name,
         )
     except OpenAIGatewayError as exc:
+        admin_events.emit(
+            "error",
+            "request",
+            "Web request failed",
+            endpoint=request.url.path,
+            mode=body.mode,
+            status_code=exc.status_code,
+            latency_ms=_elapsed(started),
+            model_name=model_name,
+            openai_request_id=openai_request_id,
+            error_code=exc.code,
+        )
         await _log(
             session,
             token_hash,

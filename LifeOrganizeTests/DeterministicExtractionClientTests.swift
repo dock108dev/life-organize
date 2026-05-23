@@ -128,6 +128,31 @@ final class DeterministicExtractionClientTests: XCTestCase {
         XCTAssertEqual(envelope.events.first?.metadata.first?.stringValue, "ABC123")
     }
 
+    func testParserNormalizesMetadataDatetimesToDateOnlyValues() throws {
+        let envelope = try ExtractionService.parse(
+            rawResponseText: canonicalExtractionJSON(
+                events: [
+                    canonicalEvent(
+                        "event_1",
+                        title: "Call my mother and Caitlyn",
+                        thingRef: nil,
+                        occurredAt: "2026-05-24",
+                        metadata: [
+                            canonicalEventMetadata(
+                                key: "due_date",
+                                valueKind: "date",
+                                dateValue: "2026-05-24T00:00:00-04:00",
+                                sourceText: "tomorrow"
+                            )
+                        ]
+                    )
+                ]
+            )
+        ).envelope
+
+        XCTAssertEqual(envelope.events.first?.metadata.first?.dateValue, "2026-05-24")
+    }
+
     func testParserPreservesDateEvidenceSignals() throws {
         let envelope = try ExtractionService.parse(
             rawResponseText: canonicalExtractionJSON(

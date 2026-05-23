@@ -34,6 +34,10 @@ async def require_device_token(
 
 
 async def require_admin_key(x_admin_api_key: str | None = Header(default=None)) -> None:
+    validate_admin_key(x_admin_api_key)
+
+
+def validate_admin_key(provided: str | None) -> None:
     expected = settings.admin_api_key
     if not expected:
         if settings.environment in {"production", "staging"}:
@@ -45,7 +49,7 @@ async def require_admin_key(x_admin_api_key: str | None = Header(default=None)) 
                 },
             )
         return
-    if not x_admin_api_key or not secrets.compare_digest(x_admin_api_key, expected):
+    if not provided or not secrets.compare_digest(provided, expected):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"code": "invalid_admin_key", "detail": "Invalid admin key."},

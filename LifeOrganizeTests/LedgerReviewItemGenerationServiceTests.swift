@@ -275,6 +275,54 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
         XCTAssertEqual(Set(item.evidence.map(\.summary)), ["Storage renewal", "Boxwell"])
     }
 
+    func testConflictingDateReviewIgnoresSameCalendarDayMetadataDatetime() throws {
+        let context = makeInMemoryModelContext()
+        let eventDate = date(year: 2026, month: 5, day: 24)
+        let event = LedgerEvent(
+            title: "Call my mother and Caitlyn",
+            occurredAt: eventDate,
+            rawText: "Call my mother and Caitlyn tomorrow.",
+            metadataEntries: [
+                LedgerEventMetadataEntry(
+                    key: .dueDate,
+                    valueKind: .date,
+                    dateValue: "2026-05-24T00:00:00-04:00",
+                    sourceText: "tomorrow"
+                )
+            ]
+        )
+        context.insert(event)
+        try context.save()
+
+        let items = try service(context, now: date(year: 2026, month: 5, day: 23)).refresh()
+
+        XCTAssertFalse(items.contains { $0.kind == .conflictingDate && $0.targetID == event.id })
+    }
+
+    func testConflictingDateReviewStillFlagsDifferentCalendarDayMetadata() throws {
+        let context = makeInMemoryModelContext()
+        let event = LedgerEvent(
+            title: "Window service renewal",
+            occurredAt: date(year: 2026, month: 5, day: 24),
+            rawText: "Window service renewal due May 25.",
+            metadataEntries: [
+                LedgerEventMetadataEntry(
+                    key: .dueDate,
+                    valueKind: .date,
+                    dateValue: "2026-05-25T00:00:00-04:00",
+                    sourceText: "May 25"
+                )
+            ]
+        )
+        context.insert(event)
+        try context.save()
+
+        let item = try XCTUnwrap(try service(context, now: date(year: 2026, month: 5, day: 23)).refresh().first { $0.kind == .conflictingDate })
+
+        XCTAssertEqual(item.targetID, event.id)
+        XCTAssertTrue(item.detail.contains("saved metadata includes 2026-05-25"))
+    }
+
     private func service(
         _ context: ModelContext,
         now: Date = Date(timeIntervalSince1970: 1_800_000_000)

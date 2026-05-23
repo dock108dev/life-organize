@@ -32,11 +32,19 @@ Point the iOS app at the local backend with:
 -ai-service-base-url=http://127.0.0.1:8787
 ```
 
+Open the local backend log/control panel at:
+
+```text
+http://127.0.0.1:8787/admin/logs
+```
+
+Use `LIFE_ORGANIZE_ADMIN_API_KEY` from `Backend/.env` to connect. The page streams request and OpenAI gateway events, including status, latency, model, and OpenAI request IDs. It does not log raw user text, API keys, or raw model responses.
+
 ## Production
 
 - Store the OpenAI key only in backend environment/secrets.
+- The local/default model is `gpt-5.5`, matching OpenAI's current frontier model guidance for complex work.
 - Set `DEVICE_TOKEN_SIGNING_SECRET` to a stable private value.
 - Set `RUN_MIGRATIONS=true` during deploy or run Alembic manually.
 - Route `life.dock108.dev` to the API container through the Caddy example in `Backend/infra/`.
 - Do not log raw user text or raw OpenAI responses by default.
-

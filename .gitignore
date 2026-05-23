@@ -14,5 +14,14 @@ Backend/.ruff_cache/
 Backend/__pycache__/
 Backend/**/__pycache__/
 
+# Local environment and secrets
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+!**/.env.*.example
+
 # macOS
 .DS_Store

@@ -7,14 +7,19 @@ enum TemporalPriorityResolver {
         now: Date,
         calendar: Calendar = .current
     ) -> ExtractionEnvelope {
+        var resolved = convertFutureActionEventsToRemindersIfNeeded(
+            envelope,
+            sourceText: sourceText,
+            now: now,
+            calendar: calendar
+        )
         let normalizedText = sourceText.lowercased()
         guard hasTemporalPriorityPhrase(normalizedText),
               let duration = relativeActionableDuration(in: normalizedText),
               let dueDate = date(byAdding: duration, to: now, calendar: calendar) else {
-            return envelope
+            return resolved
         }
 
-        var resolved = envelope
         let dueDateString = DateFormatting.dateOnlyString(dueDate, calendar: calendar, timeZone: calendar.timeZone)
         let chosenDateID = appendOperationalDate(
             to: &resolved,
@@ -36,7 +41,7 @@ enum TemporalPriorityResolver {
         )
 
         guard resolved.rules.contains(where: { $0.ruleType == .reminder && $0.startsAt == dueDateString }) else {
-            return envelope
+            return resolved
         }
 
         resolved.temporalResolutionDecisions.append(
@@ -48,6 +53,76 @@ enum TemporalPriorityResolver {
             )
         )
         return resolved
+    }
+
+    private static func convertFutureActionEventsToRemindersIfNeeded(
+        _ envelope: ExtractionEnvelope,
+        sourceText: String,
+        now: Date,
+        calendar: Calendar
+    ) -> ExtractionEnvelope {
+        guard envelope.rules.isEmpty else { return envelope }
+        let normalizedText = sourceText.lowercased()
+        guard hasFutureTaskLanguage(normalizedText) else { return envelope }
+        let startOfToday = calendar.startOfDay(for: now)
+
+        var resolved = envelope
+        var convertedRules: [ExtractedRule] = []
+        resolved.events.removeAll { event in
+            guard shouldConvertEventToReminder(event, startOfToday: startOfToday) else {
+                return false
+            }
+            convertedRules.append(
+                ExtractedRule(
+                    clientID: "\(event.clientID)_reminder",
+                    title: event.title,
+                    thingName: event.thingName,
+                    ruleType: .reminder,
+                    continuityBehavior: .dateBasedReminder,
+                    reason: "Future action captured as a carry-forward reminder.",
+                    startsAt: normalizedDateString(event.occurredAt, calendar: calendar) ?? event.occurredAt,
+                    expiresAt: nil
+                )
+            )
+            return true
+        }
+
+        guard !convertedRules.isEmpty else { return envelope }
+        resolved.rules.append(contentsOf: convertedRules)
+        resolved.temporalResolutionDecisions.append(
+            TemporalResolutionDecision(
+                chosenDateClientID: nil,
+                rejectedDateClientIDs: [],
+                reason: "Simple future action language was stored as a reminder instead of a timeline event.",
+                confidenceRationale: "Imperative task phrases such as call, text, email, pay, send, or follow up belong in Carry Forward."
+            )
+        )
+        return resolved
+    }
+
+    private static func shouldConvertEventToReminder(_ event: ExtractedEvent, startOfToday: Date) -> Bool {
+        if event.eventType == LedgerEventType.reminder.rawValue {
+            return true
+        }
+        guard let eventDate = ExtractionService.parseDate(event.occurredAt),
+              eventDate >= startOfToday else {
+            return false
+        }
+        let type = LedgerEventType(rawValue: event.eventType) ?? .other
+        switch type {
+        case .generic, .other, .note:
+            return true
+        case .reminder:
+            return true
+        case .maintenance, .purchase, .visit, .replacement, .cleaning, .renewal,
+             .appointment, .project, .measurement, .statusChange:
+            return false
+        }
+    }
+
+    private static func normalizedDateString(_ value: String, calendar: Calendar) -> String? {
+        guard let date = ExtractionService.parseDate(value) else { return nil }
+        return DateFormatting.dateOnlyString(date, calendar: calendar, timeZone: calendar.timeZone)
     }
 
     private static func applyRuleResolution(
@@ -236,6 +311,43 @@ enum TemporalPriorityResolver {
 
     private static func hasTemporalPriorityPhrase(_ text: String) -> Bool {
         temporalPriorityMarkers.contains { text.contains($0) }
+    }
+
+    private static func hasFutureTaskLanguage(_ text: String) -> Bool {
+        let normalized = " \(text) "
+        let taskMarkers = [
+            " call ",
+            " text ",
+            " email ",
+            " follow up",
+            " check in",
+            " check on",
+            " review ",
+            " pay ",
+            " send ",
+            " pick up",
+            " book ",
+            " remind me",
+            " need to "
+        ]
+        guard taskMarkers.contains(where: { normalized.contains($0) }) else {
+            return false
+        }
+        let futureMarkers = [
+            " tomorrow",
+            " tonight",
+            " later",
+            " next ",
+            " in ",
+            " on monday",
+            " on tuesday",
+            " on wednesday",
+            " on thursday",
+            " on friday",
+            " on saturday",
+            " on sunday"
+        ]
+        return futureMarkers.contains { normalized.contains($0) }
     }
 
     private static func isLongTermContext(_ text: String) -> Bool {

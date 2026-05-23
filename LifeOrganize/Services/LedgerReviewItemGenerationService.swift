@@ -321,8 +321,21 @@ struct LedgerReviewItemGenerationService {
             guard [.dueDate, .nextDueDate].contains(entry.key), let dateValue = entry.dateValue?.nilIfEmpty else {
                 return nil
             }
-            return dateValue == eventDate ? nil : (dateValue, entry.sourceText)
+            let metadataDate = normalizedMetadataDate(dateValue) ?? dateValue
+            return metadataDate == eventDate ? nil : (metadataDate, entry.sourceText)
         }.first
+    }
+
+    private func normalizedMetadataDate(_ value: String) -> String? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.count >= 10 {
+            let prefix = String(trimmed.prefix(10))
+            if DateFormatting.parseDateOnly(prefix) != nil {
+                return prefix
+            }
+        }
+        guard let date = ExtractionService.parseDate(value) else { return nil }
+        return dateOnly(date)
     }
 
     private func messageEvidence(_ message: ChatMessage) -> LedgerReviewItemEvidence {

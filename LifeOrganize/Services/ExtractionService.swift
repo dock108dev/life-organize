@@ -288,12 +288,13 @@ enum ExtractionService {
 
     private static func normalizedMetadata(from rawMetadata: [CanonicalEventMetadata]) -> [ExtractedEventMetadata] {
         rawMetadata.compactMap { rawMetadata -> ExtractedEventMetadata? in
+            let normalizedDateValue = rawMetadata.dateValue.flatMap(normalizedMetadataDateValue)
             guard let entry = LedgerEventMetadataValidation.normalizedExtractionEntry(
                 keyRawValue: rawMetadata.key,
                 valueKindRawValue: rawMetadata.valueKind,
                 stringValue: rawMetadata.stringValue,
                 numberValue: rawMetadata.numberValue,
-                dateValue: rawMetadata.dateValue,
+                dateValue: normalizedDateValue,
                 boolValue: rawMetadata.boolValue,
                 unit: rawMetadata.unit,
                 sourceText: rawMetadata.sourceText
@@ -311,6 +312,18 @@ enum ExtractionService {
                 sourceText: entry.sourceText
             )
         }
+    }
+
+    private static func normalizedMetadataDateValue(_ value: String) -> String? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.count >= 10 {
+            let prefix = String(trimmed.prefix(10))
+            if DateFormatting.parseDateOnly(prefix) != nil {
+                return prefix
+            }
+        }
+        guard let date = parseDate(value) else { return value.nilIfEmpty }
+        return DateFormatting.dateOnlyString(date, calendar: DateFormatting.utcGregorianCalendar, timeZone: DateFormatting.utcGregorianCalendar.timeZone)
     }
 
     private static let isoFormatter = ISO8601DateFormatter()

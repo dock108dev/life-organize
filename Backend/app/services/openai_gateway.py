@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 import httpx
 
+from app.admin_events import admin_events
 from app.config import settings
 from app.schemas import ExtractionRequest, WebRequest
 from app.services.openai_schema import EXTRACTION_SCHEMA, EXTRACTION_SCHEMA_NAME
@@ -33,11 +34,11 @@ class OpenAIGateway:
 
     async def send_extraction(self, request: ExtractionRequest) -> GatewayResult:
         payload = self._extraction_payload(request)
-        return await self._send(payload)
+        return await self._send(payload, kind="extraction")
 
     async def send_web_request(self, request: WebRequest) -> GatewayResult:
         payload = self._web_payload(request)
-        return await self._send(payload)
+        return await self._send(payload, kind=f"web:{request.mode}")
 
     def _extraction_payload(self, request: ExtractionRequest) -> dict:
         return {
@@ -122,12 +123,28 @@ class OpenAIGateway:
             payload["text"] = text_format
         return payload
 
-    async def _send(self, payload: dict) -> GatewayResult:
+    async def _send(self, payload: dict, kind: str) -> GatewayResult:
         if not settings.openai_api_key:
+            admin_events.emit(
+                "error",
+                "openai",
+                "OpenAI call skipped; API key is not configured",
+                kind=kind,
+            )
             raise OpenAIGatewayError("openai_not_configured", 502, "OpenAI is not configured.")
 
         started = time.perf_counter()
         encoded = json.dumps(payload, separators=(",", ":"), sort_keys=True)
+        admin_events.emit(
+            "info",
+            "openai",
+            "OpenAI call started",
+            kind=kind,
+            model=payload.get("model"),
+            request_bytes=len(encoded.encode("utf-8")),
+            has_web_search=bool(payload.get("tools")),
+            has_json_schema=bool(payload.get("text")),
+        )
         try:
             async with httpx.AsyncClient(timeout=settings.request_timeout_seconds) as client:
                 response = await client.post(
@@ -139,14 +156,39 @@ class OpenAIGateway:
                     content=encoded,
                 )
         except httpx.TimeoutException as exc:
+            admin_events.emit(
+                "error",
+                "openai",
+                "OpenAI call timed out",
+                kind=kind,
+                model=payload.get("model"),
+            )
             raise OpenAIGatewayError("timeout", 408, "OpenAI request timed out.") from exc
         except httpx.HTTPError as exc:
+            admin_events.emit(
+                "error",
+                "openai",
+                "OpenAI network request failed",
+                kind=kind,
+                model=payload.get("model"),
+                error_type=type(exc).__name__,
+            )
             raise OpenAIGatewayError(
                 "network_unavailable", 502, "OpenAI network request failed."
             ) from exc
 
         latency_ms = int((time.perf_counter() - started) * 1000)
         request_id = response.headers.get("x-request-id")
+        admin_events.emit(
+            "info" if response.status_code < 400 else "error",
+            "openai",
+            "OpenAI call completed",
+            kind=kind,
+            model=payload.get("model"),
+            status_code=response.status_code,
+            latency_ms=latency_ms,
+            openai_request_id=request_id,
+        )
         if response.status_code == 429:
             raise OpenAIGatewayError("rate_limited", 429, "OpenAI rate limit reached.")
         if response.status_code >= 500:
@@ -162,9 +204,26 @@ class OpenAIGateway:
             body = response.json()
             output_text = _output_text(body)
         except Exception as exc:
+            admin_events.emit(
+                "error",
+                "openai",
+                "OpenAI response did not include output text",
+                kind=kind,
+                model=payload.get("model"),
+                openai_request_id=request_id,
+            )
             raise OpenAIGatewayError(
                 "invalid_model_response", 422, "OpenAI response did not include output text."
             ) from exc
+        admin_events.emit(
+            "info",
+            "openai",
+            "OpenAI output parsed",
+            kind=kind,
+            model=payload.get("model"),
+            output_chars=len(output_text),
+            openai_request_id=request_id,
+        )
 
         return GatewayResult(
             output_text=output_text,
@@ -231,8 +290,19 @@ waiting_period for temporary waiting windows, deadline for due-by commitments, a
 only for standing preferences.
 Prefer Events or reminder Rules for actions, purchases, maintenance, visits, cleaning, renewals,
 appointments, projects, and anything due in the future. Do not store those as standalone Notes.
+Future task commands must become reminder Rules, not Events. Examples: "call my mother tomorrow",
+"text Caitlyn tonight", "pay rent next Friday", "follow up with Alex in 2 days", and
+"review the contract tomorrow" are one-time reminder Rules with ruleType reminder and a startsAt date.
+Create Things for stable people, places, projects, pets, accounts, and owned objects mentioned in those
+tasks, but do not invent extra actions. A single task involving multiple people may be one reminder
+Rule plus separate person Things.
+Only use Events for things that happened, are scheduled appointments/visits, or are calendar activities
+the user is logging. If the user says "remind me", "need to", or gives an imperative future task,
+prefer a reminder Rule.
 Use top-level Notes sparingly for durable freeform facts that are not actions or obligations.
 Treat top-level DateExtraction entries as evidence and link them with ownerRef and ownerField when clear.
+Date metadata values must be date-only YYYY-MM-DD strings. Do not return ISO datetimes for metadata
+dateValue. Omit due_date metadata when it duplicates the Event occurredAt date.
 Put practical scalar details in metadata when present, including mileage, amount, quantity, vendor,
 location, due_date, identifiers, units, and short source spans.
 """.strip()

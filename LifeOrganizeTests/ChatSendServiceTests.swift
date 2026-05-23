@@ -337,6 +337,61 @@ final class ChatSendServiceTests: XCTestCase {
     }
 
     @MainActor
+    func testFutureTaskEventPayloadPersistsAsCarryForwardReminder() async throws {
+        let context = makeInMemoryModelContext()
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: StaticMessageExtractionClient(
+                payload: ExtractionResponsePayload(
+                    rawResponseText: canonicalExtractionJSON(
+                        things: [
+                            canonicalThing("thing_1", name: "Mother", category: "person"),
+                            canonicalThing("thing_2", name: "Caitlyn", category: "person")
+                        ],
+                        events: [
+                            canonicalEvent(
+                                "event_1",
+                                title: "Call my mother and Caitlyn",
+                                thingRef: nil,
+                                occurredAt: "2027-01-16",
+                                eventType: "generic",
+                                metadata: [
+                                    canonicalEventMetadata(
+                                        key: "due_date",
+                                        valueKind: "date",
+                                        dateValue: "2027-01-16T00:00:00-05:00",
+                                        sourceText: "tomorrow"
+                                    )
+                                ],
+                                rawText: "Call my mother and Caitlyn tomorrow."
+                            )
+                        ]
+                    )
+                )
+            ),
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+
+        _ = try await service.send("Call my mother and Caitlyn tomorrow.")
+
+        let events = try context.fetch(FetchDescriptor<LedgerEvent>())
+        let reminders = try context.fetch(FetchDescriptor<LedgerRule>())
+        let things = try context.fetch(FetchDescriptor<Thing>())
+        let attempt = try XCTUnwrap(try context.fetch(FetchDescriptor<ExtractionAttempt>()).first)
+
+        XCTAssertEqual(events.count, 0)
+        XCTAssertEqual(reminders.count, 1)
+        XCTAssertEqual(reminders.first?.title, "Call my mother and Caitlyn")
+        XCTAssertEqual(reminders.first?.ruleType, .reminder)
+        XCTAssertEqual(reminders.first?.continuityBehavior, .dateBasedReminder)
+        XCTAssertEqual(DateFormatting.dateOnlyString(try XCTUnwrap(reminders.first?.startsAt), timeZone: TimeZone(secondsFromGMT: 0)!), "2027-01-16")
+        XCTAssertEqual(Set(things.map(\.name)), ["Mother", "Caitlyn"])
+        XCTAssertEqual(attempt.createdEventIDs.count, 0)
+        XCTAssertEqual(attempt.createdRuleIDs.count, 1)
+        XCTAssertEqual(attempt.createdThingIDs.count, 2)
+    }
+
+    @MainActor
     func testPartialExtractionCreatesValidEntitiesAndLinksSourceAttempt() async throws {
         let context = makeInMemoryModelContext()
         let service = ChatSendService(

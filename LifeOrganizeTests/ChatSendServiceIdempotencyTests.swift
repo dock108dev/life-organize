@@ -57,6 +57,7 @@ final class ChatSendServiceIdempotencyTests: XCTestCase {
         let linkCountAfterFirstExtraction = try context.fetch(FetchDescriptor<EntityLink>()).count
 
         _ = try await service.retryExtraction(for: message)
+        _ = try await service.retryExtraction(for: message)
 
         let attempts = try context.fetch(FetchDescriptor<ExtractionAttempt>())
         let events = try context.fetch(FetchDescriptor<LedgerEvent>())
@@ -64,13 +65,14 @@ final class ChatSendServiceIdempotencyTests: XCTestCase {
         let notes = try context.fetch(FetchDescriptor<LedgerNote>())
         let things = try context.fetch(FetchDescriptor<Thing>())
         let links = try context.fetch(FetchDescriptor<EntityLink>())
-        let retryAttempt = try XCTUnwrap(attempts.first { $0.id != firstAttempt.id })
+        let retryAttempts = attempts.filter { $0.id != firstAttempt.id }
         let event = try XCTUnwrap(events.first)
         let rule = try XCTUnwrap(rules.first)
         let note = try XCTUnwrap(notes.first)
         let honda = try XCTUnwrap(things.first { $0.name == "Honda" })
 
-        XCTAssertEqual(attempts.count, 2)
+        XCTAssertEqual(attempts.count, 3)
+        XCTAssertEqual(retryAttempts.count, 2)
         XCTAssertEqual(events.count, 1)
         XCTAssertEqual(rules.count, 1)
         XCTAssertEqual(notes.count, 1)
@@ -78,11 +80,13 @@ final class ChatSendServiceIdempotencyTests: XCTestCase {
         XCTAssertEqual(links.count, linkCountAfterFirstExtraction)
         XCTAssertEqual(Set(links.map(uniqueKey)).count, links.count)
 
-        XCTAssertEqual(retryAttempt.status, .succeeded)
-        XCTAssertEqual(retryAttempt.createdEventIDs, [event.id])
-        XCTAssertEqual(retryAttempt.createdRuleIDs, [rule.id])
-        XCTAssertEqual(retryAttempt.createdNoteIDs, [note.id])
-        XCTAssertEqual(Set(retryAttempt.createdThingIDs), Set(things.map(\.id)))
+        for retryAttempt in retryAttempts {
+            XCTAssertEqual(retryAttempt.status, .succeeded)
+            XCTAssertEqual(retryAttempt.createdEventIDs, [event.id])
+            XCTAssertEqual(retryAttempt.createdRuleIDs, [rule.id])
+            XCTAssertEqual(retryAttempt.createdNoteIDs, [note.id])
+            XCTAssertEqual(Set(retryAttempt.createdThingIDs), Set(things.map(\.id)))
+        }
 
         XCTAssertEqual(event.sourceClientID, "event_1")
         XCTAssertEqual(event.sourceExtractionRunID, firstAttempt.id)
@@ -90,6 +94,8 @@ final class ChatSendServiceIdempotencyTests: XCTestCase {
         XCTAssertEqual(event.thing?.id, honda.id)
         XCTAssertEqual(event.eventType, .measurement)
         XCTAssertEqual(event.metadataEntries.first?.numberValue, 48231)
+        XCTAssertEqual(honda.sourceMessageIDs, [message.id])
+        XCTAssertEqual(Set(honda.sourceExtractionAttemptIDs), Set(attempts.map(\.id)))
         XCTAssertEqual(honda.eventCount, 1)
         XCTAssertEqual(honda.lastEventAt, ExtractionService.parseDate("2027-01-15"))
     }

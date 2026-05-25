@@ -186,7 +186,10 @@ final class LedgerCopyRestraintTests: XCTestCase {
             "LLM",
             "raw response",
             "normalizedJSONText",
-            "requestJSON"
+            "requestJSON",
+            "API key",
+            "Authorization",
+            "Bearer"
         ]
         let lowercased = text.lowercased()
         let offenders = bannedTerms.filter { lowercased.contains($0.lowercased()) }

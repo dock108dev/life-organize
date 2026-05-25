@@ -101,7 +101,7 @@ final class LedgerReviewActionSafetyTests: XCTestCase {
         XCTAssertEqual(try context.fetch(FetchDescriptor<LedgerEvent>()).map(\.id), [event.id])
     }
 
-    func testFailedRetryPreservesReviewItemState() async throws {
+    func testFailedRetryRefreshesRecoveryReviewItemWithoutCreatingRecords() async throws {
         let context = makeInMemoryModelContext()
         let message = ChatMessage(role: .user, text: "Changed oil.", extractionStatus: .failed)
         let item = reviewItem(targetID: message.id, evidence: [
@@ -120,7 +120,13 @@ final class LedgerReviewActionSafetyTests: XCTestCase {
             XCTAssertEqual(error, .retryDidNotComplete)
         }
 
-        XCTAssertEqual(item.state, .candidate)
+        let reviewItems = try context.fetch(FetchDescriptor<LedgerReviewItem>())
+        let refreshedItem = try XCTUnwrap(reviewItems.first {
+            $0.id != item.id && $0.targetID == message.id && $0.state == .candidate
+        })
+        XCTAssertEqual(item.state, .superseded)
+        XCTAssertEqual(refreshedItem.kind, .localRecovery)
+        XCTAssertTrue(refreshedItem.detail.contains("wait for the next automatic retry"))
         XCTAssertEqual(message.extractionStatus, .pendingRetry)
         XCTAssertTrue(try context.fetch(FetchDescriptor<LedgerEvent>()).isEmpty)
     }

@@ -1,0 +1,6 @@
+{
+  "detail": {
+    "code": "timeout",
+    "detail": "OpenAI request timed out."
+  }
+}

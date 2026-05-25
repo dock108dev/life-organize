@@ -139,7 +139,7 @@ extension LifeOrganizeScenarioUITests {
     }
 
     private func capture(_ name: String, from app: XCUIApplication) {
-        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        RunLoop.current.run(until: Date().addingTimeInterval(0.4))
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = "screenshot__\(name)"
         attachment.lifetime = .keepAlways

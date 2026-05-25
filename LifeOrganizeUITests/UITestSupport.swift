@@ -12,10 +12,16 @@ extension XCTestCase {
             "-ui-testing",
             "-ApplePersistenceIgnoreState",
             "YES",
+            "-AppleLanguages",
+            "(en)",
+            "-AppleLocale",
+            "en_US",
             "-use-fake-extractor",
-            "-disable-animations",
-            "-fixed-now=2027-01-15T08:00:00-05:00"
+            "-disable-animations"
         ]
+        if !extraArguments.contains(where: { $0.hasPrefix("-fixed-now=") }) {
+            app.launchArguments.append("-fixed-now=2027-01-15T08:00:00-05:00")
+        }
         if useInMemoryStore {
             app.launchArguments.append("-use-in-memory-store")
         }

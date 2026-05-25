@@ -1,26 +1,24 @@
-# ISSUE-001: Formalize deterministic launch and fresh-install reset modes
+# ISSUE-001: Align backend Python runtime and coverage tooling
 
 **Priority**: high
-**Labels**: phase-7, infra, launch-modes, determinism
+**Labels**: backend, coverage, ci, infra
 **Dependencies**: none
 **Status**: implemented
 
 ## Description
 
-Create the Phase 7 launch contract in LifeOrganize/Utilities/AppRuntimeConfiguration.swift and the app bootstrap path. Findings show current support for -ui-testing, -reset-store, -reset-api-key, -use-fake-extractor, and -fixed-now, but no BRAINDUMP --reset-db alias, no seeded scenario/screenshot flags, and no full local-state reset beyond the UI-testing SQLite store. Use .aidlc/research/launch-mode-contract.md and .aidlc/research/fresh-install-state-boundaries.md to keep existing single-dash UI test flags compatible while adding owner-facing double-dash aliases where BRAINDUMP names them and preventing unsafe reset behavior outside deterministic modes.
+Implement the backend runtime/test foundation from BRAINDUMP's backend coverage and Python-pin gaps. Use `.aidlc/discovery/findings.md`, `.aidlc/research/backend-python-version-pin.md`, and `.aidlc/research/backend-coverage-gate-shape.md`: choose a stable production/CI runtime such as Python 3.13 while preserving the declared `>=3.11` support contract unless intentionally changed; add `pytest-cov`; configure coverage for `Backend/app` and `Backend/main.py`; exclude Alembic boilerplate deliberately and visibly.
 
 ## Acceptance Criteria
 
-- [ ] AppRuntimeConfiguration parses -screenshot-mode, -seed-scenario=<id>, --seed-scenario=<id>, --reset-db, and the existing -ui-testing/-reset-store/-reset-api-key/-use-fake-extractor/-fixed-now flags without breaking current UI tests.
-- [ ] --reset-db is a documented compatibility alias for deterministic fresh-install startup and composes safely with the existing -reset-store UI-test behavior.
-- [ ] Fresh-install launch mode resets or isolates SwiftData test store files, API key state, app-owned UserDefaults including DeveloperMode.isUnlocked, cache/temp state owned by the app, and scene restoration before first UI render.
-- [ ] Reset behavior is scoped so deterministic test/screenshot modes cannot accidentally delete production user data or production keychain state.
-- [ ] Flag precedence is deterministic when reset, seed, screenshot, fake extractor, fixed time, and API-key reset flags are combined in one launch.
-- [ ] The supported launch argument contract is covered by unit tests for parsing and at least one UI launch smoke test that proves existing single-dash flags and BRAINDUMP double-dash aliases both work.
+- [ ] `Backend/requirements.txt` includes a pinned `pytest-cov` dependency consistent with the repo's exact-pin style.
+- [ ] `Backend/pyproject.toml` configures pytest coverage for `app` and `main` with `--cov-fail-under=80` and term-missing output.
+- [ ] Alembic paths are explicitly omitted from coverage or otherwise reported as deliberate exclusions, not silently hidden by accident.
+- [ ] Backend CI and Docker runtime pins are aligned to the chosen stable Python version, or the implementation documents and tests the intentional decision to stay on Python 3.14.
+- [ ] `requires-python` and Ruff target remain coherent with the selected compatibility contract.
+- [ ] If `requires-python = ">=3.11"` remains, the plan either adds a lightweight compatibility check for the lower bound or explicitly narrows the support contract with matching Ruff/project metadata.
 
 ## Implementation Notes
 
 
-Attempt 1 failed (sample):
-OpenAI CLI timed out
-Attempt 2: Added automation-only seed scenario loading before first UI render, wired it into LifeOrganizeApp startup after reset/container creation, and added unit coverage for idempotent seeding and production isolation.
+Attempt 1: Added pinned pytest-cov, Backend coverage config for app/main with Alembic omissions, Python 3.13 CI/Docker pins, Python 3.11 compatibility CI, and backend tests for routes/config/middleware/gateway.

@@ -1,0 +1,5 @@
+{
+  "rawResponseText": "{\"schemaVersion\":\"1.0\",\"messageType\":\"log\",\"language\":\"en\",\"summary\":\"Changed hallway filter.\",\"things\":[],\"events\":[],\"rules\":[],\"notes\":[],\"dates\":[],\"aliases\":[],\"recallQueries\":[],\"confidence\":{\"overall\":1,\"requiresReview\":false,\"reasons\":[\"none\"]},\"errors\":[]}",
+  "requestJSON": "{\"text\":\"Changed the hallway filter today.\"}",
+  "modelName": "test-backend"
+}

@@ -1,12 +1,16 @@
 # Backend Deployment
 
-Production deploys only the FastAPI backend and Postgres. iOS CI/CD is intentionally out of scope.
+Production deployment covers only the FastAPI backend and Postgres. iOS GitHub Actions builds, tests, checks coverage, and compares screenshots, but does not sign, archive, upload, or deploy the iOS app.
 
-The deployment flow mirrors the sports-data-admin backend:
+The backend deployment flow is:
 
 1. `Backend CI/CD` runs backend tests, Ruff, and Python compilation.
-2. On `main` pushes, or manual dispatch with `full_deploy=true`, it builds `ghcr.io/dock108dev/life-organize-api:<sha>` and `latest`.
-3. The deploy job SSHes to the server, syncs the repo into `DEPLOY_PATH`, optionally updates the `life.dock108.dev` Caddy site block, pulls the image, runs migrations, starts Compose, and waits for `lifeorganize-api` to become healthy.
+2. Backend coverage, Docker Compose smoke, and Python 3.11 compatibility checks run before image publishing.
+3. On `main` pushes for backend paths, or manual dispatch with `full_deploy=true`, it builds and pushes `ghcr.io/dock108dev/life-organize-api:<short-sha>` and `latest`.
+4. The deploy job SSHes to the server, syncs the repo into `DEPLOY_PATH`, updates the `life.dock108.dev` Caddy site block when needed, pulls the image, runs Alembic migrations, starts Compose, waits for `lifeorganize-api` to become healthy, verifies the running image, and smokes `https://life.dock108.dev/healthz`.
+5. A separate `prod / healthz smoke` job repeats the public `/healthz` check after deploy.
+
+See [Branch protection checks](branch-protection.md) for the status-check contract. Pull request protection should require only checks that run on pull requests; deploy-only checks such as `backend / docker publish`, `backend / deploy`, and `prod / healthz smoke` belong to main or deployment monitoring, not PR required checks.
 
 ## Required GitHub Secrets
 
@@ -45,6 +49,8 @@ The Compose file uses the internal database URL automatically, so `DATABASE_URL`
 
 `Backend/infra/Caddyfile` owns only the `life.dock108.dev` site block and routes to `127.0.0.1:8787`. On the shared SDA server this avoids colliding with SDA's API on port `8000`.
 
+`Backend/infra/scripts/update_caddy_site_block.py` replaces or appends only the matching `life.dock108.dev` site block in the host Caddyfile.
+
 The deploy user needs passwordless sudo for:
 
 - `python3` when writing `/etc/caddy/Caddyfile`
@@ -53,24 +59,32 @@ The deploy user needs passwordless sudo for:
 
 ## Manual Deploy
 
-Deploy the latest image from GitHub Actions with `Deploy Recent Backend Image`, or run the equivalent server commands:
+Deploy an existing image from GitHub Actions with `Deploy Recent Backend Image`.
+Leave `run_migrations=false` for rollback-style image changes. Set
+`run_migrations=true` only for normal manual deploys or after schema
+compatibility has been checked.
+
+To deploy manually on the server with migrations:
 
 ```sh
 cd /opt/life-organize/Backend/infra
 docker compose --env-file ../.env --profile prod pull --policy always
 docker compose --env-file ../.env --profile prod run --rm migrate
 docker compose --env-file ../.env --profile prod up -d --remove-orphans --force-recreate postgres api
+curl -fsS https://life.dock108.dev/healthz
 docker compose --env-file ../.env --profile prod ps
 ```
 
 ## Rollback
 
-Use `Deploy Recent Backend Image` with a previous SHA tag, or run:
+Use `Deploy Recent Backend Image` with a previous SHA tag and
+`run_migrations=false`, or run:
 
 ```sh
 cd /opt/life-organize/Backend/infra
 IMAGE_TAG=<previous-sha> docker compose --env-file ../.env --profile prod pull --policy always
 IMAGE_TAG=<previous-sha> docker compose --env-file ../.env --profile prod up -d --remove-orphans --force-recreate api
+curl -fsS https://life.dock108.dev/healthz
 ```
 
 Only run migrations during rollback when the schema compatibility has been checked.

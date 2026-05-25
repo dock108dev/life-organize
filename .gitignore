@@ -14,6 +14,14 @@ Backend/.ruff_cache/
 Backend/__pycache__/
 Backend/**/__pycache__/
 
+# Python test and coverage output
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.coverage
+coverage.xml
+htmlcov/
+
 # Local environment and secrets
 .env
 .env.*

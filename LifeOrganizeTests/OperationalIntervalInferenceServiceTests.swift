@@ -140,6 +140,68 @@ final class OperationalIntervalInferenceServiceTests: XCTestCase {
         XCTAssertTrue(suppressed.suppressionReason?.contains("Existing active reminder") == true)
     }
 
+    func testActiveOngoingReminderSuppressesMatchingOperationalCadenceUntilPaused() throws {
+        let thing = Thing(name: "HVAC air filter", category: .homeMaintenance)
+        let reminder = LedgerRule(
+            title: "Replace HVAC air filter",
+            ruleType: .reminder,
+            continuityBehavior: .ongoing,
+            startsAt: date(day: 1),
+            thing: thing
+        )
+        thing.events = [
+            event("Replaced HVAC air filter", day: 1, type: .replacement, thing: thing),
+            event("Replaced HVAC air filter", day: 91, type: .replacement, thing: thing),
+            event("Replaced HVAC air filter", day: 181, type: .replacement, thing: thing)
+        ]
+        thing.rules = [reminder]
+
+        XCTAssertTrue(service.inferences(for: thing, now: date(day: 182)).isEmpty)
+
+        reminder.manuallyDeactivatedAt = date(day: 182)
+        reminder.lifecycleStateRawValue = LedgerRuleLifecycleState.deactivated.rawValue
+        reminder.isActive = false
+
+        let inference = try XCTUnwrap(service.inferences(for: thing, now: date(day: 183)).first)
+        XCTAssertEqual(inference.track, .airFilter)
+        XCTAssertFalse(inference.isSuppressed)
+        XCTAssertNotNil(inference.reviewItem())
+    }
+
+    func testStaleOperationalCadenceStillCreatesReviewableCandidate() throws {
+        let thing = Thing(name: "HVAC air filter", category: .homeMaintenance)
+        thing.events = [
+            event("Replaced HVAC air filter", day: 1, type: .replacement, thing: thing),
+            event("Replaced HVAC air filter", day: 31, type: .replacement, thing: thing),
+            event("Replaced HVAC air filter", day: 61, type: .replacement, thing: thing)
+        ]
+
+        let inference = try XCTUnwrap(service.inferences(for: thing, now: date(day: 160)).first)
+
+        XCTAssertEqual(inference.calendarIntervalDays, 30)
+        XCTAssertTrue(try XCTUnwrap(inference.nextExpectedDateRange?.end) < date(day: 160))
+        XCTAssertEqual(inference.reviewItem()?.thingID, thing.id)
+        XCTAssertEqual(inference.reviewItem()?.nextExpectedDateRange, inference.nextExpectedDateRange)
+    }
+
+    func testCalendarCadenceUsesConfiguredTimezoneAcrossDstBoundary() throws {
+        var newYorkCalendar = Calendar(identifier: .gregorian)
+        newYorkCalendar.timeZone = TimeZone(identifier: "America/New_York")!
+        let service = OperationalIntervalInferenceService(calendar: newYorkCalendar)
+        let thing = Thing(name: "HVAC air filter", category: .homeMaintenance)
+        thing.events = [
+            event("Replaced HVAC air filter", occurredAt: date(2026, 3, 7, 23, calendar: newYorkCalendar), type: .replacement, thing: thing),
+            event("Replaced HVAC air filter", occurredAt: date(2026, 4, 6, 23, calendar: newYorkCalendar), type: .replacement, thing: thing),
+            event("Replaced HVAC air filter", occurredAt: date(2026, 5, 6, 23, calendar: newYorkCalendar), type: .replacement, thing: thing)
+        ]
+
+        let inference = try XCTUnwrap(service.inferences(for: thing, now: date(2026, 5, 7, 12, calendar: newYorkCalendar)).first)
+
+        XCTAssertEqual(inference.calendarIntervalDays, 30)
+        XCTAssertEqual(inference.nextExpectedDateRange?.start, date(2026, 6, 2, 0, calendar: newYorkCalendar))
+        XCTAssertEqual(inference.nextExpectedDateRange?.end, date(2026, 6, 8, 0, calendar: newYorkCalendar))
+    }
+
     func testInsufficientEvidenceDoesNotInferPattern() {
         let thing = Thing(name: "Dog food", category: .food)
         thing.events = [
@@ -204,6 +266,23 @@ final class OperationalIntervalInferenceServiceTests: XCTestCase {
         )
     }
 
+    private func event(
+        _ title: String,
+        occurredAt: Date,
+        type: LedgerEventType,
+        thing: Thing
+    ) -> LedgerEvent {
+        LedgerEvent(
+            title: title,
+            occurredAt: occurredAt,
+            rawText: title,
+            createdAt: occurredAt,
+            updatedAt: occurredAt,
+            eventType: type,
+            thing: thing
+        )
+    }
+
     private func metadataEntries(
         mileage: Double?,
         quantity: Double?,
@@ -225,5 +304,9 @@ final class OperationalIntervalInferenceServiceTests: XCTestCase {
 
     private func date(day: Int) -> Date {
         calendar.date(from: DateComponents(year: 2026, month: 1, day: day))!
+    }
+
+    private func date(_ year: Int, _ month: Int, _ day: Int, _ hour: Int, calendar: Calendar) -> Date {
+        calendar.date(from: DateComponents(year: year, month: month, day: day, hour: hour))!
     }
 }

@@ -1,3 +1,4 @@
+import SwiftData
 import XCTest
 @testable import LifeOrganize
 
@@ -387,85 +388,61 @@ final class LedgerFeedProjectionTests: XCTestCase {
         XCTAssertEqual(retriedItems.map(\.id), ["event-\(event.id.uuidString)"])
     }
 
-    private static var newYorkCalendar: Calendar {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.locale = Locale(identifier: "en_US_POSIX")
-        calendar.timeZone = TimeZone(identifier: "America/New_York")!
-        return calendar
-    }
-
-    private static func date(
-        _ year: Int,
-        _ month: Int,
-        _ day: Int,
-        _ hour: Int,
-        calendar: Calendar
-    ) throws -> Date {
-        try XCTUnwrap(calendar.date(from: DateComponents(year: year, month: month, day: day, hour: hour)))
-    }
-
-    private static func section(day: Date, calendar: Calendar, now: Date) throws -> LedgerFeedSection {
-        LedgerFeedSection(
-            day: day,
-            items: [
-                .event(
-                    LedgerEvent(
-                        title: "Test event",
-                        occurredAt: day,
-                        rawText: "Test event",
-                        createdAt: day
-                    )
-                )
-            ],
-            calendar: calendar,
-            now: now
+    @MainActor
+    func testProjectionUsesFreshFetchesAfterDeleteAndClear() throws {
+        let calendar = Self.newYorkCalendar
+        let now = try Self.date(2026, 5, 21, 12, calendar: calendar)
+        let context = makeInMemoryModelContext()
+        let thing = Thing(name: "Home Air Filters", createdAt: now, updatedAt: now)
+        let event = LedgerEvent(
+            title: "Replaced filter",
+            occurredAt: try Self.date(2026, 5, 21, 8, calendar: calendar),
+            rawText: "Replaced filter.",
+            createdAt: try Self.date(2026, 5, 21, 9, calendar: calendar),
+            thing: thing
         )
-    }
-}
+        let note = LedgerNote(
+            text: "Filter size is 20x25x1.",
+            createdAt: try Self.date(2026, 5, 21, 10, calendar: calendar),
+            updatedAt: try Self.date(2026, 5, 21, 10, calendar: calendar),
+            linkedThings: [thing]
+        )
+        let service = DerivedFieldMaintenanceService(modelContext: context, now: { now })
+        context.insert(thing)
+        try service.insertEvent(event)
+        try service.insertNote(note)
+        try context.save()
 
-private extension LedgerFeedItem {
-    var messageText: String? {
-        if case .message(let message) = self {
-            return message.text
-        }
-        return nil
-    }
-}
+        let projection = LedgerFeedProjection(calendar: calendar, now: now)
+        var sections = try projection.sections(
+            messages: context.fetch(FetchDescriptor<ChatMessage>()),
+            events: context.fetch(FetchDescriptor<LedgerEvent>()),
+            reminders: context.fetch(FetchDescriptor<LedgerRule>()),
+            notes: context.fetch(FetchDescriptor<LedgerNote>())
+        )
+        XCTAssertEqual(sections.first?.summary.typeMixText, "1 event, 1 note")
 
-private extension Array where Element == LedgerFeedItem {
-    func containsMessage(_ message: ChatMessage) -> Bool {
-        contains { item in
-            if case .message(let itemMessage) = item {
-                return itemMessage.id == message.id
-            }
-            return false
-        }
-    }
+        try service.deleteEvent(event)
+        try context.save()
+        sections = try projection.sections(
+            messages: context.fetch(FetchDescriptor<ChatMessage>()),
+            events: context.fetch(FetchDescriptor<LedgerEvent>()),
+            reminders: context.fetch(FetchDescriptor<LedgerRule>()),
+            notes: context.fetch(FetchDescriptor<LedgerNote>())
+        )
 
-    func containsEvent(_ event: LedgerEvent) -> Bool {
-        contains { item in
-            if case .event(let itemEvent) = item {
-                return itemEvent.id == event.id
-            }
-            return false
-        }
-    }
+        XCTAssertEqual(sections.first?.items.map(\.id), ["note-\(note.id.uuidString)"])
+        XCTAssertEqual(sections.first?.summary.typeMixText, "1 note")
+        XCTAssertFalse(sections.flatMap(\.items).containsEvent(event))
 
-    func containsReminder(_ reminder: LedgerRule) -> Bool {
-        contains { item in
-            if case .reminder(let itemReminder) = item {
-                return itemReminder.id == reminder.id
-            }
-            return false
-        }
-    }
-
-    func containsNote(_ note: LedgerNote) -> Bool {
-        contains { item in
-            if case .note(let itemNote) = item {
-                return itemNote.id == note.id
-            }
-            return false
-        }
+        try LocalDataClearService(modelContext: context).clearLedgerData()
+        XCTAssertTrue(
+            projection.sections(
+                messages: try context.fetch(FetchDescriptor<ChatMessage>()),
+                events: try context.fetch(FetchDescriptor<LedgerEvent>()),
+                reminders: try context.fetch(FetchDescriptor<LedgerRule>()),
+                notes: try context.fetch(FetchDescriptor<LedgerNote>())
+            ).isEmpty
+        )
     }
 }

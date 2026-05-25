@@ -1,23 +1,24 @@
-# ISSUE-002: Add canonical JSON scenario fixture library
+# ISSUE-002: Expand backend config auth and rate-limit tests
 
 **Priority**: high
-**Labels**: phase-7, fixtures, scenario-testing
-**Dependencies**: ISSUE-001
+**Labels**: backend, tests, auth, rate-limit
+**Dependencies**: ISSUE-001, ISSUE-016
 **Status**: implemented
 
 ## Description
 
-Build the Tests/Fixtures/ scenario fixture library requested by BRAINDUMP. Findings show there is no JSON scenario directory and current scenarios are hand-built in tests. Use .aidlc/research/scenario-fixture-format.md to define versioned, export-shaped, diffable fixtures with stable UUIDs, clocks, chronology, source messages, review items, and entity links. Canonical export comparison is handled separately in ISSUE-016.
+Broaden backend tests around production config validation, route auth, admin auth, device token hashing/signing, optional expiration behavior, and per-device rate limiting. Use `.aidlc/discovery/findings.md`, `.aidlc/research/backend-route-auth-test-matrix.md`, and `.aidlc/research/backend-rate-limit-contract.md`. This turns existing narrow auth helper coverage into route-level production gateway protection using the shared backend test harness from ISSUE-016.
 
 ## Acceptance Criteria
 
-- [ ] A Tests/Fixtures/ directory exists with bundled JSON fixtures and decoding types/tests that document the fixture schema in code.
-- [ ] Fixture records mirror the current LedgerExportEnvelope/ExportRecords shape where practical and include fixtureSchemaVersion, ledgerSchemaVersion, id, title, description, clock, records, and expectations.
-- [ ] Initial fixture files exist for car_maintenance, ambiguous_dog_grooming, work_continuity, heavy_history, timeline_search, and first_launch_empty or equivalent scenario ids.
-- [ ] Fixture decoding rejects missing required fields, invalid timestamps, duplicate IDs within a model type, unresolved references, invalid enum values, and inconsistent source links with actionable failures.
-- [ ] Fixture expectations can express required counts, required visible surfaces, relationship checks, search/replay expectations, and review queue expectations without embedding Swift test logic inside JSON.
+- [ ] Production/staging settings fail fast when required secrets or a non-production database URL are missing, while development defaults remain development-only.
+- [ ] `POST /api/v1/extractions` and `POST /api/v1/web-requests` reject missing, blank, whitespace, and too-short device tokens with the stable backend error contract.
+- [ ] Valid device-token route tests use mocked gateway behavior and never call OpenAI.
+- [ ] Admin routes cover missing, wrong, exact, and padded admin API keys, including session-cookie behavior for log streaming where applicable.
+- [ ] Rate-limit tests prove per-device and per-endpoint counting, rolling-window reset behavior, retry status/header behavior if implemented, shared-IP behavior if added, and no raw token logging or persistence.
+- [ ] If token expiration is added during implementation, expired-token behavior is covered at the route level; if not added, tests document that current device tokens are length/hash validated only.
 
 ## Implementation Notes
 
 
-Attempt 1: Added canonical JSON scenario fixtures under LifeOrganizeTests/Fixtures plus test-target decoding and strict validation for schema versions, required fields, timestamps, duplicate IDs, references, enum values, source links, chronology, and data-driven expectations.
+Attempt 1: Expanded backend auth/config/rate-limit coverage in tests: shared SQLite route harness, production/staging config checks, device/admin route auth matrices, admin session/SSE checks, token redaction, and per-device/per-endpoint/window rate-limit contracts.

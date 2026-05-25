@@ -11,32 +11,36 @@
 - .aidlc/discovery/topics.json
 
 ## Research (pre-built — answers to discovery topics)
-- .aidlc/research/ambiguous-human-entry-review-flow.md
-- .aidlc/research/extraction-quality-dashboard-model.md
-- .aidlc/research/first-launch-visual-state.md
-- .aidlc/research/fresh-install-state-boundaries.md
-- .aidlc/research/heavy-history-generation.md
-- .aidlc/research/internal-qa-mode-surface.md
-- .aidlc/research/launch-mode-contract.md
-- .aidlc/research/local-json-export-as-baseline.md
-- .aidlc/research/mock-extraction-fixture-library.md
-- .aidlc/research/operational-home-scenario-shape.md
-- .aidlc/research/relationship-integrity-validator.md
-- .aidlc/research/review-queue-scenario-contract.md
-- .aidlc/research/scenario-fixture-format.md
-- .aidlc/research/scenario-test-runner-output.md
-- .aidlc/research/screenshot-mode-determinism.md
-- .aidlc/research/screenshot-regression-stack.md
-- .aidlc/research/search-power-feature-coverage.md
-- .aidlc/research/simulator-walkthrough-automation.md
-- .aidlc/research/swiftdata-seed-loader-shape.md
-- .aidlc/research/temporal-ambiguity-matrix.md
-- .aidlc/research/thing-duplicate-drift-prevention.md
-- .aidlc/research/timeline-density-visual-contracts.md
-- .aidlc/research/timeline-replay-and-search-interaction.md
-- .aidlc/research/work-continuity-scenario-shape.md
+- .aidlc/research/ai-client-error-shape-parity.md
+- .aidlc/research/backend-admin-log-redaction-and-sse.md
+- .aidlc/research/backend-caddy-helper-contract.md
+- .aidlc/research/backend-ci-status-check-splitting.md
+- .aidlc/research/backend-coverage-gate-shape.md
+- .aidlc/research/backend-database-migration-smoke.md
+- .aidlc/research/backend-docker-health-and-migrations.md
+- .aidlc/research/backend-middleware-test-surface.md
+- .aidlc/research/backend-openai-gateway-error-mapping.md
+- .aidlc/research/backend-post-deploy-public-smoke.md
+- .aidlc/research/backend-python-version-pin.md
+- .aidlc/research/backend-rate-limit-contract.md
+- .aidlc/research/backend-request-contract-parity.md
+- .aidlc/research/backend-route-auth-test-matrix.md
+- .aidlc/research/branch-protection-check-names.md
+- .aidlc/research/chat-send-idempotency-contract.md
+- .aidlc/research/chat-send-local-first-failure-matrix.md
+- .aidlc/research/deployment-rollback-migration-constraint.md
+- .aidlc/research/docs-state-drift.md
+- .aidlc/research/frontend-default-backend-contract.md
+- .aidlc/research/frontend-secret-surface-guardrails.md
+- .aidlc/research/ios-ci-runner-simulator-pin.md
+- .aidlc/research/ios-ci-workflow-scope-no-deploy.md
+- .aidlc/research/ios-ui-test-live-network-boundary.md
+- .aidlc/research/ios-xccov-app-target-parser.md
+- .aidlc/research/local-verify-script-composition.md
+- .aidlc/research/screenshot-ci-cadence-and-artifacts.md
+- .aidlc/research/swiftdata-coverage-denominator.md
 
-## Existing Issues (22 files in .aidlc/issues/)
+## Existing Issues (23 files in .aidlc/issues/)
 Read individual issue files for full specs:
 - .aidlc/issues/ISSUE-001.md
 - .aidlc/issues/ISSUE-002.md
@@ -60,97 +64,100 @@ Read individual issue files for full specs:
 - .aidlc/issues/ISSUE-020.md
 - .aidlc/issues/ISSUE-021.md
 - .aidlc/issues/ISSUE-022.md
+- .aidlc/issues/ISSUE-023.md
 
 ## Issue Backlog Summary
-- Total issues: 22
-- Completion: 0/22 (0.0%)
-- Priority totals: high=18, medium=4, low=0
-- Status totals: pending=22
+- Total issues: 23
+- Completion: 0/23 (0.0%)
+- Priority totals: high=21, medium=2, low=0
+- Status totals: pending=23
 
 ### Category Rollup (Labels)
-- phase-7: 22
-- scenario: 5
-- scenario-testing: 5
-- ci: 2
-- continuity: 2
-- determinism: 2
-- extraction-quality: 2
-- fixtures: 2
-- internal-qa: 2
-- relationships: 2
-- review-queue: 2
-- scenario-runner: 2
-- screenshots: 2
-- visual-regression: 2
-- ambiguity: 1
-- artifacts: 1
-- density: 1
-- developer-tools: 1
-- duplicate-drift: 1
-- export: 1
-- first-launch: 1
-- heavy-history: 1
-- home: 1
-- infra: 1
-- integrity: 1
-- launch-modes: 1
-- mock-extraction: 1
-- performance: 1
-- qa: 1
-- quality-dashboard: 1
-- regression-baseline: 1
-- screenshot-mode: 1
+- tests: 13
+- ios: 11
+- backend: 10
+- functionality: 6
+- new-feature: 6
+- ci: 5
+- usability-flow: 5
+- design-visual: 4
+- github-actions: 3
+- infra: 3
+- coverage: 2
+- deployment: 2
+- docker: 2
+- frontend-contract: 2
+- local-first: 2
+- scripts: 2
+- smoke: 2
+- admin-logs: 1
+- ai-service-client: 1
+- auth: 1
+- branch-protection: 1
+- caddy: 1
+- chat: 1
+- configuration: 1
+- copy-contracts: 1
+- database: 1
+- middleware: 1
+- offline: 1
+- openai-gateway: 1
+- persistence: 1
+- rate-limit: 1
+- redaction: 1
+- reminders: 1
+- review-queue: 1
+- rules: 1
+- screenshots: 1
 - search: 1
-- seeded-state: 1
+- security: 1
 - swiftdata: 1
-- temporal-qa: 1
-- thing-identity: 1
+- things: 1
 - timeline: 1
-- timeline-replay: 1
-- ux-qa: 1
-- walkthrough: 1
-- work-continuity: 1
-- xcuitest: 1
+- ui-tests: 1
+- verification: 1
 
 ### Active Issues
-- ISSUE-001 [pending] [high] — Formalize deterministic launch and fresh-install reset modes labels: phase-7, infra, launch-modes, determinism
-- ISSUE-002 [pending] [high] — Add canonical JSON scenario fixture library labels: phase-7, fixtures, scenario-testing
-- ISSUE-003 [pending] [high] — Load named seed scenarios before first UI render labels: phase-7, seeded-state, swiftdata
-- ISSUE-004 [pending] [high] — Convert deterministic extraction to fixture-backed mock mode labels: phase-7, mock-extraction, fixtures
-- ISSUE-005 [pending] [high] — Build deterministic scenario runner and simulator walkthrough labels: phase-7, scenario-runner, xcuitest, walkthrough
-- ISSUE-006 [pending] [high] — Lock first-launch fresh install scenario labels: phase-7, scenario, first-launch, ux-qa
-- ISSUE-007 [pending] [high] — Add operational home continuity scenario labels: phase-7, scenario, continuity, home
-- ISSUE-008 [pending] [high] — Add ambiguous human entry and review queue scenario labels: phase-7, scenario, review-queue, ambiguity
-- ISSUE-009 [pending] [high] — Add work continuity relationship scenario labels: phase-7, scenario, work-continuity, relationships
-- ISSUE-010 [pending] [high] — Generate and validate heavy-history scenario labels: phase-7, scenario, heavy-history, performance
-- ISSUE-011 [pending] [high] — Run relationship integrity and duplicate drift validation for every scenario labels: phase-7, integrity, relationships, scenario-testing
-- ISSUE-012 [pending] [high] — Add temporal ambiguity QA matrix labels: phase-7, temporal-qa, extraction-quality
-- ISSUE-013 [pending] [medium] — Add search power-feature QA matrix labels: phase-7, search, timeline-replay, qa
-- ISSUE-014 [pending] [high] — Add screenshot mode and visual regression gate labels: phase-7, screenshots, screenshot-mode, determinism
-- ISSUE-015 [pending] [medium] — Build Internal QA Lab with extraction quality metrics labels: phase-7, internal-qa, developer-tools
-- ISSUE-016 [pending] [high] — Add canonical ledger export comparison for scenario baselines labels: phase-7, export, regression-baseline, scenario-testing
-- ISSUE-017 [pending] [high] — Emit deterministic scenario run artifact bundles labels: phase-7, artifacts, ci, scenario-runner
-- ISSUE-018 [pending] [high] — Prevent duplicate Thing drift in seeded scenarios labels: phase-7, thing-identity, duplicate-drift, scenario-testing
-- ISSUE-019 [pending] [high] — Add screenshot capture baselines and visual diff scripts labels: phase-7, screenshots, visual-regression, ci
-- ISSUE-020 [pending] [medium] — Lock timeline density and visual rhythm screenshots labels: phase-7, visual-regression, timeline, density
-- ISSUE-021 [pending] [medium] — Add internal extraction quality dashboard labels: phase-7, quality-dashboard, extraction-quality, internal-qa
-- ISSUE-022 [pending] [high] — Add review queue consistency scenario matrix labels: phase-7, review-queue, scenario-testing, continuity
+- ISSUE-001 [pending] [high] — Align backend Python runtime and coverage tooling labels: backend, coverage, ci, infra
+- ISSUE-002 [pending] [high] — Expand backend config auth and rate-limit tests labels: backend, tests, auth, rate-limit
+- ISSUE-003 [pending] [high] — Cover backend middleware and health contracts labels: backend, tests, middleware
+- ISSUE-004 [pending] [high] — Stabilize backend gateway and DTO error contracts labels: backend, frontend-contract, tests, openai-gateway
+- ISSUE-005 [pending] [high] — Test backend admin logs redaction and SSE labels: backend, tests, admin-logs, redaction
+- ISSUE-006 [pending] [high] — Add backend database migration and Docker smoke tests labels: backend, docker, database, smoke
+- ISSUE-007 [pending] [high] — Create local full verification scripts labels: scripts, verification, infra, usability-flow, new-feature
+- ISSUE-008 [pending] [high] — Lock frontend backend-default and secret guardrails labels: ios, tests, configuration, security, copy-contracts
+- ISSUE-009 [pending] [high] — Expand iOS chat send reliability tests labels: ios, tests, chat, local-first, functionality
+- ISSUE-010 [pending] [high] — Define iOS coverage denominator and parser labels: ios, coverage, scripts, usability-flow, new-feature
+- ISSUE-011 [pending] [high] — Add iOS CI workflow without deployment labels: ios, github-actions, ci, new-feature
+- ISSUE-012 [pending] [medium] — Integrate screenshot comparison into iOS CI labels: ios, screenshots, ci, usability-flow, design-visual
+- ISSUE-013 [pending] [high] — Split backend CI gates and add Docker smoke labels: backend, github-actions, ci, docker, new-feature
+- ISSUE-014 [pending] [high] — Add production health smoke after backend deploy labels: backend, deployment, smoke, new-feature
+- ISSUE-015 [pending] [medium] — Document final branch protection check set labels: github-actions, branch-protection, ci, new-feature
+- ISSUE-016 [pending] [high] — Build backend route test fixture harness labels: backend, tests, infra
+- ISSUE-017 [pending] [high] — Test backend deployment helper and rollback contracts labels: backend, deployment, tests, caddy
+- ISSUE-018 [pending] [high] — Expand iOS SwiftData persistence coverage labels: ios, tests, swiftdata, persistence, functionality
+- ISSUE-019 [pending] [high] — Expand iOS search recall timeline and things tests labels: ios, tests, search, timeline, things, functionality, design-visual
+- ISSUE-020 [pending] [high] — Expand iOS reminder and rule lifecycle tests labels: ios, tests, reminders, rules, functionality
+- ISSUE-021 [pending] [high] — Expand iOS ledger review queue tests labels: ios, tests, review-queue, functionality, design-visual
+- ISSUE-022 [pending] [high] — Expand iOS UI journey and offline coverage labels: ios, ui-tests, offline, local-first, functionality, usability-flow, design-visual
+- ISSUE-023 [pending] [high] — Expand iOS AI service client contract tests labels: ios, tests, ai-service-client, frontend-contract, usability-flow
 
 ### Completed Issues
 - none
 
 ## Other Project Docs
-- docs/audits/docs-consolidation.md
+- docs/backend.md
 - docs/current-app-state.md
+- docs/ops/deployment.md
+- docs/product-stabilization-notes.md
+- docs/screenshot-baselines.md
 - .build/DerivedData/Build/Intermediates.noindex/LifeOrganize.build/Debug-iphonesimulator/LifeOrganize.build/LifeOrganize-DebugDylibInstallName-normal-arm64.txt
 - .build/DerivedData/Build/Intermediates.noindex/LifeOrganize.build/Debug-iphonesimulator/LifeOrganize.build/LifeOrganize-DebugDylibPath-normal-arm64.txt
 - .build/DerivedData/Build/Intermediates.noindex/LifeOrganize.build/Debug-iphonesimulator/LifeOrganize.build/LifeOrganize-ExecutorLinkFileList-normal-arm64.txt
-- .build/DerivedData/Build/Intermediates.noindex/XCBuildData/59b0c2fd170e68abcda845916f2943f2.xcbuilddata/target-graph.txt
-- .deriveddata/Build/Intermediates.noindex/LifeOrganize.build/Debug-iphonesimulator/LifeOrganize.build/LifeOrganize-DebugDylibInstallName-normal-arm64.txt
-- .deriveddata/Build/Intermediates.noindex/LifeOrganize.build/Debug-iphonesimulator/LifeOrganize.build/LifeOrganize-DebugDylibPath-normal-arm64.txt
-- .deriveddata/Build/Intermediates.noindex/LifeOrganize.build/Debug-iphonesimulator/LifeOrganize.build/LifeOrganize-ExecutorLinkFileList-normal-arm64.txt
-- .deriveddata/Build/Intermediates.noindex/XCBuildData/358be672e6f2f11eb3173c2bb7b5c4fe.xcbuilddata/target-graph.txt
-- .deriveddata/Build/Intermediates.noindex/XCBuildData/4bc9b5e735765d1d5ec0ea623971a087.xcbuilddata/target-graph.txt
-- .deriveddata/Build/Intermediates.noindex/XCBuildData/bbe24457e9c07085fc377490007ff2c0.xcbuilddata/target-graph.txt
-- .deriveddata/Build/Intermediates.noindex/XCBuildData/e9bb7d47c4949fda516a18a2c182adc6.xcbuilddata/target-graph.txt
+- .build/DerivedData/Build/Intermediates.noindex/XCBuildData/06e8da148b3d4f340c480fda746fb566.xcbuilddata/target-graph.txt
+- .build/DerivedData/Build/Intermediates.noindex/XCBuildData/545ee10e2160c7f203e01b0120e4be52.xcbuilddata/target-graph.txt
+- .build/DerivedData/Build/Intermediates.noindex/XCBuildData/7d328b12769164cd494f2e94be426865.xcbuilddata/target-graph.txt
+- .build/DerivedData/Build/Intermediates.noindex/XCBuildData/a63bb8e714f43c444a97d6b9e2c545cc.xcbuilddata/target-graph.txt
 - BRAINDUMP.md
+- Backend/.pytest_cache/README.md
+- Backend/requirements.txt

@@ -16,7 +16,7 @@ extension URLSession: AIServiceHTTPSession {}
 
 struct AIServiceClient {
     let deviceToken: String?
-    var baseURL = URL(string: "https://life.dock108.dev")!
+    var baseURL = AppRuntimeConfiguration.defaultAIServiceBaseURL
     var session: any AIServiceHTTPSession = URLSession.shared
 
     func sendExtraction(_ request: BackendExtractionRequest) async throws -> ExtractionResponsePayload {
@@ -33,7 +33,7 @@ struct AIServiceClient {
     }
 
     private func send<Request: Encodable, Response: Decodable>(_ request: Request, path: String) async throws -> Response {
-        guard let deviceToken, !deviceToken.isEmpty else {
+        guard let deviceToken, !deviceToken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw AppError.missingServiceToken
         }
 
@@ -66,16 +66,44 @@ struct AIServiceClient {
             } catch {
                 throw AppError.invalidResponse
             }
-        case 401, 403:
-            throw AppError.invalidServiceToken
-        case 408:
-            throw AppError.timeout
-        case 429:
-            throw AppError.rateLimited
-        case 500..<600:
-            throw AppError.serverError
         default:
-            throw AppError.invalidResponse
+            throw mapBackendError(data, statusCode: httpResponse.statusCode)
+        }
+    }
+
+    private func mapBackendError(_ data: Data, statusCode: Int) -> AppError {
+        if let response = try? JSONDecoder().decode(BackendErrorResponse.self, from: data),
+           let code = response.code {
+            switch code {
+            case "missing_device_token", "invalid_device_token":
+                return .invalidServiceToken
+            case "timeout":
+                return .timeout
+            case "rate_limited", "device_rate_limited":
+                return .rateLimited
+            case "network_unavailable":
+                return .networkUnavailable
+            case "invalid_model_response":
+                return .invalidResponse
+            case "openai_not_configured", "openai_server_error", "openai_auth_error",
+                 "openai_invalid_response":
+                return .serverError
+            default:
+                break
+            }
+        }
+
+        switch statusCode {
+        case 401, 403:
+            return .invalidServiceToken
+        case 408:
+            return .timeout
+        case 429:
+            return .rateLimited
+        case 500..<600:
+            return .serverError
+        default:
+            return .invalidResponse
         }
     }
 

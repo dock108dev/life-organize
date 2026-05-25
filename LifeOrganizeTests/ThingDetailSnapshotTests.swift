@@ -1,3 +1,4 @@
+import SwiftData
 import XCTest
 @testable import LifeOrganize
 
@@ -182,6 +183,63 @@ final class ThingDetailSnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.latestNoteSummary?.value, "Gate code works after hours.")
         XCTAssertEqual(snapshot.timelineEntryPoints.map(\.label), ["Event", "Note", "Reminder"])
         XCTAssertTrue(snapshot.hasHistory)
+    }
+
+    @MainActor
+    func testDetailPreviewAndRelationshipTraversalReflectEditAndDeleteReassignment() throws {
+        let now = fixedTestNow
+        let context = makeInMemoryModelContext()
+        let source = Thing(name: "NWS", category: .work, createdAt: now, updatedAt: now)
+        let target = Thing(name: "Nimbus Web Services", aliases: ["Nimbus"], category: .work, createdAt: now, updatedAt: now)
+        let event = LedgerEvent(title: "Deploy completed", occurredAt: now, rawText: "Deploy completed.", thing: source)
+        let reminder = LedgerRule(title: "Review deploy", ruleType: .reminder, rawText: "Review deploy.", startsAt: now, thing: source)
+        let note = LedgerNote(text: "Release notes are in the deploy folder.", linkedThings: [source])
+        let service = DerivedFieldMaintenanceService(modelContext: context, now: { now })
+        context.insert(source)
+        context.insert(target)
+        try service.insertEvent(event)
+        try service.insertRule(reminder)
+        try service.insertNote(note)
+        try context.save()
+
+        var sourceSnapshot = ThingDetailSnapshot(thing: source, now: now, calendar: utcCalendar)
+        XCTAssertEqual(sourceSnapshot.countSummary, "1 event · 1 note · 1 active reminder")
+        XCTAssertEqual(Set(sourceSnapshot.timelineEntryPoints.map(\.navigationTarget)), [
+            .eventDetail(event.id),
+            .ruleDetail(reminder.id),
+            .noteDetail(note.id)
+        ])
+
+        target.registerAliases(["NWS"], updatedAt: now.addingTimeInterval(60))
+        try service.deleteThing(source, reassigningRecordsTo: target)
+        try context.save()
+
+        let savedThings = try context.fetch(FetchDescriptor<Thing>())
+        let savedEvents = try context.fetch(FetchDescriptor<LedgerEvent>())
+        let savedRules = try context.fetch(FetchDescriptor<LedgerRule>())
+        let savedNotes = try context.fetch(FetchDescriptor<LedgerNote>())
+        XCTAssertFalse(savedThings.contains { $0.id == source.id })
+
+        let targetSnapshot = ThingDetailSnapshot(thing: target, now: now, calendar: utcCalendar)
+        let targetPreview = ThingPreviewSnapshot(thing: target, now: now, calendar: utcCalendar)
+        let relatedTargets = RelationshipTraversalService().relatedRecords(
+            for: .thing(target.id),
+            in: RelationshipTraversalRecords(
+                things: savedThings,
+                events: savedEvents,
+                rules: savedRules,
+                notes: savedNotes
+            ),
+            allowedTargetTypes: [.event, .rule, .note]
+        )
+
+        sourceSnapshot = ThingDetailSnapshot(thing: target, now: now, calendar: utcCalendar)
+        XCTAssertEqual(sourceSnapshot.countSummary, targetSnapshot.countSummary)
+        XCTAssertEqual(targetSnapshot.countSummary, "1 event · 1 note · 1 active reminder")
+        XCTAssertEqual(targetSnapshot.identityRows.first { $0.label == "Aliases" }?.value, "Nimbus, NWS")
+        XCTAssertEqual(targetPreview.listSummaryLine.text, "3 records · Reminder due today")
+        XCTAssertEqual(targetPreview.footerItems, ["1 event", "1 note"])
+        XCTAssertEqual(Set(relatedTargets.map(\.target)), [.event(event.id), .rule(reminder.id), .note(note.id)])
     }
 
     @MainActor

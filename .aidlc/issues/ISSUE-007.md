@@ -1,25 +1,24 @@
-# ISSUE-007: Add operational home continuity scenario
+# ISSUE-007: Create local full verification scripts
 
 **Priority**: high
-**Labels**: phase-7, scenario, continuity, home
-**Dependencies**: ISSUE-002, ISSUE-003, ISSUE-005
+**Labels**: scripts, verification, infra, usability-flow, new-feature
+**Dependencies**: ISSUE-001, ISSUE-006, ISSUE-010
 **Status**: implemented
 
 ## Description
 
-Add the BRAINDUMP Scenario 2 seeded operational-home scenario for household continuity, including the dog continuity example implied by the seed-mode examples. Findings show ContinuityScenarioRegressionTests has programmatic coverage but no named fixture or launched scenario. Use .aidlc/research/operational-home-scenario-shape.md to cover air filters, dog food cadence, oil changes, warehouse purchases, garage cleaning, recurring maintenance, Thing grouping, and reminder inference without overcreating reminders.
+Create the new repo-level local verification entrypoints requested by BRAINDUMP: `Scripts/verify-backend.sh`, `Scripts/verify-ios.sh`, and `Scripts/verify-all.sh`. Discovery and `.aidlc/research/local-verify-script-composition.md` show no single command currently represents the full gate; this issue should deliver checked-in executable wrappers that compose backend lint/compile/coverage, iOS build/tests/coverage, screenshots, and optional backend smoke without requiring a local backend by default. If implementation uses helper scripts under `Scripts/verify/`, keep the top-level script names as the user-facing commands.
 
 ## Acceptance Criteria
 
-- [ ] A named operational_home fixture and a dog_continuity-compatible seed id seed Home Air Filters, dog food cadence, car/oil maintenance, Harbor Warehouse purchases, garage cleaning, recurring maintenance records, and relevant reminders/review candidates.
-- [ ] Scenario assertions verify continuity accumulation, Thing grouping, operational interval inference, and suppression when an explicit reminder already covers an inferred cadence.
-- [ ] Dog food and air-filter cadence assertions verify recurring purchase/replacement history produces reviewable operational signals without silently mutating user reminders.
-- [ ] Ordinary purchases and garage maintenance remain searchable/replayable without incorrectly producing interval reminders outside supported tracks.
-- [ ] The simulator walkthrough captures Timeline, Things, Thing detail, Carry Forward, and Search checkpoints for this seeded state.
+- [ ] `Scripts/verify-backend.sh`, `Scripts/verify-ios.sh`, and `Scripts/verify-all.sh` are executable, checked in, and can be run from the repo root.
+- [ ] `Scripts/verify-backend.sh` creates or reuses the backend virtualenv, installs test dependencies including coverage tooling, runs Ruff, compileall, and pytest coverage with the configured 80% fail-under gate.
+- [ ] `Scripts/verify-ios.sh` runs the LifeOrganize scheme tests with code coverage enabled, writes the expected xcresult bundle path, invokes the app-target coverage parser from ISSUE-010, and does not require a developer-run local backend.
+- [ ] `Scripts/verify-all.sh` runs backend, iOS, screenshot comparison, and optional smoke gates in the BRAINDUMP order and exits nonzero on the first failing discipline.
+- [ ] Backend container smoke is available through an explicit flag or subcommand and cleans up Docker Compose resources on success and failure.
+- [ ] All scripts print the command being run, the artifact path to inspect on failure, and the explicit override variables for simulator destination or local backend smoke URL.
 
 ## Implementation Notes
 
 
-Attempt 1 failed (sample):
-OpenAI CLI timed out
-Attempt 2: Added/verified operational_home seed coverage: bundled fixture, dog_continuity alias, continuity regression assertions, fixture validation, and simulator walkthrough checkpoints for Timeline, Things, Thing detail, Carry Forward, and Search.
+Attempt 1: Added executable local verification wrappers for backend, iOS, and full gates; wired backend smoke URL handling, coverage thresholds, and screenshot comparison to current screenshot test methods; refreshed screenshot baselines and documented the updated target.

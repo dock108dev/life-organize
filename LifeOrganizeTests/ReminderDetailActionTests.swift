@@ -55,6 +55,52 @@ final class ReminderDetailActionTests: XCTestCase {
         )
     }
 
+    func testRulesUIContractExposesStableIdentifiersAndActionStateMatrix() throws {
+        let ruleID = try XCTUnwrap(UUID(uuidString: "11111111-1111-1111-1111-111111111111"))
+        let dueDate = try XCTUnwrap(ExtractionService.parseDate("2027-03-15"))
+        let dateReminder = LedgerRule(
+            id: ruleID,
+            title: "Replace air filters",
+            ruleType: .reminder,
+            continuityBehavior: .dateBasedReminder,
+            startsAt: dueDate,
+            createdAt: fixedTestNow
+        )
+        let windowReminder = LedgerRule(
+            title: "Submit rebate",
+            ruleType: .reminder,
+            continuityBehavior: .timeLimitedWindow,
+            startsAt: fixedTestNow,
+            expiresAt: dueDate,
+            createdAt: fixedTestNow
+        )
+        let inactiveReminder = LedgerRule(
+            title: "Renew license",
+            ruleType: .reminder,
+            continuityBehavior: .dateBasedReminder,
+            startsAt: dueDate,
+            createdAt: fixedTestNow,
+            manuallyDeactivatedAt: fixedTestNow
+        )
+
+        XCTAssertEqual(RulesUIContract.listAccessibilityIdentifier, "carry-forward-list")
+        XCTAssertEqual(RulesUIContract.detailAccessibilityIdentifier, "carry-forward-detail")
+        XCTAssertEqual(
+            RulesUIContract.rowAccessibilityIdentifier(for: ruleID),
+            "carry-forward-row-11111111-1111-1111-1111-111111111111"
+        )
+        XCTAssertEqual(RuleDetailSheet.edit.id, "edit")
+        XCTAssertEqual(RuleDetailSheet.reschedule.id, "reschedule")
+        XCTAssertEqual(RuleDetailSheet.endDate.id, "end-date")
+        XCTAssertEqual(ReminderDetailActionPolicy.lifecycleAction(for: dateReminder, status: .scheduled)?.id, "stop-scheduled")
+        XCTAssertEqual(ReminderDetailActionPolicy.lifecycleAction(for: dateReminder, status: .active)?.id, "mark-done")
+        XCTAssertEqual(ReminderDetailActionPolicy.lifecycleAction(for: dateReminder, status: .expired)?.id, "let-rest")
+        XCTAssertNil(ReminderDetailActionPolicy.lifecycleAction(for: inactiveReminder, status: .inactive))
+        XCTAssertEqual(ReminderDetailActionPolicy.dateAction(for: inactiveReminder, status: .inactive)?.sheet, .reschedule)
+        XCTAssertEqual(ReminderDetailActionPolicy.dateAction(for: windowReminder, status: .active)?.sheet, .endDate)
+        XCTAssertNil(ReminderDetailActionPolicy.dateAction(for: windowReminder, status: .inactive))
+    }
+
     func testReminderEditValidationBlocksContradictoryDateRanges() throws {
         let start = try XCTUnwrap(ExtractionService.parseDate("2027-03-15"))
         let sameDayEnd = try XCTUnwrap(ExtractionService.parseDate("2027-03-15"))

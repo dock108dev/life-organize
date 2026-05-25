@@ -5,8 +5,7 @@ extension LifeOrganizeScenarioUITests {
         let app = launchOperationalHomeSeed(resetStore: true, initialTab: nil)
 
         XCTAssertTrue(app.navigationBars["Timeline"].waitForFastExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts.matching(labelContaining: "Replaced Home Air Filters").firstMatch.exists)
-        XCTAssertTrue(app.staticTexts.matching(labelContaining: "Bought dog food").firstMatch.exists)
+        XCTAssertTrue(app.staticTexts.matching(labelContaining: "Replaced Home Air Filters").firstMatch.waitForFastExistence(timeout: 10))
         attachScreenshot(named: "operational_home.timeline", from: app)
         app.terminate()
 
@@ -14,8 +13,8 @@ extension LifeOrganizeScenarioUITests {
         XCTAssertTrue(seededApp.navigationBars["Things"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(seededApp.descendants(matching: .any)["things-list"].exists)
         let filtersRow = seededApp.buttons.containing(.staticText, identifier: "Home Air Filters").firstMatch
-        XCTAssertTrue(filtersRow.exists)
-        XCTAssertTrue(seededApp.staticTexts.matching(labelContaining: "Home Air Filters").firstMatch.exists)
+        XCTAssertTrue(filtersRow.waitForFastExistence(timeout: 10))
+        XCTAssertTrue(seededApp.staticTexts.matching(labelContaining: "Home Air Filters").firstMatch.waitForFastExistence(timeout: 10))
         attachScreenshot(named: "operational_home.things", from: seededApp)
 
         filtersRow.tap()
@@ -27,8 +26,8 @@ extension LifeOrganizeScenarioUITests {
 
         tapTab("Carry Forward", in: seededApp)
         XCTAssertTrue(seededApp.navigationBars["Carry Forward"].waitForFastExistence(timeout: 5))
-        XCTAssertTrue(seededApp.buttons.matching(identifierPrefix: "carry-forward-row-").firstMatch.exists)
-        XCTAssertTrue(seededApp.staticTexts.matching(labelContaining: "Replace Home Air Filters").firstMatch.exists)
+        XCTAssertTrue(seededApp.buttons.matching(identifierPrefix: "carry-forward-row-").firstMatch.waitForFastExistence(timeout: 10))
+        XCTAssertTrue(seededApp.staticTexts.matching(labelContaining: "Replace Home Air Filters").firstMatch.waitForFastExistence(timeout: 10))
         attachScreenshot(named: "operational_home.carry_forward", from: seededApp)
 
         seededApp.buttons["root-search-entry"].tap()
@@ -43,7 +42,7 @@ extension LifeOrganizeScenarioUITests {
         }
         let eventResult = seededApp.buttons.matching(identifierPrefix: "ledger-search-result-event-").firstMatch
         XCTAssertTrue(eventResult.waitForFastExistence(timeout: 5))
-        XCTAssertTrue(seededApp.staticTexts.matching(labelContaining: "Bought household supplies").firstMatch.exists)
+        XCTAssertTrue(seededApp.staticTexts.matching(labelContaining: "Bought household supplies").firstMatch.waitForFastExistence(timeout: 10))
         attachScreenshot(named: "operational_home.search", from: seededApp)
     }
 

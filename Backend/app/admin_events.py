@@ -9,6 +9,30 @@ from datetime import UTC, datetime
 from itertools import count
 from typing import Any
 
+_BLOCKED_DETAIL_KEYS = {
+    "apikey",
+    "authorization",
+    "cookie",
+    "devicetoken",
+    "input",
+    "outputtext",
+    "payload",
+    "prompt",
+    "rawresponse",
+    "rawresponsetext",
+    "requestjson",
+    "response",
+    "responsebody",
+    "session",
+    "text",
+    "tokenhash",
+    "usertext",
+}
+_MAX_DETAIL_DEPTH = 3
+_MAX_DETAIL_STRING_LENGTH = 300
+_MAX_MESSAGE_LENGTH = 500
+_TRUNCATION_SUFFIX = "...[truncated]"
+
 
 @dataclass(frozen=True)
 class AdminEvent:
@@ -38,8 +62,8 @@ class AdminEventBus:
             timestamp=datetime.now(UTC).isoformat(timespec="milliseconds"),
             level=level,
             category=category,
-            message=message,
-            details={key: value for key, value in details.items() if value is not None},
+            message=_truncate(str(message), _MAX_MESSAGE_LENGTH),
+            details=_sanitize_details(details),
         )
         self._events.append(event)
         for subscriber in tuple(self._subscribers):
@@ -72,6 +96,50 @@ def event_payload(event: AdminEvent) -> dict[str, Any]:
 
 def sse_event(event: AdminEvent) -> str:
     return f"id: {event.id}\nevent: log\ndata: {json.dumps(event_payload(event))}\n\n"
+
+
+def _sanitize_details(details: dict[str, Any]) -> dict[str, Any]:
+    sanitized: dict[str, Any] = {}
+    for key, value in details.items():
+        if value is None:
+            continue
+        if _normalized_key(key) in _BLOCKED_DETAIL_KEYS:
+            sanitized[key] = "[redacted]"
+            continue
+        sanitized[key] = _sanitize_value(value, depth=0)
+    return sanitized
+
+
+def _sanitize_value(value: Any, *, depth: int) -> Any:
+    if value is None or isinstance(value, bool | int | float):
+        return value
+    if isinstance(value, str):
+        return _truncate(value, _MAX_DETAIL_STRING_LENGTH)
+    if depth >= _MAX_DETAIL_DEPTH:
+        return _truncate(str(value), _MAX_DETAIL_STRING_LENGTH)
+    if isinstance(value, dict):
+        return {
+            str(key): (
+                "[redacted]"
+                if _normalized_key(str(key)) in _BLOCKED_DETAIL_KEYS
+                else _sanitize_value(item, depth=depth + 1)
+            )
+            for key, item in value.items()
+            if item is not None
+        }
+    if isinstance(value, list | tuple):
+        return [_sanitize_value(item, depth=depth + 1) for item in value]
+    return _truncate(str(value), _MAX_DETAIL_STRING_LENGTH)
+
+
+def _normalized_key(key: str) -> str:
+    return "".join(character for character in key.lower() if character.isalnum())
+
+
+def _truncate(value: str, max_length: int) -> str:
+    if len(value) <= max_length:
+        return value
+    return f"{value[: max_length - len(_TRUNCATION_SUFFIX)]}{_TRUNCATION_SUFFIX}"
 
 
 admin_events = AdminEventBus()

@@ -4,9 +4,7 @@ import XCTest
 
 final class SwiftDataMigrationTests: XCTestCase {
     func testV1StoreMigratesToActiveSchemaAndPreservesLedgerRecords() throws {
-        let directory = FileManager.default.temporaryDirectory
-            .appending(path: "LifeOrganizeMigrationTests-\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let directory = try makeTemporaryDirectory(prefix: "LifeOrganizeMigrationTests")
         defer { try? FileManager.default.removeItem(at: directory) }
 
         let storeURL = directory.appending(path: "Ledger.store")
@@ -46,9 +44,7 @@ final class SwiftDataMigrationTests: XCTestCase {
     }
 
     func testV2StoreMigratesToActiveSchemaAndPreservesLedgerRecords() throws {
-        let directory = FileManager.default.temporaryDirectory
-            .appending(path: "LifeOrganizeMigrationTests-\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let directory = try makeTemporaryDirectory(prefix: "LifeOrganizeMigrationTests")
         defer { try? FileManager.default.removeItem(at: directory) }
 
         let storeURL = directory.appending(path: "Ledger.store")
@@ -82,6 +78,30 @@ final class SwiftDataMigrationTests: XCTestCase {
         XCTAssertEqual(notes.map(\.id), [seed.noteID])
         XCTAssertEqual(notes.first?.linkedThings.map(\.id), [seed.thingID])
         XCTAssertEqual(links.map(\.id), [seed.linkID])
+
+        let search = SearchService()
+        let searchResults = search.search(
+            "HVAC",
+            in: search.records(things: things, events: events, rules: rules, notes: notes, messages: messages)
+        )
+        let timelineRows = TimelineSliceProjection(now: seed.deactivatedAt).rows(
+            messages: messages,
+            things: things,
+            events: events,
+            reminders: rules,
+            notes: notes,
+            entityLinks: links
+        )
+        let thingSnapshot = ThingDetailSnapshot(thing: try XCTUnwrap(things.first), now: seed.deactivatedAt)
+
+        XCTAssertTrue(Set(searchResults.map(\.sourceKind)).isSuperset(of: [.thing, .event, .rule, .note, .chatMessage]))
+        XCTAssertTrue(timelineRows.contains { $0.navigationTarget == .eventDetail(seed.eventID) })
+        XCTAssertTrue(timelineRows.contains { $0.navigationTarget == .ruleDetail(seed.ruleID) })
+        XCTAssertEqual(Set(thingSnapshot.timelineEntryPoints.map(\.navigationTarget)), [
+            .eventDetail(seed.eventID),
+            .ruleDetail(seed.ruleID),
+            .noteDetail(seed.noteID)
+        ])
     }
 
     func testVersionedSchemasKeepPersistedModelNamesStable() {

@@ -1,23 +1,24 @@
-# ISSUE-014: Add screenshot mode and visual regression gate
+# ISSUE-014: Add production health smoke after backend deploy
 
 **Priority**: high
-**Labels**: phase-7, screenshots, screenshot-mode, determinism
-**Dependencies**: ISSUE-001, ISSUE-003, ISSUE-005
+**Labels**: backend, deployment, smoke, new-feature
+**Dependencies**: ISSUE-013, ISSUE-017
 **Status**: implemented
 
 ## Description
 
-Implement app-level screenshot mode determinism for the mandatory visual regression system. Findings show -fixed-now exists but no explicit screenshot mode. Use .aidlc/research/screenshot-mode-determinism.md to freeze app-owned state and presentation inputs. Baseline capture/diff scripts are split into ISSUE-019, and timeline visual contracts are split into ISSUE-020.
+Add the new post-deploy production health smoke requested by BRAINDUMP after backend deployment to Hetzner. Use `.aidlc/research/backend-post-deploy-public-smoke.md` and `.aidlc/research/deployment-rollback-migration-constraint.md`. The smoke should verify the running container first, then public routing through Caddy at `https://life.dock108.dev/healthz`, and should apply to the normal main deploy path and any manual recent-image deploy path where practical.
 
 ## Acceptance Criteria
 
-- [ ] -screenshot-mode is parsed and activates deterministic UI-test-safe storage, deterministic extractor behavior, fixed local state, and no production keychain/network dependency.
-- [ ] Screenshot mode can choose or derive a seed scenario, fixed current date, API key state, starting surface, locale/time-zone/calendar inputs, and animation/loading behavior where app-controlled.
-- [ ] Screenshot mode avoids focused inputs, keyboard drift, first-run prompts, and async loading states at capture checkpoints.
-- [ ] Screenshot mode is compatible with seeded scenarios for empty, default, review, search, carry-forward, and heavy states.
-- [ ] Unit and UI launch tests prove screenshot mode produces repeatable first visible state with the same fixed arguments across repeated launches.
+- [ ] The backend deploy workflow checks the replacement container health before public smoke runs.
+- [ ] After a successful deploy, GitHub Actions runs `curl -fsS https://life.dock108.dev/healthz` and fails the deploy job if the public endpoint is not healthy.
+- [ ] The public smoke check is exposed as the stable `prod / healthz smoke` status for protected branches where applicable.
+- [ ] The manual recent-image deploy workflow performs the same public smoke check or documents an equivalent explicit manual gate in the workflow output.
+- [ ] `/healthz` remains unauthenticated, minimal, and free of provider secrets or user content.
+- [ ] Rollback deploy behavior respects the migration compatibility constraints from ISSUE-017 before running migrations or replacing the API container.
 
 ## Implementation Notes
 
 
-Attempt 1: Added screenshot mode parsing and deterministic launch behavior in runtime/app root, including seeded scenario routing, fixed date/locale/time zone/calendar, key state, animation suppression, unfocused capture state, and repeatable UI launch coverage.
+Attempt 1: Added post-deploy public /healthz smoke to backend deploy and recent-image workflows, exposed prod / healthz smoke job, documented manual/rollback smoke, and added deployment contract coverage.

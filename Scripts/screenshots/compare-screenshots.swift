@@ -26,6 +26,13 @@ struct Comparison {
     let meanChannelDelta: Double
 }
 
+enum FailureKind: String {
+    case missingActual = "missing actual"
+    case sizeMismatch = "size mismatch"
+    case unexpectedActual = "unexpected screenshot"
+    case pixelDiff = "pixel-diff"
+}
+
 enum CompareError: Error, CustomStringConvertible {
     case invalidArguments(String)
     case missingDirectory(String)
@@ -219,20 +226,30 @@ do {
         let name = baselineURL.lastPathComponent
         let actualURL = URL(fileURLWithPath: options.actual).appendingPathComponent(name)
         guard FileManager.default.fileExists(atPath: actualURL.path) else {
-            failures.append("FAIL \(name)\n  missing actual: \(actualURL.path)")
+            failures.append("""
+            FAIL \(name) [\(FailureKind.missingActual.rawValue)]
+              baseline: \(baselineURL.path)
+              actual:   \(actualURL.path)
+            """)
             continue
         }
         let baseline = try loadImage(baselineURL)
         let actual = try loadImage(actualURL)
         guard baseline.width == actual.width, baseline.height == actual.height else {
-            failures.append("FAIL \(name)\n  baseline: \(baseline.width)x\(baseline.height)\n  actual:   \(actual.width)x\(actual.height)")
+            failures.append("""
+            FAIL \(name) [\(FailureKind.sizeMismatch.rawValue)]
+              baseline: \(baselineURL.path)
+              actual:   \(actualURL.path)
+              baseline size: \(baseline.width)x\(baseline.height)
+              actual size:   \(actual.width)x\(actual.height)
+            """)
             continue
         }
         let result = compare(baseline: baseline, actual: actual, options: options)
         if result.differentPixels > result.allowedDifferentPixels || result.meanChannelDelta > options.maxMeanChannelDelta {
             let diffPath = try writeDiff(name: name, baseline: baseline, actual: actual, options: options)
             failures.append("""
-            FAIL \(name)
+            FAIL \(name) [\(FailureKind.pixelDiff.rawValue)]
               baseline: \(baselineURL.path)
               actual:   \(actualURL.path)
               diff:     \(diffPath)
@@ -249,11 +266,22 @@ do {
     let actualNames = Set((try? pngFiles(in: options.actual).map(\.lastPathComponent)) ?? [])
     let baselineNames = Set(baselines.map(\.lastPathComponent))
     for extra in actualNames.subtracting(baselineNames).sorted() {
-        failures.append("FAIL \(extra)\n  unexpected actual without baseline")
+        let actualURL = URL(fileURLWithPath: options.actual).appendingPathComponent(extra)
+        let expectedBaselineURL = URL(fileURLWithPath: options.baseline).appendingPathComponent(extra)
+        failures.append("""
+        FAIL \(extra) [\(FailureKind.unexpectedActual.rawValue)]
+          baseline: \(expectedBaselineURL.path)
+          actual:   \(actualURL.path)
+        """)
     }
 
     if !failures.isEmpty {
         print(failures.joined(separator: "\n"))
+        print("""
+
+        Screenshot comparison failed. Inspect actual PNGs under \(options.actual) and diff PNGs under \(options.diff).
+        To accept intentional visual changes, run Scripts/screenshots/run-screenshot-tests.sh update and commit the updated baselines under \(options.baseline).
+        """)
         exit(1)
     }
 } catch {

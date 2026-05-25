@@ -1,0 +1,5 @@
+{
+  "rawResponseText": "{\"schemaVersion\":\"1.0\",\"messageType\":\"log\",\"language\":\"en\",\"summary\":\"Imported schedule.\",\"things\":[],\"events\":[],\"rules\":[],\"notes\":[],\"dates\":[],\"aliases\":[],\"recallQueries\":[],\"confidence\":{\"overall\":1,\"requiresReview\":false,\"reasons\":[\"none\"]},\"errors\":[]}",
+  "requestJSON": "{\"text\":\"Add all home games from my schedule.\"}",
+  "modelName": "test-backend"
+}

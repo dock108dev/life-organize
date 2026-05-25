@@ -1,26 +1,29 @@
-# ISSUE-022: Add review queue consistency scenario matrix
+# ISSUE-022: Expand iOS UI journey and offline coverage
 
 **Priority**: high
-**Labels**: phase-7, review-queue, scenario-testing, continuity
-**Dependencies**: ISSUE-005, ISSUE-008, ISSUE-011, ISSUE-012, ISSUE-018
+**Labels**: ios, ui-tests, offline, local-first, functionality, usability-flow, design-visual
+**Dependencies**: ISSUE-008, ISSUE-018, ISSUE-019, ISSUE-020, ISSUE-021
 **Status**: implemented
 
 ## Description
 
-Expand review QA beyond the single ambiguous Bogey scenario in ISSUE-008. BRAINDUMP calls out review queue inconsistency and trustworthy review systems as core risk areas. Use .aidlc/research/review-queue-scenario-contract.md to cover ambiguous extraction, duplicate Things, temporal conflicts, local recovery, partial extraction, and screenshot/artifact visibility for review states. Depend on ISSUE-008 and ISSUE-012 so ambiguous and temporal cases share canonical scenario behavior instead of drifting into parallel expectations.
+Add UI test coverage for the visible frontend flows BRAINDUMP lists beyond screenshot comparison: first launch, chat input and ledger feed, timeline, things, rules, search, review queue, debug/internal QA surfaces intentionally shipped in debug builds, and offline/local-first behavior when the backend is unavailable. Use `.aidlc/discovery/findings.md` and `.aidlc/research/ios-ui-test-live-network-boundary.md`, with visual coherence checks kept to already scoped screens and states.
 
 ## Acceptance Criteria
 
-- [ ] Deterministic review scenarios cover ambiguous extraction, duplicate Things, temporal conflicts, local recovery, and partial extraction with fixed clocks and stable UUIDs.
-- [ ] Each generated review item asserts kind, state, target type/id, confidence, title/detail/action, evidence, createdAt/updatedAt, and dedupe key behavior.
-- [ ] Queue entries assert correction class, primary action title, blocked/unblocked state, ordering/focus behavior, and stable presentation in the Review queue UI.
-- [ ] Blocked review actions show deterministic, specific explanations and leave the item open with a clear next step.
-- [ ] Generation does not mutate source records, merge Things, change dates, create retry attempts, or silently delete stale generated items except through explicit supersede behavior.
-- [ ] Retry, dismiss, mark reviewed, save as note, merge duplicate Things, reassign records, and adjust reminder timing actions either complete fully or fail without partial mutation and without closing the item.
-- [ ] After any successful or failed review action, the user can return to the queue, source record, or related Thing without losing navigation context.
-- [ ] At least one review queue screenshot checkpoint and one scenario artifact bundle include review queue state for regression triage.
+- [ ] UI tests cover first launch, chat input, ledger feed, timeline navigation, things list/detail/edit/delete, rules list/detail/actions, search open/dismiss/result navigation, and review queue.
+- [ ] First-launch UI coverage proves a new user can reach the primary local-first workflow without needing to configure a local backend.
+- [ ] UI tests cover debug/internal QA surfaces that remain intentionally available in debug builds without exposing provider secrets.
+- [ ] Offline/local-first UI tests simulate backend unavailability through deterministic or stubbed boundaries and prove local data remains usable.
+- [ ] At least one UI flow sends a chat entry while the backend boundary is unavailable, verifies the local message remains visible, then navigates to related ledger/review state without a live network call.
+- [ ] Recovery flows for pending token, retryable backend failure, and review-needed states have reachable next actions and do not strand the user on a dead end.
+- [ ] Primary states across first launch, ledger feed, timeline, things, rules, search, review queue, and debug surfaces use consistent hierarchy for titles, status badges, actions, and empty states.
+- [ ] A guard test or static UI-test lint prevents routine UI tests from bypassing `launchUITestApp(...)` and launching without deterministic extraction.
+- [ ] UI tests remain deterministic with fixed time, locale, animations disabled, reset/seed flags, and no live OpenAI calls.
 
 ## Implementation Notes
 
 
-Attempt 1: Added deterministic review queue scenario coverage for ambiguous extraction, duplicate Things, temporal conflicts, local recovery, partial extraction, action atomicity, navigation context, and artifact screenshot/export state; partial extraction review evidence now includes created notes.
+Attempt 1 failed (sample):
+OpenAI CLI timed out
+Attempt 2: Added deterministic offline AI-service simulation, expanded UI journey/offline/debug coverage, strengthened UI launch determinism, and added runtime/network guard tests.

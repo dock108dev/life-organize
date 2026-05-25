@@ -8,6 +8,11 @@ on:
         required: false
         default: latest
         type: string
+      run_migrations:
+        description: "Run migrations before deploy only after schema compatibility has been checked"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -27,11 +32,12 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           GH_REF: ${{ github.ref_name }}
           IMAGE_TAG: ${{ github.event.inputs.image_tag }}
+          RUN_MIGRATIONS: ${{ github.event.inputs.run_migrations }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: GHCR_TOKEN,GH_ACTOR,GH_REPO,DEPLOY_PATH,GH_REF,IMAGE_TAG
+          envs: GHCR_TOKEN,GH_ACTOR,GH_REPO,DEPLOY_PATH,GH_REF,IMAGE_TAG,RUN_MIGRATIONS
           script: |
             set -euo pipefail
 
@@ -89,7 +95,12 @@ jobs:
             docker builder prune -af 2>/dev/null || true
 
             docker compose --env-file ../.env --profile prod pull --policy always
-            docker compose --env-file ../.env --profile prod run --rm migrate
+            if [ "${RUN_MIGRATIONS}" = "true" ]; then
+              echo "Schema compatibility was checked; running migrations..."
+              docker compose --env-file ../.env --profile prod run --rm migrate
+            else
+              echo "Skipping migrations for selected-image deploy."
+            fi
             docker compose --env-file ../.env --profile prod up -d --remove-orphans --force-recreate postgres api
 
             for i in $(seq 1 30); do
@@ -110,5 +121,20 @@ jobs:
               docker logs lifeorganize-api --tail=80 2>/dev/null || true
               exit 1
             fi
+
+            echo "Verifying public health endpoint..."
+            for i in $(seq 1 12); do
+              if smoke_response="$(curl -fsS https://life.dock108.dev/healthz --max-time 10)"; then
+                if printf '%s' "$smoke_response" | python3 -c 'import json, sys; sys.exit(0 if json.load(sys.stdin) == {"ok": True} else 1)'; then
+                  echo "Public health endpoint healthy"
+                  break
+                fi
+              fi
+              echo "  Waiting for public health endpoint ($i/12)..."
+              sleep 5
+            done
+
+            smoke_response="$(curl -fsS https://life.dock108.dev/healthz --max-time 10)"
+            printf '%s' "$smoke_response" | python3 -c 'import json, sys; sys.exit(0 if json.load(sys.stdin) == {"ok": True} else 1)'
 
             docker compose --env-file ../.env --profile prod ps

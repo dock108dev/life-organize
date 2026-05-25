@@ -77,7 +77,7 @@ extension LocalJSONExportService {
             ruleIDs,
             noteIDs
         )
-        try validateReviewItems(records.ledgerReviewItems, chatMessageIDs, thingIDs, eventIDs, ruleIDs)
+        try validateReviewItems(records.ledgerReviewItems, chatMessageIDs, thingIDs, eventIDs, ruleIDs, noteIDs)
     }
 
     private func validateEntityLinks(
@@ -109,21 +109,22 @@ extension LocalJSONExportService {
         _ chatMessageIDs: Set<String>,
         _ thingIDs: Set<String>,
         _ eventIDs: Set<String>,
-        _ ruleIDs: Set<String>
+        _ ruleIDs: Set<String>,
+        _ noteIDs: Set<String>
     ) throws {
         for item in items {
             if let targetID = item.targetId {
                 try validateEndpoint(
                     type: item.targetType,
                     id: targetID,
-                    ids: reviewItemEntityIDs(for: item.targetType, chatMessageIDs, thingIDs, eventIDs, ruleIDs)
+                    ids: reviewItemEntityIDs(for: item.targetType, chatMessageIDs, thingIDs, eventIDs, ruleIDs, noteIDs)
                 )
             }
             for evidence in item.evidence {
                 try validateEndpoint(
                     type: evidence.sourceType,
                     id: evidence.sourceId,
-                    ids: reviewItemEntityIDs(for: evidence.sourceType, chatMessageIDs, thingIDs, eventIDs, ruleIDs)
+                    ids: reviewItemEntityIDs(for: evidence.sourceType, chatMessageIDs, thingIDs, eventIDs, ruleIDs, noteIDs)
                 )
             }
         }
@@ -191,7 +192,8 @@ extension LocalJSONExportService {
         _ chatMessageIDs: Set<String>,
         _ thingIDs: Set<String>,
         _ eventIDs: Set<String>,
-        _ ruleIDs: Set<String>
+        _ ruleIDs: Set<String>,
+        _ noteIDs: Set<String>
     ) -> Set<String> {
         switch type {
         case "chat_message":
@@ -202,6 +204,8 @@ extension LocalJSONExportService {
             eventIDs
         case "rule":
             ruleIDs
+        case "none":
+            noteIDs
         default:
             []
         }

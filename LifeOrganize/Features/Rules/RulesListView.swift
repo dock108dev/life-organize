@@ -61,7 +61,7 @@ struct RulesListView: View {
                                 ForEach(laneRules) { rule in
                                     let reviewPresentation = reviewPresentation(for: rule)
                                     ruleLink(rule, reviewPresentation: reviewPresentation)
-                                        .accessibilityIdentifier("carry-forward-row-\(rule.id.uuidString)")
+                                        .accessibilityIdentifier(RulesUIContract.rowAccessibilityIdentifier(for: rule.id))
                                         .listRowInsets(ReminderListLayout.rowInsets)
                                         .listRowSeparator(.hidden)
                                         .listRowBackground(Color.clear)
@@ -77,7 +77,7 @@ struct RulesListView: View {
                     }
                 }
                 .listStyle(.plain)
-                .accessibilityIdentifier("carry-forward-list")
+                .accessibilityIdentifier(RulesUIContract.listAccessibilityIdentifier)
                 .listSectionSpacing(ReminderListLayout.sectionSpacing)
                 .scrollContentBackground(.hidden)
                 .background(LedgerScreenBackground().ignoresSafeArea())
@@ -145,6 +145,15 @@ struct RulesListView: View {
             targetID: rule.id,
             in: reviewItems
         )
+    }
+}
+
+enum RulesUIContract {
+    static let listAccessibilityIdentifier = "carry-forward-list"
+    static let detailAccessibilityIdentifier = "carry-forward-detail"
+
+    static func rowAccessibilityIdentifier(for ruleID: UUID) -> String {
+        "carry-forward-row-\(ruleID.uuidString)"
     }
 }
 

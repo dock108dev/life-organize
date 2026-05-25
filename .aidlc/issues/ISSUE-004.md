@@ -1,25 +1,23 @@
-# ISSUE-004: Convert deterministic extraction to fixture-backed mock mode
+# ISSUE-004: Stabilize backend gateway and DTO error contracts
 
 **Priority**: high
-**Labels**: phase-7, mock-extraction, fixtures
-**Dependencies**: ISSUE-001, ISSUE-002
+**Labels**: backend, frontend-contract, tests, openai-gateway
+**Dependencies**: ISSUE-001, ISSUE-016
 **Status**: implemented
 
 ## Description
 
-Replace the fragile hard-coded mock extractor shape with a deterministic message-to-payload fixture registry while preserving existing behavior. Findings show -use-fake-extractor exists but DeterministicMessageExtractionClient is an ordered substring chain, not the BRAINDUMP fixture mapping. Use .aidlc/research/mock-extraction-fixture-library.md to migrate safely with parity tests, deterministic fallback behavior, collision handling, and scenario fixture integration.
+Make backend OpenAI gateway failures and iOS-facing request/error shapes explicit and test-covered without live OpenAI calls. Use `.aidlc/research/backend-openai-gateway-error-mapping.md`, `.aidlc/research/backend-request-contract-parity.md`, and `.aidlc/research/ai-client-error-shape-parity.md`; rely on ISSUE-016 for route/gateway stubbing.
 
 ## Acceptance Criteria
 
-- [ ] DeterministicMessageExtractionClient keeps the existing MessageExtractionClient contract, requestJSON mode, and modelName while delegating response selection to an ordered fixture registry.
-- [ ] Existing deterministic extraction outputs remain behaviorally identical for current tests before new fixture coverage is added.
-- [ ] Fixture entries map message patterns or exact test messages to deterministic payload builders and preserve relative-date behavior from the supplied fixed now.
-- [ ] Fixture matching order is explicit and tested so overlapping patterns cannot change behavior accidentally.
-- [ ] Unmatched messages use a deterministic fallback response or deterministic failure path that is stable across runs and never calls OpenAI.
-- [ ] The BRAINDUMP example Replace air filter in 2 months is covered by a deterministic fixture payload that resolves to Home Air Filters with a stable two-month reminder window.
-- [ ] Mock extraction fixtures cover at least the first launch no-op path, operational home inputs, Bogey ambiguous grooming, work continuity inputs, temporal matrix examples, and review queue partial/failure cases without calling OpenAI.
+- [ ] Mocked gateway tests cover missing key, timeout, transport failure, 429, 5xx, 401/403, other non-2xx status, malformed JSON body, and missing output text.
+- [ ] Route-level tests assert backend status codes and machine-readable error codes for extraction and web-request failures.
+- [ ] Backend request/response schema tests catch drift against iOS DTO names for extraction, web answer, and web import modes.
+- [ ] The strict OpenAI extraction schema name remains locked to the intended versioned name.
+- [ ] iOS decoding expectations are reconciled with backend error response shapes, including nested FastAPI `detail` responses or a flattened backend error envelope.
 
 ## Implementation Notes
 
 
-Attempt 1: Converted DeterministicMessageExtractionClient to delegate to an ordered fixture registry, split event/rule-note fixtures, added deterministic no-op, fallback, ordering, metadata, and ambiguous grooming coverage.
+Attempt 1: Stabilized backend/iOS gateway contracts with mocked OpenAI error mapping tests, route error-code assertions, shared DTO/schema fixtures, schema-version lock tests, and iOS backend error envelope mapping in AIServiceClient.

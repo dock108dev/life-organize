@@ -59,6 +59,14 @@ extension ChatSendService {
                 "AI service error."
             )
         }
+        if case AppError.invalidResponse = error {
+            return (
+                .failedNeedsReview,
+                .schemaValidationFailed,
+                formatter.extractionFailed(),
+                "AI service returned an invalid response."
+            )
+        }
 
         let detail = error.localizedDescription
         return (

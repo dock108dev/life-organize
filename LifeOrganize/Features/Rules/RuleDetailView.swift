@@ -85,7 +85,7 @@ struct RuleDetailView: View {
             .padding(.vertical, 14)
         }
         .background(LedgerScreenBackground().ignoresSafeArea())
-        .accessibilityIdentifier("carry-forward-detail")
+        .accessibilityIdentifier(RulesUIContract.detailAccessibilityIdentifier)
         .navigationTitle("Carry Forward")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

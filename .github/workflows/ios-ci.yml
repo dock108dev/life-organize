@@ -1,0 +1,204 @@
+name: iOS CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "LifeOrganize/**"
+      - "LifeOrganizeTests/**"
+      - "LifeOrganizeUITests/**"
+      - "LifeOrganize.xcodeproj/**"
+      - "*.swift"
+      - "project.yml"
+      - "Package.swift"
+      - "Package.resolved"
+      - "**/*.xcassets/**"
+      - "**/*.strings"
+      - "**/*.stringsdict"
+      - "**/*.storyboard"
+      - "**/*.xib"
+      - "**/*.png"
+      - "**/*.jpg"
+      - "**/*.jpeg"
+      - "**/*.webp"
+      - "**/*.pdf"
+      - "**/*.svg"
+      - "**/*.ttf"
+      - "**/*.otf"
+      - "Scripts/ios_coverage_gate.py"
+      - "Scripts/verify-ios.sh"
+      - "Scripts/screenshots/**"
+      - "Tests/ScreenshotBaselines/**"
+      - "fastlane/**"
+      - "docs/screenshot-baselines.md"
+      - ".github/workflows/ios-ci.yml"
+  workflow_dispatch:
+    inputs:
+      upload_screenshot_artifacts:
+        description: "Upload screenshot artifacts even when comparison passes"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build-ios:
+    name: ios / build
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      IOS_DESTINATION: "platform=iOS Simulator,name=iPhone 16,OS=18.6"
+      IOS_DERIVED_DATA: "BuildArtifacts/DerivedData"
+    steps:
+      - uses: actions/checkout@v6
+      - name: Show Xcode and simulator inventory
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+          xcrun simctl list runtimes
+          xcrun simctl list devices available
+      - name: Build for testing
+        run: |
+          set -o pipefail
+          mkdir -p BuildArtifacts/Logs
+          xcodebuild build-for-testing \
+            -project LifeOrganize.xcodeproj \
+            -scheme LifeOrganize \
+            -destination "$IOS_DESTINATION" \
+            -derivedDataPath "$IOS_DERIVED_DATA" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY= \
+            2>&1 | tee BuildArtifacts/Logs/build.log
+      - name: Upload iOS build failure artifacts
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-failure-artifacts
+          if-no-files-found: ignore
+          path: |
+            BuildArtifacts/Logs/build.log
+            BuildArtifacts/DerivedData/Logs/**/*.xcactivitylog
+
+  test-ios:
+    name: ios / unit and ui tests
+    runs-on: macos-15
+    timeout-minutes: 45
+    needs: build-ios
+    env:
+      IOS_DESTINATION: "platform=iOS Simulator,name=iPhone 16,OS=18.6"
+      IOS_DERIVED_DATA: "BuildArtifacts/DerivedData"
+      IOS_RESULT_BUNDLE: "BuildArtifacts/LifeOrganizeTests.xcresult"
+      IOS_COVERAGE_THRESHOLD: "0.80"
+      IOS_SKIP_COVERAGE_GATE: "1"
+    steps:
+      - uses: actions/checkout@v6
+      - name: Show Xcode and simulator inventory
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+          xcrun simctl list runtimes
+          xcrun simctl list devices available
+      - name: Run iOS unit and UI tests
+        run: |
+          set -o pipefail
+          mkdir -p BuildArtifacts/Logs
+          Scripts/verify-ios.sh 2>&1 | tee BuildArtifacts/Logs/test.log
+      - name: Upload iOS test result bundle for coverage
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-result-bundle-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            BuildArtifacts/LifeOrganizeTests.xcresult
+      - name: Upload iOS test failure artifacts
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-failure-artifacts
+          if-no-files-found: ignore
+          path: |
+            BuildArtifacts/LifeOrganizeTests.xcresult
+            BuildArtifacts/Logs/test.log
+            BuildArtifacts/DerivedData/Logs/**/*.xcactivitylog
+
+  coverage-ios:
+    name: ios / coverage >= 80
+    runs-on: macos-15
+    timeout-minutes: 10
+    needs: test-ios
+    env:
+      IOS_RESULT_BUNDLE: "BuildArtifacts/LifeOrganizeTests.xcresult"
+      IOS_COVERAGE_THRESHOLD: "0.80"
+    steps:
+      - uses: actions/checkout@v6
+      - name: Download iOS test result bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-test-result-bundle-${{ github.sha }}
+          path: BuildArtifacts
+      - name: Run iOS coverage gate
+        run: |
+          Scripts/ios_coverage_gate.py "$IOS_RESULT_BUNDLE" --threshold "$IOS_COVERAGE_THRESHOLD"
+
+  screenshot-comparison:
+    name: ios / screenshots
+    runs-on: macos-15
+    timeout-minutes: 45
+    needs: build-ios
+    env:
+      SCREENSHOT_PROJECT: "LifeOrganize.xcodeproj"
+      SCREENSHOT_SCHEME: "LifeOrganize"
+      SCREENSHOT_DEVICE_NAME: "iPhone 16"
+      SCREENSHOT_DEVICE_OS: "18.6"
+      SCREENSHOT_APPEARANCE: "light"
+      SCREENSHOT_RESULT_BUNDLE: "BuildArtifacts/ScreenshotTests.xcresult"
+      SCREENSHOT_ACTUAL_DIR: "BuildArtifacts/screenshots/actual/iPhone_16/light"
+      SCREENSHOT_DIFF_DIR: "BuildArtifacts/screenshots/diff/iPhone_16/light"
+      SCREENSHOT_BASELINE_DIR: "Tests/ScreenshotBaselines/iPhone_16/light"
+    steps:
+      - uses: actions/checkout@v6
+      - name: Show Xcode and simulator inventory
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+          xcrun simctl list runtimes
+          xcrun simctl list devices available
+      - name: Run screenshot comparison
+        run: |
+          set -o pipefail
+          mkdir -p BuildArtifacts/screenshots
+          Scripts/screenshots/run-screenshot-tests.sh compare 2>&1 | tee BuildArtifacts/screenshots/compare.log
+      - name: Upload screenshot failure artifacts
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-failure-iPhone_16-light-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            BuildArtifacts/ScreenshotTests.xcresult
+            BuildArtifacts/screenshots/actual/iPhone_16/light
+            BuildArtifacts/screenshots/diff/iPhone_16/light
+            BuildArtifacts/screenshots/compare.log
+      - name: Upload screenshot artifacts
+        if: github.event_name == 'workflow_dispatch' && inputs.upload_screenshot_artifacts == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-artifacts-iPhone_16-light-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            BuildArtifacts/ScreenshotTests.xcresult
+            BuildArtifacts/screenshots/actual/iPhone_16/light
+            BuildArtifacts/screenshots/diff/iPhone_16/light
+            BuildArtifacts/screenshots/compare.log

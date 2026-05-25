@@ -56,6 +56,74 @@ final class AIServiceClientTests: XCTestCase {
         XCTAssertFalse(encoded.contains("web_search"))
     }
 
+    @MainActor
+    func testBackendRequestDTOsMatchContractFixtures() throws {
+        let timeZone = try XCTUnwrap(TimeZone(identifier: "America/New_York"))
+        let extraction = AIServiceMessageExtractionClient.backendRequest(
+            for: #"Changed the "hallway" filter today."#,
+            now: fixedTestNow,
+            timeZone: timeZone
+        )
+        let answer = AIServiceWebRequestClient.backendRequest(
+            for: "Saturday best college football games with kickoff times.",
+            mode: .answer,
+            now: fixedTestNow,
+            timeZone: timeZone
+        )
+        let importRequest = AIServiceWebRequestClient.backendRequest(
+            for: "Add all home games from my schedule.",
+            mode: .importRecords,
+            now: fixedTestNow,
+            timeZone: timeZone
+        )
+
+        XCTAssertEqual(
+            extraction,
+            try decodeContractFixture(BackendExtractionRequest.self, "backend_extraction_request.v1")
+        )
+        XCTAssertEqual(
+            answer,
+            try decodeContractFixture(BackendWebRequest.self, "backend_web_answer_request.v1")
+        )
+        XCTAssertEqual(
+            importRequest,
+            try decodeContractFixture(BackendWebRequest.self, "backend_web_import_request.v1")
+        )
+    }
+
+    func testBackendResponseDTOsDecodeContractFixtures() throws {
+        let extraction = try decodeContractFixture(BackendExtractionResponse.self, "backend_extraction_response.v1")
+        let answer = try decodeContractFixture(BackendWebResponse.self, "backend_web_answer_response.v1")
+        let importResponse = try decodeContractFixture(BackendWebResponse.self, "backend_web_import_response.v1")
+
+        XCTAssertEqual(extraction.modelName, "test-backend")
+        XCTAssertNotNil(extraction.requestJSON)
+        XCTAssertNotNil(answer.assistantText)
+        XCTAssertNil(answer.rawResponseText)
+        XCTAssertNotNil(importResponse.rawResponseText)
+        XCTAssertNotNil(importResponse.requestJSON)
+    }
+
+    func testBackendErrorResponseDecodesFlatNestedAndValidationShapes() throws {
+        let flat = try decodeContractFixture(BackendErrorResponse.self, "backend_error_flat.v1")
+        let nested = try decodeContractFixture(BackendErrorResponse.self, "backend_error_nested.v1")
+        let validation = try decodeContractFixture(BackendErrorResponse.self, "backend_validation_error.v1")
+
+        XCTAssertEqual(flat.code, "rate_limited")
+        XCTAssertEqual(flat.detail, "OpenAI rate limit reached.")
+        XCTAssertEqual(nested.code, "timeout")
+        XCTAssertEqual(nested.detail, "OpenAI request timed out.")
+        XCTAssertNil(validation.code)
+        XCTAssertNil(validation.detail)
+    }
+
+    func testExtractionContractMetadataMatchesClientConstants() throws {
+        let metadata = try decodeContractFixture(ExtractionContractMetadata.self, "extraction_contract.v1")
+
+        XCTAssertEqual(metadata.requestSchemaVersion, ExtractionContract.schemaVersion)
+        XCTAssertEqual(metadata.webModes, ["answer", "importRecords"])
+    }
+
     func testLegacyDirectProviderDTOsAreAbsent() {
         let projectRoot = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
         let deletedPaths = [
@@ -144,18 +212,55 @@ final class AIServiceClientTests: XCTestCase {
     }
 
     @MainActor
-    func testAIServiceClientMapsHTTPAndTransportFailures() async throws {
-        try await assertClientError(statusCode: 401, expected: .invalidServiceToken)
-        try await assertClientError(statusCode: 429, expected: .rateLimited)
-        try await assertClientError(statusCode: 500, expected: .serverError)
+    func testAIServiceClientErrorsMapToDistinctRecoveryStates() {
+        let service = ChatSendService(
+            modelContext: makeInMemoryModelContext(),
+            extractor: ThrowingMessageExtractionClient(error: AppError.serverError),
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
 
-        let client = AIServiceClient(deviceToken: "test-token", session: StubHTTPSession(error: URLError(.timedOut)))
-        do {
-            _ = try await client.sendExtraction(emptyBackendRequest())
-            XCTFail("Expected timeout.")
-        } catch let error as AppError {
-            XCTAssertEqual(error, .timeout)
-        }
+        assertRecoveryMapping(
+            service.mapExtractionError(AppError.missingServiceToken),
+            status: .pendingToken,
+            code: .missingServiceToken,
+            detail: "AI service credential is missing."
+        )
+        assertRecoveryMapping(
+            service.mapExtractionError(AppError.invalidServiceToken),
+            status: .pendingToken,
+            code: .invalidServiceToken,
+            detail: "AI service credential was rejected."
+        )
+        assertRecoveryMapping(
+            service.mapExtractionError(AppError.networkUnavailable),
+            status: .pendingRetry,
+            code: .networkUnavailable,
+            detail: "The network is unavailable."
+        )
+        assertRecoveryMapping(
+            service.mapExtractionError(AppError.timeout),
+            status: .pendingRetry,
+            code: .timeout,
+            detail: "The AI service request timed out."
+        )
+        assertRecoveryMapping(
+            service.mapExtractionError(AppError.rateLimited),
+            status: .pendingRetry,
+            code: .rateLimited,
+            detail: "AI service rate limit reached."
+        )
+        assertRecoveryMapping(
+            service.mapExtractionError(AppError.serverError),
+            status: .pendingRetry,
+            code: .serverError,
+            detail: "AI service error."
+        )
+        assertRecoveryMapping(
+            service.mapExtractionError(AppError.invalidResponse),
+            status: .failedNeedsReview,
+            code: .schemaValidationFailed,
+            detail: "AI service returned an invalid response."
+        )
     }
 
     @MainActor
@@ -173,17 +278,6 @@ final class AIServiceClientTests: XCTestCase {
 
         XCTAssertEqual(payload.rawResponseText, rawResponse)
         XCTAssertFalse(payload.requestJSON?.contains("test-device-token") ?? true)
-    }
-
-    @MainActor
-    private func assertClientError(statusCode: Int, expected: AppError) async throws {
-        let client = AIServiceClient(deviceToken: "test-token", session: StubHTTPSession(statusCode: statusCode))
-        do {
-            _ = try await client.sendExtraction(emptyBackendRequest())
-            XCTFail("Expected \(expected).")
-        } catch let error as AppError {
-            XCTAssertEqual(error, expected)
-        }
     }
 
     @MainActor
@@ -208,14 +302,24 @@ final class AIServiceClientTests: XCTestCase {
         XCTAssertEqual(attempt.errorCode, expectedCode)
     }
 
-    @MainActor
-    private func emptyBackendRequest() -> BackendExtractionRequest {
-        AIServiceMessageExtractionClient.backendRequest(
-            for: "",
-            now: fixedTestNow,
-            timeZone: TimeZone(secondsFromGMT: 0)!
-        )
+    private func assertRecoveryMapping(
+        _ mapping: (status: ExtractionStatus, code: ExtractionErrorCode, userMessage: String, detail: String),
+        status: ExtractionStatus,
+        code: ExtractionErrorCode,
+        detail: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(mapping.status, status, file: file, line: line)
+        XCTAssertEqual(mapping.code, code, file: file, line: line)
+        XCTAssertEqual(mapping.detail, detail, file: file, line: line)
+        XCTAssertFalse(mapping.userMessage.isEmpty, file: file, line: line)
     }
+}
+
+private struct ExtractionContractMetadata: Decodable {
+    let requestSchemaVersion: Int
+    let webModes: [String]
 }
 
 private struct StaticAIServiceSender: AIServiceExtractionSending {
@@ -230,34 +334,5 @@ private struct FailingAIServiceSender: AIServiceExtractionSending {
     func sendExtraction(_ request: BackendExtractionRequest) async throws -> ExtractionResponsePayload {
         XCTFail("Backend client should not be called without a device token.")
         return ExtractionResponsePayload(rawResponseText: canonicalExtractionJSON(), requestJSON: nil, modelName: nil)
-    }
-}
-
-private struct StubHTTPSession: AIServiceHTTPSession {
-    var statusCode: Int?
-    var error: Error?
-
-    init(statusCode: Int) {
-        self.statusCode = statusCode
-        self.error = nil
-    }
-
-    init(error: Error) {
-        self.statusCode = nil
-        self.error = error
-    }
-
-    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        if let error {
-            throw error
-        }
-
-        let response = HTTPURLResponse(
-            url: request.url!,
-            statusCode: statusCode ?? 200,
-            httpVersion: nil,
-            headerFields: nil
-        )!
-        return (Data(#"{"rawResponseText":"{}","requestJSON":null,"modelName":"test-backend"}"#.utf8), response)
     }
 }

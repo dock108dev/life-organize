@@ -13,6 +13,15 @@ RESULT_BUNDLE="${SCREENSHOT_RESULT_BUNDLE:-BuildArtifacts/ScreenshotTests.xcresu
 ACTUAL_DIR="${SCREENSHOT_ACTUAL_DIR:-BuildArtifacts/screenshots/actual/$DEVICE_DIR/$APPEARANCE}"
 DIFF_DIR="${SCREENSHOT_DIFF_DIR:-BuildArtifacts/screenshots/diff/$DEVICE_DIR/$APPEARANCE}"
 BASELINE_DIR="${SCREENSHOT_BASELINE_DIR:-Tests/ScreenshotBaselines/$DEVICE_DIR/$APPEARANCE}"
+SCREENSHOT_TESTS=(
+  "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testFirstLaunchAndEmptyTimelineScreenshots"
+  "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testTimelineScreenshot"
+  "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testThingsAndThingDetailScreenshots"
+  "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testCarryForwardScreenshot"
+  "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testSearchScreenshot"
+  "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testReviewQueueScreenshot"
+  "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testHeavyTimelineScreenshot"
+)
 
 case "$MODE" in
   compare|update) ;;
@@ -21,6 +30,23 @@ case "$MODE" in
     exit 2
     ;;
 esac
+
+print_failure_help() {
+  if [[ "$MODE" == "compare" ]]; then
+    cat >&2 <<EOF
+Screenshot comparison failed.
+Failure artifacts:
+  result bundle: $RESULT_BUNDLE
+  actual PNGs:   $ACTUAL_DIR
+  diff PNGs:     $DIFF_DIR
+  baselines:     $BASELINE_DIR
+Baseline updates are manual. To accept an intentional visual change, run:
+  Scripts/screenshots/run-screenshot-tests.sh update
+EOF
+  fi
+}
+
+trap print_failure_help ERR
 
 cd "$ROOT_DIR"
 
@@ -70,11 +96,16 @@ configure_simulator() {
 configure_simulator
 
 rm -rf "$RESULT_BUNDLE"
+ONLY_TESTING_ARGS=()
+for test_identifier in "${SCREENSHOT_TESTS[@]}"; do
+  ONLY_TESTING_ARGS+=("-only-testing:$test_identifier")
+done
+
 xcodebuild test \
   -project "$PROJECT" \
   -scheme "$SCHEME" \
   -destination "platform=iOS Simulator,name=$DEVICE_NAME,OS=$DEVICE_OS" \
-  -only-testing:LifeOrganizeUITests/LifeOrganizeScreenshotTests \
+  "${ONLY_TESTING_ARGS[@]}" \
   -resultBundlePath "$RESULT_BUNDLE" \
   CODE_SIGNING_ALLOWED=NO
 

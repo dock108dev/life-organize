@@ -58,6 +58,7 @@ struct DerivedFieldMaintenanceService {
         let previousThing = event.thing
         event.thing = nil
         try deleteLinks(touching: .event, id: event.id)
+        try removeReviewReferences(to: .event, id: event.id)
         modelContext.delete(event)
         try refreshEventMutation(previousThing: previousThing, currentThing: nil)
     }
@@ -127,6 +128,7 @@ struct DerivedFieldMaintenanceService {
         let previousThings = note.linkedThings
         note.linkedThings = []
         try deleteLinks(touching: .note, id: note.id)
+        try removeReviewReferences(to: .none, id: note.id)
         modelContext.delete(note)
         touchThings(previousThings)
     }
@@ -165,6 +167,7 @@ struct DerivedFieldMaintenanceService {
         target.updatedAt = mergeDate
         try retargetExtractionAttemptCreatedThingIDs(from: source.id, to: target.id)
         try retargetThingLinks(from: source, to: target)
+        try retargetReviewReferences(to: .thing, from: source.id, to: target.id)
         modelContext.delete(source)
         try refreshThing(target)
     }
@@ -182,6 +185,7 @@ struct DerivedFieldMaintenanceService {
         let previousThing = rule.thing
         rule.thing = nil
         try deleteLinks(touching: .rule, id: rule.id)
+        try removeReviewReferences(to: .rule, id: rule.id)
         modelContext.delete(rule)
         previousThing?.updatedAt = now()
     }
@@ -215,10 +219,12 @@ struct DerivedFieldMaintenanceService {
         if let target {
             try retargetExtractionAttemptCreatedThingIDs(from: thing.id, to: target.id)
             try retargetThingLinks(from: thing, to: target)
+            try retargetReviewReferences(to: .thing, from: thing.id, to: target.id)
             try refreshThing(target)
         } else {
             try retargetExtractionAttemptCreatedThingIDs(from: thing.id, to: nil)
             try deleteLinks(touching: .thing, id: thing.id)
+            try removeReviewReferences(to: .thing, id: thing.id)
         }
         modelContext.delete(thing)
     }

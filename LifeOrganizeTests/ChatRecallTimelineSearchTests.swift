@@ -121,6 +121,70 @@ final class ChatRecallTimelineSearchTests: XCTestCase {
         XCTAssertTrue(answer.contains("Replaced garage filter"))
     }
 
+    @MainActor
+    func testChatRecallReflectsRetryRecordsEditsAndLocalClearWithoutRestart() throws {
+        let context = makeInMemoryModelContext()
+        let now = fixedTestNow
+        let message = ChatMessage(
+            role: .user,
+            text: "Garage filter failed while offline.",
+            createdAt: now.addingTimeInterval(-120),
+            extractionStatus: .pendingRetry
+        )
+        context.insert(message)
+        try context.save()
+
+        var recall = try ChatRecallResponseService(modelContext: context, now: now).answer(
+            for: ChatIntentClassification(intent: .localSearch, targetText: "garage filter")
+        )
+        XCTAssertTrue(recall.contains("Garage filter failed while offline."))
+
+        message.extractionStatus = .succeeded
+        let thing = Thing(name: "Garage Filter", aliases: ["furnace filter"], createdAt: now, updatedAt: now)
+        let event = LedgerEvent(
+            title: "Replaced garage filter",
+            occurredAt: now,
+            rawText: "Replaced garage filter.",
+            createdAt: now,
+            updatedAt: now,
+            thing: thing,
+            sourceMessage: message
+        )
+        let note = LedgerNote(
+            text: "Garage filter size is 16x20x1.",
+            createdAt: now,
+            updatedAt: now,
+            sourceMessage: message,
+            linkedThings: [thing]
+        )
+        context.insert(thing)
+        context.insert(event)
+        context.insert(note)
+        try context.save()
+
+        recall = try ChatRecallResponseService(modelContext: context, now: now).answer(
+            for: ChatIntentClassification(intent: .lookupPriorNotes, targetText: "furnace filter")
+        )
+        XCTAssertTrue(recall.contains("Garage filter size is 16x20x1."))
+        XCTAssertTrue(recall.contains("Replaced garage filter"))
+
+        note.text = "Garage filter size is 20x25x1."
+        note.updatedAt = now.addingTimeInterval(60)
+        try context.save()
+
+        recall = try ChatRecallResponseService(modelContext: context, now: now).answer(
+            for: ChatIntentClassification(intent: .localSearch, targetText: "20x25x1")
+        )
+        XCTAssertTrue(recall.contains("Garage filter size is 20x25x1."))
+        XCTAssertFalse(recall.contains("16x20x1"))
+
+        try LocalDataClearService(modelContext: context).clearLedgerData()
+        recall = try ChatRecallResponseService(modelContext: context, now: now).answer(
+            for: ChatIntentClassification(intent: .localSearch, targetText: "garage filter")
+        )
+        XCTAssertEqual(recall, #"No saved records found for "garage filter"."#)
+    }
+
     private static var newYorkCalendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.locale = Locale(identifier: "en_US_POSIX")

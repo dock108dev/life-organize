@@ -1,23 +1,23 @@
-# ISSUE-005: Build deterministic scenario runner and simulator walkthrough
+# ISSUE-005: Test backend admin logs redaction and SSE
 
 **Priority**: high
-**Labels**: phase-7, scenario-runner, xcuitest, walkthrough
-**Dependencies**: ISSUE-001, ISSUE-003, ISSUE-004
+**Labels**: backend, tests, admin-logs, redaction
+**Dependencies**: ISSUE-002, ISSUE-016
 **Status**: implemented
 
 ## Description
 
-Create the Phase 7 deterministic simulator walkthrough instead of only unit tests. Findings show LifeOrganizeUITests has deterministic launch helpers but no full walkthrough across product surfaces. Use .aidlc/research/simulator-walkthrough-automation.md to add durable XCUITest traversal and the missing accessibility identifiers. Scenario artifact output is split into ISSUE-017.
+Protect the admin diagnostic surface from leaking provider secrets, raw user text, request JSON, raw model responses, or raw device tokens. Use `.aidlc/discovery/findings.md` and `.aidlc/research/backend-admin-log-redaction-and-sse.md` for event shape, session-cookie, SSE, and retention contracts, and ISSUE-016 for deterministic admin route tests.
 
 ## Acceptance Criteria
 
-- [ ] A deterministic XCUITest walkthrough launches with fixed time, mock extraction, reset state, and a named seed scenario.
-- [ ] The walkthrough covers Timeline, Things, Thing detail, Carry Forward, Search, Review queue, and Settings in one repeatable simulator journey.
-- [ ] Stable accessibility identifiers are added for Timeline rows, Things list/rows/detail, Carry Forward rows/detail, Review queue rows/detail/actions, Search results, and sheet close controls where text fallback is currently required.
-- [ ] The walkthrough validates search result navigation into at least one detail/replay destination and verifies returning to the previous surface.
-- [ ] The walkthrough can be invoked from xcodebuild or a script suitable for CI without live network extraction.
+- [ ] Admin REST log responses return `events` with stable `id`, `timestamp`, `level`, `category`, `message`, and `details` fields.
+- [ ] SSE stream tests verify named `log` events and JSON `data:` payloads matching the REST event shape.
+- [ ] Session-cookie flow is tested for EventSource-compatible access without requiring raw admin keys in browser stream requests.
+- [ ] Redaction tests prove request events expose lengths, codes, latency, model/request IDs, and status metadata without raw user text, provider keys, raw provider bodies, request JSON, or device tokens.
+- [ ] Retention and clear behavior are tested around the fixed in-memory event buffer without assuming durable cross-process IDs.
 
 ## Implementation Notes
 
 
-Attempt 1: Added stable accessibility identifiers across Timeline, Things/detail, Carry Forward/detail, Search results/close, Review queue/detail/actions, and Settings. Added a deterministic XCUITest simulator walkthrough covering seeded launch, mock extraction, navigation, search replay, review queue, and settings.
+Attempt 1: Added admin event detail sanitization in Backend/app/admin_events.py and expanded Backend/tests/test_admin_routes.py to cover REST shape, SSE log payloads, cookie stream auth, redaction metadata, retention, and clear behavior.

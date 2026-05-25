@@ -1,252 +1,304 @@
 [
   {
-    "topic": "launch-mode-contract",
-    "question": "What launch-argument contract should Phase 7 expose for reset, fixed time, mock extraction, screenshot mode, and seeded scenarios given the current `-ui-testing`/`-reset-store`/`-use-fake-extractor` flags?",
+    "topic": "frontend-default-backend-contract",
+    "question": "What tests and implementation contracts should prove every frontend environment defaults to https://life.dock108.dev while preserving only explicit launch-arg local overrides?",
     "scope": [
       "LifeOrganize/Utilities/AppRuntimeConfiguration.swift",
-      "LifeOrganize/LifeOrganizeApp.swift",
-      "LifeOrganizeUITests/LifeOrganizeUITests.swift"
+      "LifeOrganize/Services/AIServiceClient.swift",
+      "LifeOrganizeTests/AppRuntimeConfigurationTests.swift",
+      "LifeOrganizeTests/AIServiceClientTests.swift",
+      "README.md"
     ]
   },
   {
-    "topic": "swiftdata-seed-loader-shape",
-    "question": "What is the safest shape for a named scenario seed loader that can populate the current SwiftData schema before first UI render?",
+    "topic": "frontend-secret-surface-guardrails",
+    "question": "Which app code, settings copy, fixtures, exports, and tests can expose provider-secret language or raw service tokens, and what guardrails currently constrain them?",
+    "scope": [
+      "LifeOrganize/Features/Settings/SettingsView.swift",
+      "LifeOrganize/Features/Settings/SettingsTrustSurface.swift",
+      "LifeOrganize/Services/DeviceTokenStore.swift",
+      "LifeOrganize/Services/LocalJSONExportService.swift",
+      "LifeOrganizeTests/LegacyProviderGuardrailTests.swift",
+      "LifeOrganizeTests/LedgerCopyRestraintTests.swift",
+      "LifeOrganizeTests/SettingsTrustSurfaceTests.swift"
+    ]
+  },
+  {
+    "topic": "chat-send-local-first-failure-matrix",
+    "question": "How does the chat send flow behave across local save, extraction success, backend failure, token failure, retry scheduling, stale completion, and web request modes?",
+    "scope": [
+      "LifeOrganize/Services/ChatSendService.swift",
+      "LifeOrganize/Services/ChatSendServiceFailures.swift",
+      "LifeOrganize/Services/ChatSendServiceRetry.swift",
+      "LifeOrganize/Services/WebRequestService.swift",
+      "LifeOrganizeTests/ChatSendServiceTests.swift",
+      "LifeOrganizeTests/AIServiceClientTests.swift",
+      "LifeOrganizeTests/ContinuityScenarioRegressionTests.swift"
+    ]
+  },
+  {
+    "topic": "chat-send-idempotency-contract",
+    "question": "What identity keys and source-record invariants prevent duplicate events, rules, and notes during retry or repeated extraction?",
+    "scope": [
+      "LifeOrganize/Services/ChatSendServiceIdempotency.swift",
+      "LifeOrganize/Services/ChatSendService+ExtractionRecords.swift",
+      "LifeOrganizeTests/ChatSendServiceIdempotencyTests.swift",
+      "LifeOrganizeTests/ReminderExtractionPersistenceTests.swift"
+    ]
+  },
+  {
+    "topic": "ai-client-error-shape-parity",
+    "question": "Do backend error response bodies and iOS decoding/error mapping have a stable contract for auth, timeout, rate-limit, server, validation, and malformed-response cases?",
+    "scope": [
+      "LifeOrganize/DTOs/BackendAIRequest.swift",
+      "LifeOrganize/Services/AIServiceClient.swift",
+      "LifeOrganize/Utilities/AppError.swift",
+      "Backend/app/schemas.py",
+      "Backend/app/routers/ai.py",
+      "Backend/app/services/openai_gateway.py",
+      "LifeOrganizeTests/AIServiceClientTests.swift"
+    ]
+  },
+  {
+    "topic": "swiftdata-coverage-denominator",
+    "question": "Which SwiftData schema, migration, fixture, and generated-heavy files are app code versus deliberate iOS coverage exclusions or separate reports?",
     "scope": [
       "LifeOrganize/Persistence/ModelContainerFactory.swift",
+      "LifeOrganize/Persistence/LifeOrganizeMigrationPlan.swift",
+      "LifeOrganize/Persistence/LifeOrganizeSchemaV2.swift",
       "LifeOrganize/Persistence/LifeOrganizeSchemaV3.swift",
-      "LifeOrganize/Models/Thing.swift",
-      "LifeOrganize/Models/Event.swift",
-      "LifeOrganize/Models/Rule.swift",
-      "LifeOrganize/Models/Note.swift"
+      "LifeOrganize/Persistence/SeedScenarioLoader.swift",
+      "LifeOrganize/Persistence/HeavyHistorySeedScenarioGenerator.swift",
+      "LifeOrganizeTests/SwiftDataMigrationTests.swift",
+      "LifeOrganizeTests/ScenarioFixtureTests.swift"
     ]
   },
   {
-    "topic": "scenario-fixture-format",
-    "question": "Should Phase 7 scenario fixtures be JSON files, Swift builders, exported ledger snapshots, or a hybrid, and what fields must they include to preserve relationships and chronology?",
+    "topic": "ios-xccov-app-target-parser",
+    "question": "How should xccov JSON from LifeOrganizeTests.xcresult identify only the LifeOrganize app target, exclude test targets, and report any excluded files visibly?",
     "scope": [
-      "LifeOrganize/Services/LocalJSONExportService.swift",
-      "LifeOrganize/DTOs/LedgerExport.swift",
-      "LifeOrganizeTests/ContinuityScenarioRegressionTests.swift",
-      "LifeOrganizeTests/TestDoubles.swift"
-    ]
-  },
-  {
-    "topic": "mock-extraction-fixture-library",
-    "question": "How should the current hard-coded `DeterministicMessageExtractionClient` be converted or extended into deterministic message-to-payload fixtures without destabilizing existing tests?",
-    "scope": [
-      "LifeOrganize/Services/DeterministicExtractionClient.swift",
-      "LifeOrganize/Services/DeterministicExtractionFixtures.swift",
-      "LifeOrganizeTests/DeterministicExtractionClientTests.swift",
-      "LifeOrganizeTests/ExtractionTestFixtures.swift"
-    ]
-  },
-  {
-    "topic": "fresh-install-state-boundaries",
-    "question": "What local state besides SwiftData and API key storage can affect first-launch determinism, and how should a fresh-install test mode clear or isolate it?",
-    "scope": [
-      "LifeOrganize/Utilities/AppRuntimeConfiguration.swift",
-      "LifeOrganize/Utilities/DeveloperModeState.swift",
-      "LifeOrganize/Services/LocalDataClearService.swift",
-      "LifeOrganize/Features/Settings/SettingsClearDataFlow.swift"
-    ]
-  },
-  {
-    "topic": "simulator-walkthrough-automation",
-    "question": "What simulator walkthrough structure should cover Timeline, Things, Thing detail, Carry Forward, Search, Review queue, and Settings using current accessibility identifiers and gaps?",
-    "scope": [
-      "LifeOrganizeUITests/LifeOrganizeUITests.swift",
-      "LifeOrganize/AppRootView.swift",
-      "LifeOrganize/Features/Chat/ChatView.swift",
-      "LifeOrganize/Features/Search/UnifiedSearchView.swift",
-      "LifeOrganize/Features/Shared/LedgerReviewQueueView.swift"
-    ]
-  },
-  {
-    "topic": "screenshot-regression-stack",
-    "question": "What screenshot regression approach fits this Xcode project today: XCUITest attachments, Fastlane Snapshot, custom simulator scripts, or another baseline/diff workflow?",
-    "scope": [
-      "LifeOrganizeUITests/LifeOrganizeUITests.swift",
       "LifeOrganize.xcodeproj/xcshareddata/xcschemes/LifeOrganize.xcscheme",
       "LifeOrganize.xcodeproj/project.pbxproj"
     ]
   },
   {
-    "topic": "screenshot-mode-determinism",
-    "question": "Which app-level and simulator-level variables must screenshot mode fix beyond `-fixed-now`, and which can be controlled in app code versus launch scripts?",
+    "topic": "ios-ci-runner-simulator-pin",
+    "question": "What simulator/device/OS pin is compatible with the repo scripts and current GitHub macOS runners, and what changes would be required if moving away from iPhone 16 iOS 18.6?",
     "scope": [
+      "README.md",
+      "Scripts/screenshots/run-screenshot-tests.sh",
+      "LifeOrganizeUITests/LifeOrganizeScreenshotTests.swift",
+      "Tests/ScreenshotBaselines/iPhone_16/light"
+    ]
+  },
+  {
+    "topic": "ios-ci-workflow-scope-no-deploy",
+    "question": "What iOS workflow triggers, jobs, signing flags, artifact paths, and no-deploy safeguards should match the current Xcode project and braindump status-check shape?",
+    "scope": [
+      "LifeOrganize.xcodeproj/project.pbxproj",
+      "LifeOrganize.xcodeproj/xcshareddata/xcschemes/LifeOrganize.xcscheme",
+      "README.md",
+      ".github/workflows/backend-ci-cd.yml"
+    ]
+  },
+  {
+    "topic": "ios-ui-test-live-network-boundary",
+    "question": "Which UI and unit tests currently use deterministic extraction versus real backend clients, and where should CI prevent routine live OpenAI calls while still proving production backend defaults?",
+    "scope": [
+      "LifeOrganizeUITests/UITestSupport.swift",
       "LifeOrganize/Utilities/AppRuntimeConfiguration.swift",
-      "LifeOrganize/Utilities/DateProvider.swift",
-      "LifeOrganizeUITests/LifeOrganizeUITests.swift"
-    ]
-  },
-  {
-    "topic": "heavy-history-generation",
-    "question": "How should a 500+ entry heavy-history state be generated so timeline ordering, scrolling density, reminders, notes, reviews, and search remain deterministic?",
-    "scope": [
-      "LifeOrganize/Features/Chat/LedgerFeed.swift",
-      "LifeOrganize/Services/TimelineSliceProjection.swift",
-      "LifeOrganize/Services/SearchService.swift",
-      "LifeOrganizeTests/LedgerFeedProjectionTests.swift",
-      "LifeOrganizeTests/TimelineSliceProjectionTests.swift"
-    ]
-  },
-  {
-    "topic": "timeline-density-visual-contracts",
-    "question": "Which current timeline and row-density constants are load-bearing visual contracts, and where would screenshot assertions provide coverage that unit tests cannot?",
-    "scope": [
-      "LifeOrganize/Features/Chat/ChatView.swift",
-      "LifeOrganize/Features/Shared/LedgerVisualSystem.swift",
-      "LifeOrganizeTests/LedgerDensityContractTests.swift",
-      "LifeOrganizeTests/LedgerVisualSystemTests.swift"
-    ]
-  },
-  {
-    "topic": "relationship-integrity-validator",
-    "question": "What whole-store relationship-integrity checks should run against every seeded scenario to catch broken Thing, reminder, event, review, source-message, and entity-link references?",
-    "scope": [
-      "LifeOrganize/Models/EntityLink.swift",
-      "LifeOrganize/Services/EntityLinkWriter.swift",
-      "LifeOrganize/Services/DerivedFieldMaintenanceService.swift",
-      "LifeOrganize/Services/RelationshipTraversalRecords.swift",
-      "LifeOrganize/Services/RelationshipTraversalService.swift"
-    ]
-  },
-  {
-    "topic": "review-queue-scenario-contract",
-    "question": "What deterministic scenario assertions should protect review queue consistency for ambiguous extraction, duplicate Things, temporal conflicts, local recovery, and partial extraction?",
-    "scope": [
-      "LifeOrganize/Models/LedgerReviewItem.swift",
-      "LifeOrganize/Services/LedgerReviewItemGenerationService.swift",
-      "LifeOrganize/Services/LedgerReviewQueueService.swift",
-      "LifeOrganize/Features/Shared/LedgerReviewQueueView.swift",
-      "LifeOrganizeTests/LedgerReviewQueueServiceTests.swift"
-    ]
-  },
-  {
-    "topic": "temporal-ambiguity-matrix",
-    "question": "Which temporal phrases from the BRAINDUMP are already deterministic, which depend on model output, and what test matrix should cover ambiguous future and seasonal language?",
-    "scope": [
-      "LifeOrganize/Services/TemporalPriorityResolver.swift",
-      "LifeOrganize/Services/ExtractionService.swift",
       "LifeOrganize/Services/DeterministicExtractionClient.swift",
-      "LifeOrganizeTests/TemporalPriorityResolutionTests.swift",
-      "LifeOrganizeTests/DeterministicExtractionClientTests.swift"
+      "LifeOrganize/Services/AIServiceClient.swift",
+      "LifeOrganizeTests/AIServiceClientTests.swift"
     ]
   },
   {
-    "topic": "search-power-feature-coverage",
-    "question": "What gaps remain between current local substring/date search coverage and the BRAINDUMP's desired fragments, aliases, fuzzy matches, date slices, Things, reminders, notes, and recall QA?",
+    "topic": "screenshot-ci-cadence-and-artifacts",
+    "question": "Should screenshot comparison run on every frontend PR or only UI-touching changes, and which result bundles, actuals, and diffs should be uploaded on failure?",
     "scope": [
-      "LifeOrganize/Services/SearchService.swift",
-      "LifeOrganize/Services/SearchService+Ranking.swift",
-      "LifeOrganize/Services/LocalSearchTimingParser.swift",
-      "LifeOrganizeTests/TimelineAwareSearchTests.swift",
-      "LifeOrganizeTests/SearchRecallServiceTests.swift"
+      "Scripts/screenshots/run-screenshot-tests.sh",
+      "Scripts/screenshots/extract-xcresult-screenshots.sh",
+      "Scripts/screenshots/compare-screenshots.swift",
+      "LifeOrganizeUITests/LifeOrganizeScreenshotTests.swift",
+      "fastlane/Fastfile",
+      "docs/screenshot-baselines.md"
     ]
   },
   {
-    "topic": "thing-duplicate-drift-prevention",
-    "question": "How should scenario tests distinguish acceptable new Things from duplicate Thing drift under the current seed, normalization, automatic-merge, and review-candidate rules?",
+    "topic": "local-verify-script-composition",
+    "question": "How should backend, iOS test/coverage, screenshot, Docker smoke, and production smoke commands compose into verify-backend, verify-ios, and verify-all scripts with first-failure exits?",
     "scope": [
-      "LifeOrganize/Utilities/ThingNormalizer.swift",
-      "LifeOrganize/Utilities/ThingNormalizationCandidate.swift",
-      "LifeOrganize/Services/ThingResolver.swift",
-      "LifeOrganize/Services/LedgerReviewItemGenerationService.swift",
-      "LifeOrganizeTests/ThingIdentityContinuityTests.swift"
+      "Backend/requirements.txt",
+      "Backend/pyproject.toml",
+      "Scripts/screenshots/run-screenshot-tests.sh",
+      "README.md",
+      "Backend/infra/docker-compose.yml"
     ]
   },
   {
-    "topic": "internal-qa-mode-surface",
-    "question": "What hidden QA mode surface should exist beyond current developer extraction diagnostics, and how should it route fixture loading, DB reset, fake date, reprocess entry, and graph inspection?",
+    "topic": "backend-python-version-pin",
+    "question": "What are the tradeoffs of keeping backend CI and Docker on Python 3.14 versus pinning CI/runtime to a stable 3.12 or 3.13 while retaining requires-python >=3.11?",
     "scope": [
-      "LifeOrganize/Utilities/DeveloperModeState.swift",
-      "LifeOrganize/Features/Settings/SettingsView.swift",
-      "LifeOrganize/Features/Debug/ExtractionDebugListView.swift",
-      "LifeOrganize/Features/Debug/ExtractionAttemptDebugView.swift"
+      "Backend/pyproject.toml",
+      "Backend/requirements.txt",
+      "Backend/infra/api.Dockerfile",
+      ".github/workflows/backend-ci-cd.yml"
     ]
   },
   {
-    "topic": "extraction-quality-dashboard-model",
-    "question": "What internal quality metrics can be derived from existing `ChatMessage`, `ExtractionAttempt`, `LedgerReviewItem`, and `EntityLink` data, and what new counters would be needed?",
+    "topic": "backend-coverage-gate-shape",
+    "question": "How should pytest-cov be added and configured to gate Backend app and main at 80% while excluding Alembic boilerplate deliberately?",
     "scope": [
-      "LifeOrganize/Models/ChatMessage.swift",
-      "LifeOrganize/Models/ExtractionAttempt.swift",
-      "LifeOrganize/Models/LedgerReviewItem.swift",
-      "LifeOrganize/Models/EntityLink.swift",
-      "LifeOrganize/Features/Debug/ExtractionDebugListView.swift"
+      "Backend/requirements.txt",
+      "Backend/pyproject.toml",
+      "Backend/main.py",
+      "Backend/app",
+      "Backend/alembic",
+      ".github/workflows/backend-ci-cd.yml"
     ]
   },
   {
-    "topic": "local-json-export-as-baseline",
-    "question": "Can local JSON export serve as a scenario baseline or regression artifact, and what import/compare semantics would be required?",
+    "topic": "backend-route-auth-test-matrix",
+    "question": "Which FastAPI route-level tests are needed for missing, malformed, valid, and admin-auth tokens across extraction, web request, usage, and logs endpoints?",
     "scope": [
-      "LifeOrganize/Services/LocalJSONExportService.swift",
-      "LifeOrganize/Services/LocalJSONExportValidation.swift",
-      "LifeOrganize/DTOs/LedgerExport.swift",
-      "LifeOrganize/Features/Settings/SettingsView.swift"
+      "Backend/app/auth.py",
+      "Backend/app/routers/ai.py",
+      "Backend/app/routers/admin.py",
+      "Backend/tests/test_auth.py"
     ]
   },
   {
-    "topic": "operational-home-scenario-shape",
-    "question": "What records, intervals, reminders, and review assertions should define the operational-home scenario from the current home filters, dog food, garage, Costco/purchase, and maintenance logic?",
+    "topic": "backend-rate-limit-contract",
+    "question": "How does the current per-device rate limiter count requests and reset windows, and what tests should cover endpoint separation, retry headers, shared IP assumptions, and token redaction?",
     "scope": [
-      "LifeOrganizeTests/ContinuityScenarioRegressionTests.swift",
-      "LifeOrganize/Services/OperationalIntervalInferenceService.swift",
-      "LifeOrganize/Services/OperationalIntervalInferenceTypes.swift",
-      "LifeOrganize/Services/DeterministicExtractionClient.swift"
+      "Backend/app/auth.py",
+      "Backend/app/models.py",
+      "Backend/app/routers/ai.py",
+      "Backend/tests/test_auth.py"
     ]
   },
   {
-    "topic": "work-continuity-scenario-shape",
-    "question": "How should the work continuity scenario model AWS, Sonar, vulnerabilities, monorepo, migrations, aliases, relationship traversal, and recall under current normalization rules?",
+    "topic": "backend-openai-gateway-error-mapping",
+    "question": "How does OpenAIGateway map provider auth, rate-limit, timeout, network, server, malformed-body, and invalid-response cases, and what should be tested without live OpenAI calls?",
     "scope": [
-      "LifeOrganizeTests/ContinuityScenarioRegressionTests.swift",
-      "LifeOrganizeTests/RelationshipTraversalServiceTests.swift",
-      "LifeOrganize/Utilities/ThingNormalizer.swift",
-      "LifeOrganize/Services/RelationshipTraversalService.swift"
+      "Backend/app/services/openai_gateway.py",
+      "Backend/app/services/openai_schema.py",
+      "Backend/app/routers/ai.py",
+      "Backend/tests/test_openai_gateway.py"
     ]
   },
   {
-    "topic": "ambiguous-human-entry-review-flow",
-    "question": "How should an ambiguous entry like 'I think bogey needs a haircut in a week or two' flow through extraction, review state, suggested interpretation, and Thing linking today?",
+    "topic": "backend-request-contract-parity",
+    "question": "Where can DTO/schema drift occur between iOS BackendAIRequest.swift and backend Pydantic schemas/OpenAI schema names, and what parity tests or fixtures could detect it?",
     "scope": [
-      "LifeOrganize/Services/ExtractionService.swift",
-      "LifeOrganize/Services/ChatSendService.swift",
-      "LifeOrganize/Services/LedgerReviewItemGenerationService.swift",
-      "LifeOrganize/Services/ThingResolver.swift",
-      "LifeOrganize/Services/DeterministicExtractionClient.swift"
+      "LifeOrganize/DTOs/BackendAIRequest.swift",
+      "Backend/app/schemas.py",
+      "Backend/app/services/openai_schema.py",
+      "LifeOrganizeTests/AIServiceClientTests.swift",
+      "Backend/tests/test_openai_gateway.py"
     ]
   },
   {
-    "topic": "first-launch-visual-state",
-    "question": "What exact first-launch UI state should be asserted for an empty store, missing API key, Timeline empty state, suggestions, composer focus, tabs, and toolbar controls?",
+    "topic": "backend-middleware-test-surface",
+    "question": "What behavior do security headers and request-size middleware currently guarantee, and how do they behave for OPTIONS, missing Content-Length, invalid Content-Length, and oversized bodies?",
     "scope": [
-      "LifeOrganize/Features/Chat/ChatView.swift",
-      "LifeOrganize/Features/Shared/LedgerEmptyStateView.swift",
-      "LifeOrganize/Features/Chat/ChatInputBar.swift",
-      "LifeOrganizeTests/FirstRunEmptyStateTests.swift",
-      "LifeOrganizeUITests/LifeOrganizeUITests.swift"
+      "Backend/main.py",
+      "Backend/app/middleware/security_headers.py",
+      "Backend/app/middleware/request_size.py"
     ]
   },
   {
-    "topic": "timeline-replay-and-search-interaction",
-    "question": "How do timeline slices, search date parsing, linked-Thing filtering, and replay destinations interact, and what cross-feature scenario tests should lock that behavior?",
+    "topic": "backend-admin-log-redaction-and-sse",
+    "question": "What admin log fields, SSE shape, session-cookie behavior, redaction guarantees, and retention limits are load-bearing for the backend log surface?",
     "scope": [
-      "LifeOrganize/Services/SearchService+TimelineSlices.swift",
-      "LifeOrganize/Services/TimelineSliceProjection.swift",
-      "LifeOrganize/Features/Timeline/TimelineSliceReplayView.swift",
-      "LifeOrganizeTests/TimelineAwareSearchTests.swift",
-      "LifeOrganizeTests/TimelineSliceReplayTests.swift"
+      "Backend/app/admin_events.py",
+      "Backend/app/routers/admin.py",
+      "Backend/app/routers/ai.py",
+      "Backend/app/services/openai_gateway.py",
+      "docs/backend.md"
     ]
   },
   {
-    "topic": "scenario-test-runner-output",
-    "question": "What artifact output should deterministic scenario runs produce for planner/CI consumption: XCTest results, screenshots, exported JSON, relationship audit reports, or all of them?",
+    "topic": "backend-database-migration-smoke",
+    "question": "How should tests or smoke commands prove Alembic upgrades an empty database, migrations are idempotent, request metadata persists, and database failures are handled?",
     "scope": [
-      "LifeOrganizeUITests/LifeOrganizeUITests.swift",
-      "LifeOrganizeTests/ContinuityScenarioRegressionTests.swift",
-      "LifeOrganize/Services/LocalJSONExportService.swift",
-      "LifeOrganize.xcodeproj/xcshareddata/xcschemes/LifeOrganize.xcscheme"
+      "Backend/app/db.py",
+      "Backend/app/models.py",
+      "Backend/alembic/env.py",
+      "Backend/alembic/versions/20260522_000001_initial_backend.py",
+      "Backend/infra/docker-compose.yml"
+    ]
+  },
+  {
+    "topic": "backend-docker-health-and-migrations",
+    "question": "What does the current Docker Compose health/migration flow verify, and where should CI add image build, container start, /healthz, and migration-once/idempotency checks?",
+    "scope": [
+      "Backend/infra/docker-compose.yml",
+      "Backend/infra/api.Dockerfile",
+      "Backend/infra/api-entrypoint.sh",
+      "Backend/main.py",
+      ".github/workflows/backend-ci-cd.yml"
+    ]
+  },
+  {
+    "topic": "backend-caddy-helper-contract",
+    "question": "What assumptions does update_caddy_site_block.py make about Caddyfile parsing, site header matching, sudo deployment, and rollback/manual deploy flows?",
+    "scope": [
+      "Backend/infra/scripts/update_caddy_site_block.py",
+      "Backend/infra/Caddyfile",
+      ".github/workflows/backend-ci-cd.yml",
+      ".github/workflows/deploy-recent-image.yml",
+      "docs/ops/deployment.md"
+    ]
+  },
+  {
+    "topic": "backend-post-deploy-public-smoke",
+    "question": "Should production smoke remain unauthenticated /healthz or add a private admin smoke endpoint, and how would that interact with deploy secrets and Caddy routing?",
+    "scope": [
+      "Backend/main.py",
+      "Backend/app/routers/admin.py",
+      "Backend/infra/Caddyfile",
+      ".github/workflows/backend-ci-cd.yml",
+      "docs/ops/deployment.md"
+    ]
+  },
+  {
+    "topic": "backend-ci-status-check-splitting",
+    "question": "How should the existing backend workflow jobs map to desired status checks for tests, lint, compile, coverage, docker build, deploy health, and prod health smoke?",
+    "scope": [
+      ".github/workflows/backend-ci-cd.yml",
+      ".github/workflows/deploy-recent-image.yml"
+    ]
+  },
+  {
+    "topic": "deployment-rollback-migration-constraint",
+    "question": "What current rollback workflow assumptions exist around image tags, migrations, schema compatibility, and whether rollback should run migrations automatically?",
+    "scope": [
+      ".github/workflows/deploy-recent-image.yml",
+      "docs/ops/deployment.md",
+      "Backend/infra/docker-compose.yml",
+      "Backend/alembic/versions/20260522_000001_initial_backend.py"
+    ]
+  },
+  {
+    "topic": "docs-state-drift",
+    "question": "Which repo docs are stale or incomplete relative to current workflows, backend CI/CD, local gates, coverage, and screenshot tooling?",
+    "scope": [
+      "README.md",
+      "docs/current-app-state.md",
+      "docs/backend.md",
+      "docs/ops/deployment.md",
+      "docs/screenshot-baselines.md",
+      ".github/workflows/backend-ci-cd.yml",
+      ".github/workflows/deploy-recent-image.yml"
+    ]
+  },
+  {
+    "topic": "branch-protection-check-names",
+    "question": "What exact GitHub job names and future workflow check names should branch protection use for backend, iOS, screenshot, coverage, Docker, and production smoke gates?",
+    "scope": [
+      ".github/workflows/backend-ci-cd.yml",
+      ".github/workflows/deploy-recent-image.yml"
     ]
   }
 ]

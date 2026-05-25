@@ -32,6 +32,23 @@ final class ReminderExtractionPersistenceTests: XCTestCase {
         XCTAssertNil(envelope.dates.first?.date)
         XCTAssertEqual(envelope.dates.first?.role, "rule_starts_at")
         XCTAssertTrue(envelope.warnings.contains { $0.code == "ambiguous_due_window" })
+
+        let reviewItem = try XCTUnwrap(try context.fetch(FetchDescriptor<LedgerReviewItem>()).first)
+        XCTAssertEqual(reviewItem.title, "Review reminder for Bogey")
+        XCTAssertEqual(reviewItem.actionTitle, "Choose Date")
+        XCTAssertEqual(reviewItem.targetType, .chatMessage)
+        XCTAssertEqual(reviewItem.targetID, message.id)
+        XCTAssertEqual(reviewItem.evidence.map(\.sourceType), [.chatMessage, .chatMessage, .thing])
+
+        let search = SearchService()
+        let searchRecords = search.records(things: things, rules: try context.fetch(FetchDescriptor<LedgerRule>()), messages: [message])
+        XCTAssertTrue(search.search("Bogey", in: searchRecords).contains { $0.sourceKind == .thing && $0.stableID == things[0].id })
+        XCTAssertFalse(search.search("haircut", in: searchRecords).contains { $0.sourceKind == .rule })
+        XCTAssertFalse(
+            TimelineSliceProjection(calendar: Self.easternCalendar, now: bogeyScenarioNow)
+                .rows(messages: [message], things: things, reminders: [])
+                .contains { $0.sourceKind == .reminder }
+        )
     }
 
     @MainActor
@@ -314,8 +331,12 @@ final class ReminderExtractionPersistenceTests: XCTestCase {
     }
 
     private var bogeyScenarioNow: Date {
+        Self.easternCalendar.date(from: DateComponents(year: 2026, month: 5, day: 20, hour: 12))!
+    }
+
+    private static let easternCalendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "America/New_York")!
-        return calendar.date(from: DateComponents(year: 2026, month: 5, day: 20, hour: 12))!
-    }
+        return calendar
+    }()
 }

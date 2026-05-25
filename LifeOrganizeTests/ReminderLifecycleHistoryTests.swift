@@ -4,6 +4,56 @@ import XCTest
 
 final class ReminderLifecycleHistoryTests: XCTestCase {
     @MainActor
+    func testManualRuleInsertUpdateAndReopenKeepsLinksAndStatusCurrent() throws {
+        let context = makeInMemoryModelContext()
+        let now = try Self.date(2026, 5, 21)
+        let future = try Self.date(2026, 6, 1)
+        let extended = try Self.date(2026, 6, 15)
+        let originalThing = Thing(name: "Car", updatedAt: now.addingTimeInterval(-86_400))
+        let newThing = Thing(name: "Registration", updatedAt: now.addingTimeInterval(-86_400))
+        let rule = LedgerRule(
+            title: "Renew car registration",
+            ruleType: .reminder,
+            continuityBehavior: .dateBasedReminder,
+            startsAt: future,
+            createdAt: now,
+            updatedAt: now,
+            thing: originalThing
+        )
+        let maintenance = DerivedFieldMaintenanceService(modelContext: context, now: { now })
+
+        context.insert(originalThing)
+        context.insert(newThing)
+        try maintenance.insertRule(rule)
+        try context.save()
+
+        XCTAssertEqual(try context.fetch(FetchDescriptor<LedgerRule>()).map(\.id), [rule.id])
+        XCTAssertEqual(rule.ruleType, .reminder)
+        XCTAssertEqual(rule.continuityBehavior, .dateBasedReminder)
+        XCTAssertEqual(RuleStatusService().status(for: rule, at: now), .scheduled)
+        XCTAssertFalse(rule.isActive)
+
+        let previousThing = rule.thing
+        rule.title = "Renew DMV registration"
+        rule.startsAt = now
+        rule.expiresAt = extended
+        rule.continuityBehavior = .timeLimitedWindow
+        rule.thing = newThing
+        try maintenance.updateRule(rule, previousThing: previousThing)
+        try context.save()
+
+        let links = try context.fetch(FetchDescriptor<EntityLink>())
+        XCTAssertEqual(rule.title, "Renew DMV registration")
+        XCTAssertEqual(rule.continuityBehavior, .timeLimitedWindow)
+        XCTAssertEqual(rule.thing?.id, newThing.id)
+        XCTAssertEqual(RuleStatusService().status(for: rule, at: now), .active)
+        XCTAssertTrue(rule.isActive)
+        XCTAssertEqual(links.filter { $0.sourceType == .rule && $0.sourceID == rule.id && $0.relation == .primaryThing }.map(\.targetID), [newThing.id])
+        XCTAssertEqual(originalThing.updatedAt, now)
+        XCTAssertEqual(newThing.updatedAt, now)
+    }
+
+    @MainActor
     func testLifecycleActionCopyStaysDistinctWhileUsingSharedHistoryState() throws {
         let now = try Self.date(2026, 5, 21)
         let future = try Self.date(2026, 6, 1)
@@ -41,6 +91,69 @@ final class ReminderLifecycleHistoryTests: XCTestCase {
         XCTAssertEqual(rule.lifecycleState, .deactivated)
         XCTAssertFalse(rule.isActive)
         XCTAssertEqual(thing.updatedAt, now)
+    }
+
+    @MainActor
+    func testPauseCommandPropagatesLifecycleVisibilityAndRecallState() async throws {
+        let context = makeInMemoryModelContext()
+        let now = try Self.date(2026, 5, 21)
+        let due = try Self.date(2026, 5, 20)
+        let thing = Thing(name: "Car registration", updatedAt: due)
+        let rule = LedgerRule(
+            title: "Renew registration",
+            ruleType: .reminder,
+            continuityBehavior: .dateBasedReminder,
+            rawText: "Renew registration",
+            startsAt: due,
+            createdAt: due,
+            updatedAt: due,
+            thing: thing
+        )
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: InspectingExtractionClient { _, _ in
+                XCTFail("A matching local lifecycle command should not call extraction.")
+                return ExtractionResponsePayload(rawResponseText: canonicalExtractionJSON())
+            },
+            dateProvider: TestDateProvider(now: now)
+        )
+        context.insert(thing)
+        context.insert(rule)
+        try context.save()
+
+        let sentMessage = try await service.send("Pause work on registration.")
+        let message = try XCTUnwrap(sentMessage)
+
+        XCTAssertEqual(message.extractionStatus, .notRequired)
+        XCTAssertEqual(rule.manuallyDeactivatedAt, now)
+        XCTAssertEqual(rule.lifecycleState, .deactivated)
+        XCTAssertFalse(rule.isActive)
+        XCTAssertEqual(RuleStatusService().status(for: rule, at: now), .inactive)
+        XCTAssertEqual(ReminderDetailActionPolicy.dateAction(for: rule, status: .inactive)?.title, "Move Due Date")
+        XCTAssertNil(ReminderDetailActionPolicy.lifecycleAction(for: rule, status: .inactive))
+        XCTAssertEqual(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .assistant }?.text, "Saved.")
+
+        let reviewItems = try LedgerReviewItemGenerationService(modelContext: context, now: { now }).refresh()
+        XCTAssertFalse(reviewItems.contains { $0.targetType == .rule && $0.targetID == rule.id })
+
+        let search = SearchService()
+        let searchRecord = search.record(for: rule)
+        XCTAssertFalse(search.search(LocalSearchQuery(rawText: "registration", includeInactiveRules: false, now: now), in: [searchRecord]).contains { $0.stableID == rule.id })
+        XCTAssertTrue(search.search(LocalSearchQuery(rawText: "registration", includeInactiveRules: true, now: now), in: [searchRecord]).contains { $0.stableID == rule.id })
+
+        let timelineRows = TimelineSliceProjection(calendar: Self.calendar, now: now)
+            .rows(things: [thing], reminders: [rule])
+        XCTAssertTrue(timelineRows.contains { $0.sourceID == rule.id && $0.dateKind == .dueStart && $0.navigationTarget == .ruleDetail(rule.id) })
+        XCTAssertTrue(timelineRows.contains { $0.sourceID == rule.id && $0.dateKind == .completedDeactivated && $0.navigationTarget == .ruleDetail(rule.id) })
+
+        let snapshot = ThingDetailSnapshot(thing: thing, now: now, calendar: Self.calendar)
+        XCTAssertTrue(snapshot.upcomingReminders.isEmpty)
+        XCTAssertEqual(snapshot.inactiveReminders.map(\.id), [rule.id])
+        XCTAssertEqual(snapshot.timelineEntryPoints.map(\.navigationTarget), [.ruleDetail(rule.id)])
+
+        let recall = try XCTUnwrap(RuleLookupService(now: now).answer(query: "When is my reminder for registration?", things: [thing], rules: [rule]))
+        XCTAssertTrue(recall.contains("Paused:"))
+        XCTAssertTrue(recall.contains("Renew registration."))
     }
 
     @MainActor

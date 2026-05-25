@@ -83,7 +83,7 @@ struct SeedScenarioRecordIDs {
         case "rule":
             rules
         case "none":
-            []
+            notes
         default:
             []
         }

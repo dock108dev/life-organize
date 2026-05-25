@@ -1,3 +1,4 @@
+import SwiftData
 import XCTest
 @testable import LifeOrganize
 
@@ -268,6 +269,76 @@ final class TimelineSliceProjectionTests: XCTestCase {
         )
 
         XCTAssertEqual(rows.map(\.displayLabel), ["You", "Note", "Late event", "Event"])
+    }
+
+    @MainActor
+    func testFilteredRowsReflectReassignmentAndDeletedThingWithoutRestart() throws {
+        let calendar = Self.newYorkCalendar
+        let now = try Self.date(2026, 5, 21, 12, 0, calendar: calendar)
+        let context = makeInMemoryModelContext()
+        let source = Thing(name: "NWS", aliases: ["old deploy"], createdAt: now, updatedAt: now)
+        let target = Thing(name: "Nimbus Web Services", aliases: ["NWS"], createdAt: now, updatedAt: now)
+        let event = LedgerEvent(
+            title: "Deploy completed",
+            occurredAt: try Self.date(2026, 5, 21, 9, 0, calendar: calendar),
+            rawText: "Deploy completed.",
+            createdAt: now,
+            thing: source
+        )
+        let note = LedgerNote(
+            text: "Deploy notes live in the release folder.",
+            createdAt: try Self.date(2026, 5, 21, 10, 0, calendar: calendar),
+            updatedAt: try Self.date(2026, 5, 21, 10, 0, calendar: calendar),
+            linkedThings: [source]
+        )
+        let service = DerivedFieldMaintenanceService(modelContext: context, now: { now })
+        context.insert(source)
+        context.insert(target)
+        try service.insertEvent(event)
+        try service.insertNote(note)
+        try context.save()
+
+        let projection = TimelineSliceProjection(calendar: calendar, now: now)
+        let sourceRows = projection.rows(
+            query: TimelineSliceQuery(linkedThingFilter: .id(source.id)),
+            things: [source, target],
+            events: [event],
+            notes: [note]
+        )
+        XCTAssertTrue(sourceRows.contains { $0.displayLabel == "Deploy notes live in the release folder." })
+        XCTAssertTrue(sourceRows.contains { $0.displayLabel == "Deploy completed" })
+        XCTAssertTrue(sourceRows.contains { $0.displayLabel == "NWS" })
+
+        try service.deleteThing(source, reassigningRecordsTo: target)
+        try context.save()
+        let things = try context.fetch(FetchDescriptor<Thing>())
+        let events = try context.fetch(FetchDescriptor<LedgerEvent>())
+        let notes = try context.fetch(FetchDescriptor<LedgerNote>())
+
+        let staleSourceRows = projection.rows(
+            query: TimelineSliceQuery(linkedThingFilter: .id(source.id)),
+            things: things,
+            events: events,
+            notes: notes
+        )
+        let targetRows = projection.rows(
+            query: TimelineSliceQuery(linkedThingFilter: .id(target.id), textFilter: "deploy"),
+            things: things,
+            events: events,
+            notes: notes
+        )
+
+        XCTAssertTrue(staleSourceRows.isEmpty)
+        XCTAssertFalse(things.contains { $0.id == source.id })
+        XCTAssertEqual(targetRows.map(\.sourceKind), [.note, .note, .event])
+        XCTAssertEqual(targetRows.map(\.dateKind), [.updated, .created, .occurred])
+        XCTAssertEqual(targetRows.map(\.displayLabel), [
+            "Deploy notes live in the release folder.",
+            "Deploy notes live in the release folder.",
+            "Deploy completed"
+        ])
+        XCTAssertTrue(targetRows.allSatisfy { $0.linkedThings.map(\.id).contains(target.id) })
+        XCTAssertTrue(targetRows.allSatisfy { $0.searchableText.contains("Nimbus Web Services") })
     }
 
     private static var newYorkCalendar: Calendar {

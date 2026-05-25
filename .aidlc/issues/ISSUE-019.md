@@ -1,25 +1,25 @@
-# ISSUE-019: Add screenshot capture baselines and visual diff scripts
+# ISSUE-019: Expand iOS search recall timeline and things tests
 
 **Priority**: high
-**Labels**: phase-7, screenshots, visual-regression, ci
-**Dependencies**: ISSUE-014
+**Labels**: ios, tests, search, timeline, things, functionality, design-visual
+**Dependencies**: ISSUE-018
 **Status**: implemented
 
 ## Description
 
-Build the actual screenshot regression gate around ISSUE-014 screenshot mode. Findings show no Fastlane directory, snapshot configuration, screenshot artifacts, or visual diff system. Use .aidlc/research/screenshot-regression-stack.md while honoring BRAINDUMP's desired toolchain: XCUITest captures, simulator launch scripts, and a Fastlane Snapshot/lane entry point or compatible wrapper for recurring capture runs.
+Cover the frontend testing scope for local-first search/recall, timeline slices, thing/event/rule visibility, recall continuity, empty states, and things list/detail/edit/delete. Use `.aidlc/discovery/findings.md` sections for search, recall, timeline, things, and existing tests under `LifeOrganizeTests/` as the implementation surface, including presentation-level consistency for rows, snapshots, empty states, and deterministic formatting.
 
 ## Acceptance Criteria
 
-- [ ] A LifeOrganizeScreenshotTests UI test class captures stable named screenshots for Timeline, Things, Thing detail, Carry Forward, Search, Review queue, empty states, heavy states, and first launch.
-- [ ] Scripts run screenshot tests into a known xcresult, extract PNG attachments with stable names, and place generated actual/diff artifacts outside checked-in baselines.
-- [ ] Checked-in baselines are organized by simulator/device and appearance, with generated artifacts ignored by source control.
-- [ ] A deterministic diff script compares actual screenshots against baselines with documented thresholds and fails CI when thresholds are exceeded.
-- [ ] A Fastlane Snapshot/lane entry point or documented compatible wrapper can invoke the same deterministic screenshot capture set without creating a second source of screenshot truth.
-- [ ] One repeatable command or CI target runs the full screenshot capture and comparison path end-to-end.
-- [ ] Simulator launch scripts or test wrappers set device destination and OS-level screenshot variables where possible, including status bar/battery/network chrome, appearance, text size, orientation, notifications, and reduced motion.
+- [ ] Search tests cover local-first ranking, empty states, result grouping, timeline slices, and visibility of things, events, rules, and notes.
+- [ ] Recall tests cover continuity answers, prior note lookup, last-time lookup, rule lookup, and behavior when no local records match.
+- [ ] Timeline projection tests cover empty, populated, heavy, filtered/sliced, and stale-data-after-delete states with deterministic ordering and formatting.
+- [ ] Things tests cover list, detail, edit, delete/reassignment, alias/normalization behavior, and relationship traversal back to events/rules/notes.
+- [ ] Search, recall, timeline, and things behavior reflects record edits, retries, review reconciliation, local clears, and migration results without requiring app restart.
+- [ ] Presentation/snapshot tests keep timeline rows, search result rows, thing previews, thing detail summaries, badges, dates, and empty-state formatting visually consistent with the shared ledger visual system.
+- [ ] No search/recall/timeline tests require a live backend or OpenAI call; any backend-shaped behavior is stubbed at the client/service boundary.
 
 ## Implementation Notes
 
 
-Attempt 1: Added LifeOrganizeScreenshotTests, iPhone_16/light PNG baselines, screenshot run/extract/Swift diff tooling, BuildArtifacts ignore, and Fastlane lanes delegating to the same runner.
+Attempt 1: Expanded local-first iOS coverage across search/recall, timeline projections, thing snapshots, reassignment, local clear, and migrated-record projections in six existing XCTest files.

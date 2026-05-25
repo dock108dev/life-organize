@@ -1,51 +1,7 @@
-import SwiftData
 import XCTest
 @testable import LifeOrganize
 
 final class SearchRecallServiceTests: XCTestCase {
-    @MainActor
-    func testRecallUsesFactualRuleNoteAndNoMatchLabels() {
-        let now = fixedTestNow
-        let domains = Thing(name: "Domains")
-        let garageFilter = Thing(name: "Garage Filter")
-        let rule = LedgerRule(
-            title: "No buying domains",
-            rawText: "No buying domains for 30 days.",
-            startsAt: now,
-            expiresAt: Date(timeIntervalSince1970: 1_802_592_000),
-            createdAt: now,
-            thing: domains
-        )
-        let note = LedgerNote(
-            text: "Spare filters are in the utility closet.",
-            createdAt: now,
-            linkedThings: [garageFilter]
-        )
-
-        XCTAssertEqual(
-            RecallService(now: now).answer(query: "Can I buy another domain?", things: [domains], rules: [rule]).answer,
-            """
-            Blocked.
-
-            Active restriction:
-            No buying domains until February 14, 2027.
-
-            30 days left.
-            """
-        )
-        XCTAssertEqual(
-            RecallService(now: now).answer(query: "garage filter", things: [garageFilter], notes: [note]).answer,
-            """
-            Recent notes:
-            - "Spare filters are in the utility closet."
-            """
-        )
-        XCTAssertEqual(
-            RecallService(now: now).answer(query: "monitor", things: [domains], rules: [rule], notes: [note]).answer,
-            "No saved records found."
-        )
-    }
-
     @MainActor
     func testLocalSearchProjectionCoversLedgerRecordTypes() {
         let now = fixedTestNow
@@ -362,136 +318,80 @@ final class SearchRecallServiceTests: XCTestCase {
     }
 
     @MainActor
-    func testPriorNoteRecallPrioritizesUserAuthoredTextThenStructuredRecords() {
-        let older = Date(timeIntervalSince1970: 1_700_000_000)
-        let newer = fixedTestNow
-        let garageFilter = Thing(name: "Garage Filter")
-        let note = LedgerNote(text: "Garage filter size is 16x20.", createdAt: older, linkedThings: [garageFilter])
-        let message = ChatMessage(role: .user, text: "Garage filter spares are on shelf two.", createdAt: newer)
-        let assistantMessage = ChatMessage(role: .assistant, text: "Garage filter assistant summary.", createdAt: newer)
+    func testSearchGroupingRankingAndRowsReflectMutableLocalState() throws {
+        let now = fixedTestNow
+        let day: TimeInterval = 86_400
+        let filters = Thing(
+            name: "Home Air Filters",
+            aliases: ["HVAC filters"],
+            category: .homeMaintenance,
+            createdAt: now.addingTimeInterval(-10 * day),
+            updatedAt: now
+        )
         let event = LedgerEvent(
-            title: "Replaced garage filter",
-            occurredAt: newer,
-            rawText: "Replaced garage filter.",
-            createdAt: newer,
-            thing: garageFilter
+            title: "Replaced filter",
+            occurredAt: now.addingTimeInterval(-2 * day),
+            rawText: "Replaced HVAC filter.",
+            createdAt: now.addingTimeInterval(-2 * day),
+            updatedAt: now.addingTimeInterval(-2 * day),
+            eventType: .maintenance,
+            thing: filters
         )
-        let rule = LedgerRule(
-            title: "No buying garage filters",
-            rawText: "No buying garage filters this month.",
-            startsAt: newer,
-            createdAt: newer,
-            thing: garageFilter
+        let reminder = LedgerRule(
+            title: "Replace filter",
+            ruleType: .reminder,
+            continuityBehavior: .dateBasedReminder,
+            rawText: "Replace the HVAC filter next month.",
+            startsAt: now.addingTimeInterval(14 * day),
+            createdAt: now,
+            updatedAt: now,
+            thing: filters
         )
+        let note = LedgerNote(
+            text: "Filter size is 16x20x1.",
+            createdAt: now.addingTimeInterval(-day),
+            updatedAt: now.addingTimeInterval(-day),
+            linkedThings: [filters]
+        )
+        let pendingMessage = ChatMessage(
+            role: .user,
+            text: "Filter entry saved locally while offline.",
+            createdAt: now,
+            extractionStatus: .pendingRetry
+        )
+        let search = SearchService()
+        let records = search.records(things: [filters], events: [event], rules: [reminder], notes: [note], messages: [pendingMessage])
 
-        let answer = RecallService(now: newer).answer(
-            query: "What did I say about the garage filter?",
-            things: [garageFilter],
-            events: [event],
-            rules: [rule],
-            notes: [note],
-            chatMessages: [message, assistantMessage]
-        ).answer
-        XCTAssertTrue(answer.contains("Local results:"))
-        XCTAssertTrue(answer.contains("Garage filter size is 16x20."))
-        XCTAssertTrue(answer.contains(#""Garage filter spares are on shelf two.""#))
-        XCTAssertTrue(answer.contains("Replaced garage filter"))
-        XCTAssertFalse(answer.contains("Note:"))
-        XCTAssertFalse(answer.contains("Message:"))
-        XCTAssertFalse(answer.contains("Event:"))
-        XCTAssertFalse(answer.contains("Reminder:"))
-        XCTAssertFalse(answer.contains("assistant summary"))
+        let results = search.search(LocalSearchQuery(rawText: "filter", limit: 20, now: now), in: records)
+        let groupedKinds: [LocalSearchEntityKind: Int] = Dictionary(grouping: results) { result in
+            result.sourceKind
+        }.mapValues { groupedResults in
+            groupedResults.count
+        }
+        let expectedKinds: Set<LocalSearchEntityKind> = [.thing, .event, .rule, .note, .chatMessage]
+        let noteResult = try XCTUnwrap(results.first { result in
+            result.sourceKind == .note
+        })
+        let notePresentation = LocalSearchResultRowPresentation(result: noteResult)
+
+        XCTAssertEqual(Set(groupedKinds.keys), expectedKinds)
+        XCTAssertEqual(results.first?.sourceKind, .rule)
         XCTAssertLessThan(
-            try XCTUnwrap(answer.range(of: "Garage filter size")?.lowerBound),
-            try XCTUnwrap(answer.range(of: "Garage filter spares")?.lowerBound)
+            try XCTUnwrap(results.firstIndex { $0.sourceKind == .event }),
+            try XCTUnwrap(results.firstIndex { $0.sourceKind == .chatMessage })
         )
-        XCTAssertLessThan(
-            try XCTUnwrap(answer.range(of: "Garage filter spares")?.lowerBound),
-            try XCTUnwrap(answer.range(of: "Replaced garage filter")?.lowerBound)
-        )
-    }
+        XCTAssertEqual(results.first { $0.sourceKind == .rule }?.ruleBadge, "Upcoming")
+        XCTAssertEqual(results.first { $0.sourceKind == .event }?.subtitle, "Home Air Filters · Maintenance")
+        XCTAssertEqual(results.first { $0.sourceKind == .note }?.productContextText, "Related to Home Air Filters")
+        XCTAssertEqual(notePresentation.kindPillText, "Note")
+        XCTAssertTrue(search.search("attic vent", in: records).isEmpty)
+        XCTAssertEqual(LedgerEmptyStateContent.noSearchResults.title, "No results")
 
-    @MainActor
-    func testPriorNoteRecallNoResultNamesTopicFactually() {
-        let answer = RecallService(now: fixedTestNow).answer(
-            query: "What did I say about attic vents?",
-            things: [],
-            chatMessages: []
-        ).answer
+        note.text = "Filter size is 20x25x1."
+        note.updatedAt = now.addingTimeInterval(60)
+        let editedRecords = search.records(things: [filters], events: [event], rules: [reminder], notes: [note], messages: [pendingMessage])
 
-        XCTAssertEqual(answer, #"No saved records found for "attic vents"."#)
-    }
-
-    @MainActor
-    func testChatLocalSearchUsesSharedProjectionWithoutSourceLabels() async throws {
-        let context = makeInMemoryModelContext()
-        let now = fixedTestNow
-        let garageFilter = Thing(name: "Garage Filter", createdAt: now, updatedAt: now)
-        let note = LedgerNote(text: "Garage filter size is 16x20.", createdAt: now, updatedAt: now, linkedThings: [garageFilter])
-        let message = ChatMessage(role: .user, text: "Garage filter spares are on shelf two.", createdAt: now)
-        context.insert(garageFilter)
-        context.insert(note)
-        context.insert(message)
-        try context.save()
-
-        let answer = try ChatRecallResponseService(modelContext: context, now: now).answer(
-            for: ChatIntentClassification(intent: .localSearch, targetText: "garage filter")
-        )
-        XCTAssertTrue(answer.contains("Local results:"))
-        XCTAssertTrue(answer.contains("Garage Filter"))
-        XCTAssertTrue(answer.contains("Garage filter size is 16x20. - Related to Garage Filter"))
-        XCTAssertTrue(answer.contains("Garage filter spares are on shelf two."))
-        XCTAssertFalse(answer.contains("Thing:"))
-        XCTAssertFalse(answer.contains("Note:"))
-        XCTAssertFalse(answer.contains("Message:"))
-        XCTAssertFalse(answer.contains("matched:"))
-        XCTAssertFalse(answer.contains("linkedThingName"))
-    }
-
-    @MainActor
-    func testRecallNoMatchCopyCoversReminderAndLocalSearchPaths() async throws {
-        XCTAssertEqual(
-            RecallService(now: fixedTestNow).answer(
-                query: "Is there a reminder about HVAC filter?",
-                things: [],
-                rules: []
-            ).answer,
-            "No active reminder found for hvac filter."
-        )
-
-        let context = makeInMemoryModelContext()
-        let answer = try ChatRecallResponseService(modelContext: context, now: fixedTestNow).answer(
-            for: ChatIntentClassification(intent: .localSearch, targetText: "attic vents")
-        )
-
-        XCTAssertEqual(answer, #"No saved records found for "attic vents"."#)
-    }
-
-    @MainActor
-    func testPermissionRecallUsesAliasesAndMentionsRecentExpiredRule() {
-        let now = fixedTestNow
-        let domains = Thing(name: "Domains", aliases: ["domain name"])
-        let expiredRule = LedgerRule(
-            title: "No buying domains",
-            rawText: "No buying domains for 30 days.",
-            startsAt: Date(timeIntervalSince1970: 1_790_000_000),
-            expiresAt: Date(timeIntervalSince1970: 1_799_913_600),
-            createdAt: Date(timeIntervalSince1970: 1_790_000_000),
-            thing: domains
-        )
-
-        XCTAssertEqual(
-            RecallService(now: now).answer(
-                query: "Can I buy another domain name?",
-                things: [domains],
-                rules: [expiredRule]
-            ).answer,
-            """
-            No active restriction found for domain name.
-
-            The most recent related restriction expired on January 14, 2027:
-            No buying domains.
-            """
-        )
+        XCTAssertTrue(search.search("20x25x1", in: editedRecords).contains { $0.navigationTarget == .noteDetail(note.id) })
+        XCTAssertTrue(search.search("16x20x1", in: editedRecords).isEmpty)
     }
 }

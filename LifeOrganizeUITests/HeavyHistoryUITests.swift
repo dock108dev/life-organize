@@ -4,21 +4,16 @@ extension LifeOrganizeScenarioUITests {
     func testSeedScrollsTimelineWithinTimeout() throws {
         executionTimeAllowance = 45
         let walkthroughStart = CFAbsoluteTimeGetCurrent()
-        let app = XCUIApplication()
-        app.launchArguments = [
-            "-ui-testing",
-            "-ApplePersistenceIgnoreState",
-            "YES",
-            "-use-fake-extractor",
-            "-disable-animations",
-            "-reset-store",
-            "-reset-device-token",
-            "-use-in-memory-store",
-            "-skip-launch-maintenance",
-            "-fixed-now=2026-05-21T12:00:00-04:00",
-            "--seed-scenario=heavy_history"
-        ]
-        app.launch()
+        let app = launchUITestApp(
+            extraArguments: [
+                "-skip-launch-maintenance",
+                "-fixed-now=2026-05-21T12:00:00-04:00",
+                "--seed-scenario=heavy_history"
+            ],
+            resetStore: true,
+            resetDeviceToken: true,
+            useInMemoryStore: true
+        )
 
         XCTAssertTrue(app.navigationBars["Timeline"].waitForFastExistence(timeout: 10))
         let feed = app.descendants(matching: .any)["timeline-feed"]

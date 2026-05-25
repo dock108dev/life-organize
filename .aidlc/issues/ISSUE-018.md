@@ -1,23 +1,24 @@
-# ISSUE-018: Prevent duplicate Thing drift in seeded scenarios
+# ISSUE-018: Expand iOS SwiftData persistence coverage
 
 **Priority**: high
-**Labels**: phase-7, thing-identity, duplicate-drift, scenario-testing
-**Dependencies**: ISSUE-003, ISSUE-005, ISSUE-011
+**Labels**: ios, tests, swiftdata, persistence, functionality
+**Dependencies**: ISSUE-010
 **Status**: implemented
 
 ## Description
 
-Add a dedicated identity-drift QA layer for the BRAINDUMP risk of duplicate Things and relationship drift. ISSUE-011 owns raw relationship integrity; this issue uses .aidlc/research/thing-duplicate-drift-prevention.md to assert the ThingResolver/ThingNormalizer outcome classes across seeded scenarios.
+Add or deepen iOS unit/integration tests for the SwiftData persistence scope BRAINDUMP names: migrations, seed scenarios, relationship integrity, delete/reassignment behavior, ledger export, and local data clearing. Use `.aidlc/discovery/findings.md` and `.aidlc/research/swiftdata-coverage-denominator.md` to target `ModelContainerFactory`, active schema, migration plan, seed loader, local clearing, export, and relationship validators without counting generated-heavy snapshots as ordinary app behavior.
 
 ## Acceptance Criteria
 
-- [ ] Scenario tests classify identity outcomes as automaticMerge, newSeededThing, newDistinctThing, or reviewCandidate and assert the expected class per fixture input.
-- [ ] Tests assert Thing count before/after, canonical name, normalizedKey, category, aliases, linked record IDs, and provenance for each identity-sensitive input.
-- [ ] Seeded exact identities reuse existing Things when current rules allow it and do not create duplicate rows.
-- [ ] Ambiguous acronym, abbreviation, category-conflict, and blocked-context cases create review candidates rather than silent automatic merges.
-- [ ] LedgerReviewItemGenerationService duplicate and normalization candidate outputs are asserted after refresh so duplicate drift cannot remain hidden.
+- [ ] Tests cover `ModelContainerFactory` standard, in-memory, and URL-backed store behavior where practical.
+- [ ] Migration tests prove V1 and V2 stores open through the active V3 container and preserve chat messages, attempts, things, events, rules, notes, review items, and entity links as applicable.
+- [ ] Seed scenario tests validate shipped JSON fixtures, seed loading fallback behavior, and scenario records used by screenshots/UI tests.
+- [ ] Relationship integrity tests cover delete/reassignment behavior for things, events, rules, notes, source messages, extraction attempts, and review items.
+- [ ] After deletes, reassignments, migrations, and local clears, dependent projections such as timeline slices, search results, review queue items, thing detail relationships, and rule relationships no longer show stale orphaned data.
+- [ ] Ledger export and local data clearing tests prove exports omit service tokens/secrets and clearing removes local records while preserving or resetting the device token only according to the intended flow.
 
 ## Implementation Notes
 
 
-Attempt 1: Added identity-drift scenario coverage in LifeOrganizeTests/ThingIdentityContinuityTests.swift and guarded generic filter matching in ThingNormalizationCandidate.swift so ambiguous saved filter identities create review candidates instead of silent merges.
+Attempt 1: Expanded SwiftData persistence coverage in PersistenceCoverageTests and added review-reference cleanup for delete/reassign paths. Export, fixture, and audit validators now treat review type none as note-backed so note review evidence stays valid.

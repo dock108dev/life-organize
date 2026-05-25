@@ -77,7 +77,10 @@ final class SettingsTrustSurfaceTests: XCTestCase {
                 "raw response",
                 "normalized",
                 "model metadata",
-                "error code"
+                "error code",
+                "API key",
+                "authorization",
+                "bearer token"
             ]
         )
     }
@@ -109,9 +112,26 @@ final class SettingsTrustSurfaceTests: XCTestCase {
                 "raw response",
                 "normalized JSON",
                 "model metadata",
-                "error code"
+                "error code",
+                "API key",
+                "Authorization",
+                "Bearer"
             ]
         )
+    }
+
+    func testSettingsViewOnlyKeepsDisplaySafeTokenState() throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let source = try String(
+            contentsOf: root.appendingPathComponent("LifeOrganize/Features/Settings/SettingsView.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(source.contains("@State private var savedTokenDescription: String?"))
+        XCTAssertTrue(source.contains("map(maskedTokenDescription)"))
+        XCTAssertFalse(source.contains("@State private var savedToken: String"))
+        XCTAssertFalse(source.contains("Text(token)"))
+        XCTAssertFalse(source.contains("LedgerPill(text: token"))
     }
 
     func testClearDataFlowOffersExportBeforeTypedConfirmation() {

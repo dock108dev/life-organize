@@ -225,9 +225,7 @@ final class LifeOrganizeTests: XCTestCase {
     }
 
     func testDiskBackedModelContainerKeepsMessagesAcrossReopen() throws {
-        let directory = FileManager.default.temporaryDirectory
-            .appending(path: "LifeOrganizeTests-\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let directory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
 
         let storeURL = directory.appending(path: "Ledger.store")

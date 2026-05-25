@@ -1,25 +1,24 @@
-# ISSUE-008: Add ambiguous human entry and review queue scenario
+# ISSUE-008: Lock frontend backend-default and secret guardrails
 
 **Priority**: high
-**Labels**: phase-7, scenario, review-queue, ambiguity
-**Dependencies**: ISSUE-003, ISSUE-004, ISSUE-005
+**Labels**: ios, tests, configuration, security, copy-contracts
+**Dependencies**: none
 **Status**: implemented
 
 ## Description
 
-Add the BRAINDUMP Scenario 3 for the input 'I think bogey needs a haircut in a week or two'. Findings show generic extraction review items exist, but no deterministic scenario proves ambiguous suggested interpretation, date-window review, and relationship linking. Use .aidlc/research/ambiguous-human-entry-review-flow.md and .aidlc/research/review-queue-scenario-contract.md.
+Add iOS unit/static tests proving every frontend environment defaults to `https://life.dock108.dev`, local backend is explicit launch-arg-only, provider secrets remain backend-owned, and primary UI copy/formatting stays product-facing. Use `.aidlc/discovery/findings.md`, `.aidlc/research/frontend-default-backend-contract.md`, `.aidlc/research/frontend-secret-surface-guardrails.md`, and `.aidlc/research/ios-ui-test-live-network-boundary.md`.
 
 ## Acceptance Criteria
 
-- [ ] Mock extraction for the Bogey haircut input preserves the raw message, likely Thing, intended action, and ambiguous 'in a week or two' date window without silently committing an arbitrary due date.
-- [ ] The scenario produces a review item with a concrete suggested interpretation and target/source evidence rather than only generic 'Entry needs review' copy.
-- [ ] If a Bogey Thing already exists in the seed, the candidate links to it; if not, the new Thing or match review follows current ThingResolver safety rules.
-- [ ] Review queue assertions cover item kind, state, target, detail/action text, evidence, dedupe behavior, and no mutation on generation.
-- [ ] The UI walkthrough opens Review queue, verifies the ambiguous entry is visible, and captures a review_queue screenshot checkpoint.
+- [ ] Tests assert `AppRuntimeConfiguration.defaultAIServiceBaseURL` is exactly `https://life.dock108.dev` and does not drift by UI testing, screenshot, seed, reset, in-memory, deterministic extraction, debug, or developer-mode flags.
+- [ ] Tests assert only valid `-ai-service-base-url=` or `--ai-service-base-url=` launch args can override the backend URL, and invalid/empty schemes fall back to production.
+- [ ] `AIServiceClient` and runtime configuration share one production default or have drift-catching tests that observe the actual request URL.
+- [ ] Routine UI tests are guarded to use deterministic extraction and avoid live backend/OpenAI calls unless a specific smoke test is explicitly scoped.
+- [ ] Static/copy/export guardrail tests prove no frontend provider API key, OpenAI secret, authorization header, bearer token, or raw device token is exposed in primary UI or local exports.
+- [ ] Primary settings/search/ledger/review copy tests cover duplicate objective/explanatory text and deterministic display formatting, including inline Settings literals that are not currently centralized.
 
 ## Implementation Notes
 
 
-Attempt 1 failed (sample):
-OpenAI CLI timed out
-Attempt 2: Strengthened deterministic Bogey grooming extraction coverage to assert raw source text, suggested haircut action, null date-window ownership, warning severity, and no finalized rule/note for the ambiguous reminder fixture.
+Attempt 1: Centralized the iOS backend default, added runtime/network/copy/export guardrails, redacted secret-like export strings, aligned AIServiceClient default URL, and stabilized stale review/seeded UI expectations.

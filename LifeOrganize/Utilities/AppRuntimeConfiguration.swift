@@ -17,6 +17,7 @@ struct AppRuntimeConfiguration {
     var shouldResetDeviceToken: Bool
     var shouldSkipLaunchMaintenance: Bool
     var enablesDeveloperMode: Bool
+    var simulatedAIServiceError: AppError?
     var seedScenarioIDs: [String]
     var initialTab: AppTab?
     var initialSheet: AppInitialSheet?
@@ -40,14 +41,16 @@ struct AppRuntimeConfiguration {
 
     init(arguments: [String]) {
         let screenshotMode = arguments.contains("-screenshot-mode")
+        let automationRuntime = arguments.contains("-ui-testing") || screenshotMode
         isScreenshotMode = screenshotMode
-        isUITesting = arguments.contains("-ui-testing") || screenshotMode
+        isUITesting = automationRuntime
         usesDeterministicExtractor = arguments.contains("-use-fake-extractor") || screenshotMode
         shouldResetFreshInstallState = arguments.contains("--reset-db")
         shouldResetStore = arguments.contains("-reset-store") || shouldResetFreshInstallState || screenshotMode
         shouldResetDeviceToken = arguments.contains("-reset-device-token") || shouldResetFreshInstallState || screenshotMode
         shouldSkipLaunchMaintenance = arguments.contains("-skip-launch-maintenance") || arguments.contains("--skip-launch-maintenance")
         enablesDeveloperMode = arguments.contains("-enable-developer-mode")
+        simulatedAIServiceError = Self.simulatedAIServiceError(from: arguments, isAutomationRuntime: automationRuntime)
         usesInMemoryAutomationStore = arguments.contains("-use-in-memory-store") || arguments.contains("--use-in-memory-store")
         screenshotSeed = Self.screenshotSeed(from: arguments)
         screenshotSearchQuery = Self.argumentValue(from: arguments, prefixes: ["-screenshot-search-query="])
@@ -83,6 +86,9 @@ struct AppRuntimeConfiguration {
 
     @MainActor
     func messageExtractionClient(deviceTokenStore: any DeviceTokenStore) -> any MessageExtractionClient {
+        if let simulatedAIServiceError {
+            return SimulatedUnavailableMessageExtractionClient(error: simulatedAIServiceError)
+        }
         if usesDeterministicExtractor {
             return DeterministicMessageExtractionClient()
         }
@@ -91,6 +97,9 @@ struct AppRuntimeConfiguration {
 
     @MainActor
     func webRequestClient(deviceTokenStore: any DeviceTokenStore) -> (any WebRequestClient)? {
+        if let simulatedAIServiceError {
+            return SimulatedUnavailableWebRequestClient(error: simulatedAIServiceError)
+        }
         guard !usesDeterministicExtractor else { return nil }
         return AIServiceWebRequestClient(deviceTokenStore: deviceTokenStore, serviceBaseURL: aiServiceBaseURL)
     }

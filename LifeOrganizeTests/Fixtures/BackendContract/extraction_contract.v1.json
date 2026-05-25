@@ -1,0 +1,6 @@
+{
+  "requestSchemaVersion": 1,
+  "openAISchemaName": "life_ledger_extraction_v1",
+  "openAIOutputSchemaVersion": "1.0",
+  "webModes": ["answer", "importRecords"]
+}

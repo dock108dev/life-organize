@@ -367,6 +367,7 @@ private struct RelationshipAuditIndex {
         case "thing": things
         case "event": events
         case "rule": rules
+        case "none": notes
         default: []
         }
     }

@@ -5,7 +5,7 @@ import XCTest
 @MainActor
 final class ScenarioRunArtifactBundleTests: XCTestCase {
     func testScenarioRunBundleWritesPlannerReadableArtifacts() throws {
-        let root = temporaryDirectory()
+        let root = try makeTemporaryDirectory(prefix: "LifeOrganizeScenarioArtifacts")
         let runID = "20260521-120000-local-iphone-16"
         let xctestURL = root
             .appendingPathComponent(runID, isDirectory: true)
@@ -51,7 +51,7 @@ final class ScenarioRunArtifactBundleTests: XCTestCase {
     }
 
     func testScenarioRunBundleReportsMissingScreenshotsAsArtifactFailures() throws {
-        let root = temporaryDirectory()
+        let root = try makeTemporaryDirectory(prefix: "LifeOrganizeScenarioArtifacts")
         let runID = "20260521-121500-local-iphone-16"
         let context = try makeScenarioContext()
         let request = try makeRequest(root: root, runID: runID, expectedScreenshots: ["missing.png"], requiresXCTest: false)
@@ -69,7 +69,7 @@ final class ScenarioRunArtifactBundleTests: XCTestCase {
     }
 
     func testScenarioRunBundleIncludesReviewQueueStateAndScreenshotCheckpoint() throws {
-        let root = temporaryDirectory()
+        let root = try makeTemporaryDirectory(prefix: "LifeOrganizeScenarioArtifacts")
         let runID = "20260521-123000-local-iphone-16"
         let screenshotURL = root
             .appendingPathComponent(runID, isDirectory: true)
@@ -294,11 +294,6 @@ final class ScenarioRunArtifactBundleTests: XCTestCase {
 
     private func decode<T: Decodable>(_ type: T.Type, from url: URL) throws -> T {
         try JSONDecoder().decode(type, from: Data(contentsOf: url))
-    }
-
-    private func temporaryDirectory() -> URL {
-        FileManager.default.temporaryDirectory
-            .appendingPathComponent("LifeOrganizeScenarioArtifacts-\(UUID().uuidString)", isDirectory: true)
     }
 
     private func date(_ string: String) throws -> Date {

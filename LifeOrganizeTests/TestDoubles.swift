@@ -8,6 +8,13 @@ func makeInMemoryModelContext() -> ModelContext {
     ModelContext(ModelContainerFactory.make(inMemory: true))
 }
 
+func makeTemporaryDirectory(prefix: String = "LifeOrganizeTests") throws -> URL {
+    let directory = FileManager.default.temporaryDirectory
+        .appending(path: "\(prefix)-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    return directory
+}
+
 struct TestDateProvider: DateProvider {
     var now: Date
 }

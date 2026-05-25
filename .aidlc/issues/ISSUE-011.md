@@ -1,24 +1,26 @@
-# ISSUE-011: Run relationship integrity and duplicate drift validation for every scenario
+# ISSUE-011: Add iOS CI workflow without deployment
 
 **Priority**: high
-**Labels**: phase-7, integrity, relationships, scenario-testing
-**Dependencies**: ISSUE-003, ISSUE-005
+**Labels**: ios, github-actions, ci, new-feature
+**Dependencies**: ISSUE-010, ISSUE-022, ISSUE-023
 **Status**: implemented
 
 ## Description
 
-Build the whole-store relationship integrity validation layer required by BRAINDUMP continuity trust. Findings show EntityLink uses raw UUID references and broken links can be silently dropped by traversal. Use .aidlc/research/relationship-integrity-validator.md to validate seeded scenarios for broken references, invalid link shapes, review references, and timeline continuity both immediately after seeding and after scenario actions such as review corrections, retries, merges, relaunches, and search/replay navigation.
+Add the new GitHub iOS CI workflow requested by BRAINDUMP, with an explicit no-deploy contract. Use `.aidlc/research/ios-ci-workflow-scope-no-deploy.md`, `.aidlc/research/ios-ci-runner-simulator-pin.md`, and `.aidlc/research/ios-ui-test-live-network-boundary.md`. The workflow should build and test iOS, prove production backend default configuration, run coverage, and upload failure artifacts, while deliberately excluding signing, archive, TestFlight, App Store, notarization, SSH, Docker, deployment permissions, and provider secrets.
 
 ## Acceptance Criteria
 
-- [ ] A RelationshipIntegrityValidator fetches the whole SwiftData store and reports all failures in one structured result instead of failing on the first broken row.
-- [ ] The validator checks unique IDs per relationship-bearing model, valid EntityLink raw enum values, EntityLink source/target existence, compatible relation shapes, and sourceMessageID consistency.
-- [ ] Event, rule/reminder, note, chat message, extraction attempt, review item, and entity link references are validated against existing source records where persisted model fields allow it.
-- [ ] Timeline continuity checks verify replay/search descriptors do not point to missing records and that relationship traversal does not silently drop seeded source links.
-- [ ] Relationship audits run after initial seed load and after scenario mutations that can change links, including review queue actions, duplicate merges/reassignments, manual retry/reprocess, and relaunch persistence checks.
-- [ ] The deterministic scenario runner fails any seeded scenario that has orphaned links, invalid references, broken review evidence, or relationship audit errors.
+- [ ] A dedicated `.github/workflows/ios-ci.yml` triggers on PRs and pushes touching the iOS app, iOS tests, screenshot scripts/baselines, fastlane, workflow file, or Xcode project.
+- [ ] The workflow uses least-privilege permissions such as `contents: read` and does not request package write, deployment, OIDC, SSH, or Apple signing permissions.
+- [ ] The workflow builds and tests the `LifeOrganize` scheme on the pinned simulator destination with `CODE_SIGNING_ALLOWED=NO` and code coverage enabled.
+- [ ] The workflow runs the shared iOS coverage parser from ISSUE-010 and exposes a stable `ios / coverage >= 80` check.
+- [ ] Routine tests mock or stub network at the client boundary and do not make live OpenAI/provider calls.
+- [ ] Configuration tests prove the default frontend backend is `https://life.dock108.dev`, while local backend use is only possible through explicit launch arguments.
+- [ ] The workflow contains no archive, export, notarization, TestFlight, App Store upload, deploy, or mobile provisioning steps.
+- [ ] Failure artifacts include the xcresult bundle and relevant simulator/test logs.
 
 ## Implementation Notes
 
 
-Attempt 1: Added whole-store relationship integrity scenario validation, fixed seed relationship mapping and stale rule/alias drift, and preserved extraction attempt references across thing merge/delete maintenance.
+Attempt 1: Added dedicated iOS CI workflow with scoped triggers, read-only permissions, pinned simulator build/test, coverage gate check, and failure artifacts; hardened verify-ios signing/DerivedData handling and added workflow/script contract tests.

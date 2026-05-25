@@ -1,23 +1,26 @@
-# ISSUE-012: Add temporal ambiguity QA matrix
+# ISSUE-012: Integrate screenshot comparison into iOS CI
 
-**Priority**: high
-**Labels**: phase-7, temporal-qa, extraction-quality
-**Dependencies**: ISSUE-004
+**Priority**: medium
+**Labels**: ios, screenshots, ci, usability-flow, design-visual
+**Dependencies**: ISSUE-011
 **Status**: implemented
 
 ## Description
 
-Create dedicated deterministic tests for temporal coherence, one of the BRAINDUMP's highest-risk systems. Findings show TemporalPriorityResolver covers numeric durations but not the full BRAINDUMP phrase matrix. Use .aidlc/research/temporal-ambiguity-matrix.md to distinguish deterministic app behavior, mock fixture coverage, review-preserved ambiguity, and model-dependent phrasing.
+Add screenshot comparison and failure artifacts to the iOS CI shape. Use `.aidlc/discovery/findings.md`, `.aidlc/research/screenshot-ci-cadence-and-artifacts.md`, and `.aidlc/research/ios-ci-runner-simulator-pin.md`; preserve the existing deterministic screenshot stack and baselines while making comparison failures easy to recover from and protecting visual coherence across the core app surfaces.
 
 ## Acceptance Criteria
 
-- [ ] Tests cover the BRAINDUMP examples: in 90 days, next year, later this month, revisit next season, and replace in 2 months against a fixed now/time zone.
-- [ ] The matrix explicitly asserts which phrases resolve deterministically, which preserve ambiguity for review, which are model-dependent, and which must not be guessed into committed reminders.
-- [ ] Standing restrictions with review durations preserve ongoing restriction semantics while creating a separate review reminder where appropriate.
-- [ ] Explicit window language such as until/through/between is tested so restriction windows are not erased by review-date logic.
-- [ ] Failed or ambiguous temporal interpretations produce review/quality signals consumable by ISSUE-021 rather than disappearing as parser-only failures.
+- [ ] CI runs `Scripts/screenshots/run-screenshot-tests.sh compare` for UI-affecting PRs and on main pushes, or always if runtime cost is accepted by implementation.
+- [ ] The workflow uses the existing screenshot defaults unless the simulator pin is deliberately changed with baseline implications handled explicitly.
+- [ ] Screenshot coverage continues to protect first launch, timeline empty, populated timeline, heavy timeline, things, thing detail, carry forward, search, and review queue.
+- [ ] On failure, CI uploads `BuildArtifacts/ScreenshotTests.xcresult`, actual screenshots, diff screenshots, and comparison logs.
+- [ ] Path filters cover app rendering code, assets, localization, UI tests, screenshot scripts, baselines, fastlane screenshot lanes, and shared formatting/model code that changes visible text.
+- [ ] Screenshot failure output distinguishes missing actuals, size mismatch, unexpected screenshots, and pixel-diff failures, and points to the relevant actual/diff/baseline paths.
+- [ ] If simulator device or runtime changes, accepted baselines prove no text truncation, incoherent overlap, missing navigation titles, or hidden primary rows on the protected screens.
+- [ ] The workflow does not refresh baselines automatically; baseline updates remain an explicit developer action with the local update/compare flow easy to discover from the failure output.
 
 ## Implementation Notes
 
 
-Attempt 1: Added TemporalAmbiguityMatrixTests covering fixed-clock numeric review resolution, fixture-owned replace-in-2-months behavior, vague/seasonal ambiguity preservation, standing restriction review reminders, explicit windows, and review signals without committed reminders.
+Attempt 1: Added iOS screenshot comparison CI with default simulator/baseline pins, failure artifact uploads, compare logs, path filters, failure-mode output, docs, and tests. Stabilized screenshot capture timing to avoid mid-transition detail screenshots.

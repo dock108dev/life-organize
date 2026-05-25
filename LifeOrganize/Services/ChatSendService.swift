@@ -116,7 +116,11 @@ struct ChatSendService {
             guard canWriteResults(for: dataGeneration) else {
                 return message
             }
-            if let payload = result.extractionPayload, let attempt {
+            if let attempt {
+                guard let payload = result.extractionPayload else {
+                    try fail(message: message, attempt: attempt, error: AppError.invalidResponse)
+                    return message
+                }
                 try complete(message: message, attempt: attempt, payload: payload)
             } else {
                 message.extractionStatus = .notRequired

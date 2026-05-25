@@ -1,25 +1,26 @@
-# ISSUE-021: Add internal extraction quality dashboard
+# ISSUE-021: Expand iOS ledger review queue tests
 
-**Priority**: medium
-**Labels**: phase-7, quality-dashboard, extraction-quality, internal-qa
-**Dependencies**: ISSUE-012, ISSUE-015, ISSUE-018, ISSUE-022
+**Priority**: high
+**Labels**: ios, tests, review-queue, functionality, design-visual
+**Dependencies**: ISSUE-018
 **Status**: implemented
 
 ## Description
 
-Implement the BRAINDUMP internal-only quality telemetry dashboard as a separate tool from the QA Lab shell. Findings show per-record quality signals exist in ChatMessage, ExtractionAttempt, LedgerReviewItem, and EntityLink, but no aggregate counters. Use .aidlc/research/extraction-quality-dashboard-model.md and feed it with deterministic seeded scenarios, temporal QA, duplicate-drift QA, and review queue scenarios so extraction quality can be tracked without user analytics.
+Cover BRAINDUMP's ledger review queue testing scope: item generation, safety actions, presentation, reconciliation, and consistency scenarios. Use `.aidlc/discovery/findings.md` surfaces around `LedgerReviewQueueService`, `LedgerReviewQueueActions`, `LedgerReviewItemGenerationService*`, `LedgerReviewItemPresentation`, and existing scenario fixtures, including cross-surface visual consistency for review state.
 
 ## Acceptance Criteria
 
-- [ ] The dashboard is available only through developer/internal QA gating and is not exposed as a user analytics surface.
-- [ ] Metrics include deterministic vs AI attempts, extraction candidate volume, attempt coverage, strict and operational success rates, status distribution, retry backlog, attention burden, and extraction latency.
-- [ ] Review metrics include review rate, open/resolved review counts by kind, duplicate Thing review creation, normalization candidate volume, temporal/conflicting-date review volume, and failed review action counts where derivable.
-- [ ] Failed temporal interpretation is represented explicitly through available error codes, review kinds, or deterministic temporal QA fixture outcomes rather than inferred from generic failures only.
-- [ ] Entity/link metrics include graph density, link confidence distribution, extraction-created link coverage, and orphan-like patterns from the relationship validator where available.
-- [ ] Dashboard test data can be produced from deterministic fixtures/scenarios so metric counts are stable in CI.
-- [ ] Dashboard copy labels derived review/quality values as proxy metrics and does not imply ground-truth precision or recall where the stored data cannot prove it.
+- [ ] Review item generation tests cover ambiguous, failed, partial, stale, retryable, and consistency-warning inputs.
+- [ ] Safety action tests cover approve, dismiss, reconcile, retry-related actions, and destructive/no-op boundaries.
+- [ ] Queue items are generated from chat failures, partial extraction warnings, stale reminders, relationship inconsistencies, and imported web records when those states require review.
+- [ ] Review item presentation tests assert deterministic labels, badge semantics, action priority, grouping, and hierarchy without duplicate objective/explanatory text.
+- [ ] Review queue visual language stays consistent with ledger rows, search results, timeline rows, and rule/thing detail states for comparable statuses.
+- [ ] Reconciliation tests prove queue state stays consistent after record edits, deletes, retries, local clears, migrations, and scenario reloads.
+- [ ] Review actions update the underlying message, attempt, record, and queue state atomically enough that search, timeline, rules, and things do not show contradictory state.
+- [ ] Scenario tests include at least one populated review queue fixture used consistently by unit, UI, and screenshot coverage.
 
 ## Implementation Notes
 
 
-Attempt 1: Added a developer-gated extraction quality metrics route under Internal QA Lab, with SwiftData aggregation for extraction, review, temporal, retry, latency, and entity-link proxy health metrics plus deterministic fixture coverage tests.
+Attempt 1: Added LedgerReviewQueueExpandedCoverageTests covering generation for failed/retryable/partial/stale/imported records, action consistency across queue/search/timeline/thing/rule projections, shared review badge language, and scenario reload after local clear.

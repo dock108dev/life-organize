@@ -116,7 +116,7 @@ struct LocalJSONExportService {
         return ChatMessageExport(
             id: message.id.uuidString,
             role: message.role.rawValue,
-            text: message.text,
+            text: safe(message.text),
             createdAt: timestamp(message.createdAt),
             linkedEntityIds: linkedIDs.map(\.uuidString).sorted(),
             extractionRunId: compatibilityAttemptID?.uuidString,
@@ -128,12 +128,13 @@ struct LocalJSONExportService {
     }
 
     private func export(_ attempt: ExtractionAttempt) -> ExtractionRunExport {
-        let parsedResponse = decodeJSONValue(attempt.normalizedJSONText)
+        let normalizedJSONText = safe(attempt.normalizedJSONText)
+        let parsedResponse = decodeJSONValue(normalizedJSONText)
         return ExtractionRunExport(
             id: attempt.id.uuidString,
             chatMessageId: attempt.sourceMessageID?.uuidString,
             provider: "openai",
-            model: attempt.modelName,
+            model: safe(attempt.modelName),
             purpose: "extraction",
             extractionSchemaVersion: attempt.schemaVersion,
             promptVersion: attempt.promptVersion,
@@ -141,11 +142,11 @@ struct LocalJSONExportService {
             completedAt: attempt.completedAt.map(timestamp),
             status: exportStatus(attempt.status),
             input: attempt.sourceMessage.map {
-                ExtractionRunInputExport(userText: $0.text, referenceNow: timestamp($0.createdAt), timeZone: timeZone.identifier)
+                ExtractionRunInputExport(userText: safe($0.text), referenceNow: timestamp($0.createdAt), timeZone: timeZone.identifier)
             },
-            requestJSON: attempt.requestJSON,
-            rawResponseText: attempt.rawResponseText,
-            normalizedJSONText: attempt.normalizedJSONText,
+            requestJSON: safe(attempt.requestJSON),
+            rawResponseText: safe(attempt.rawResponseText),
+            normalizedJSONText: normalizedJSONText,
             parsedResponse: parsedResponse,
             createdEntities: createdEntities(attempt),
             createdEntityIds: Set(
@@ -154,7 +155,7 @@ struct LocalJSONExportService {
             .map(\.uuidString)
             .sorted(),
             error: attempt.errorMessage.map {
-                ExtractionRunErrorExport(kind: attempt.errorCode?.rawValue ?? "unknown", message: $0)
+                ExtractionRunErrorExport(kind: attempt.errorCode?.rawValue ?? "unknown", message: safe($0))
             }
         )
     }
@@ -165,7 +166,7 @@ struct LocalJSONExportService {
         return ChatMessageExtractionStateExport(
             status: message.extractionStatus.rawValue,
             errorCode: message.extractionErrorCode?.rawValue,
-            errorMessage: message.extractionError,
+            errorMessage: safe(message.extractionError),
             extractionVersion: message.extractionVersion,
             attemptCount: message.extractionAttemptCount,
             lastAttemptAt: message.lastExtractionAttemptAt.map(timestamp),
@@ -199,9 +200,9 @@ struct LocalJSONExportService {
     private func export(_ thing: Thing) -> ThingExport {
         ThingExport(
             id: thing.id.uuidString,
-            name: thing.name,
-            aliases: thing.aliases,
-            category: thing.categoryRawValue,
+            name: safe(thing.name),
+            aliases: thing.aliases.map(safe),
+            category: safe(thing.categoryRawValue),
             createdAt: timestamp(thing.createdAt),
             updatedAt: timestamp(thing.updatedAt),
             lastEventAt: thing.lastEventAt.map(dateOnly),
@@ -214,13 +215,13 @@ struct LocalJSONExportService {
         EventExport(
             id: event.id.uuidString,
             thingId: event.thingID?.uuidString,
-            title: event.title,
+            title: safe(event.title),
             eventType: event.eventType.rawValue,
-            rawText: event.rawText,
+            rawText: safe(event.rawText),
             occurredAt: dateOnly(event.occurredAt),
             createdAt: timestamp(event.createdAt),
             updatedAt: timestamp(event.updatedAt),
-            note: event.note,
+            note: safe(event.note),
             metadata: event.metadataEntries.map(export),
             source: source(
                 messageID: event.sourceMessageID,
@@ -234,12 +235,12 @@ struct LocalJSONExportService {
         EventMetadataExport(
             key: metadata.keyRawValue,
             valueKind: metadata.valueKindRawValue,
-            stringValue: metadata.stringValue,
+            stringValue: safe(metadata.stringValue),
             numberValue: metadata.numberValue,
             dateValue: metadata.dateValue,
             boolValue: metadata.boolValue,
-            unit: metadata.unit,
-            sourceText: metadata.sourceText
+            unit: safe(metadata.unit),
+            sourceText: safe(metadata.sourceText)
         )
     }
 
@@ -247,10 +248,10 @@ struct LocalJSONExportService {
         RuleExport(
             id: rule.id.uuidString,
             thingId: rule.thingID?.uuidString,
-            title: rule.title,
+            title: safe(rule.title),
             ruleType: rule.ruleType.rawValue,
             continuityBehavior: rule.continuityBehavior.rawValue,
-            reason: rule.reason,
+            reason: safe(rule.reason),
             startsAt: dateOnly(rule.startsAt),
             expiresAt: rule.expiresAt.map(dateOnly),
             createdAt: timestamp(rule.createdAt),
@@ -258,7 +259,7 @@ struct LocalJSONExportService {
             isActive: rule.isActive,
             lifecycleState: rule.lifecycleState.rawValue,
             manuallyDeactivatedAt: rule.manuallyDeactivatedAt.map(timestamp),
-            rawText: rule.rawText,
+            rawText: safe(rule.rawText),
             source: source(
                 messageID: rule.sourceMessageID,
                 extractionRunID: rule.sourceExtractionRunID,
@@ -270,7 +271,7 @@ struct LocalJSONExportService {
     private func export(_ note: LedgerNote) -> NoteExport {
         NoteExport(
             id: note.id.uuidString,
-            text: note.text,
+            text: safe(note.text),
             createdAt: timestamp(note.createdAt),
             updatedAt: timestamp(note.updatedAt),
             linkedThingIds: note.linkedThingIDs.map(\.uuidString).sorted(),
@@ -300,12 +301,12 @@ struct LocalJSONExportService {
             id: item.id.uuidString,
             kind: item.kind.rawValue,
             state: item.state.rawValue,
-            title: item.title,
-            detail: item.detail,
-            actionTitle: item.actionTitle,
+            title: safe(item.title),
+            detail: safe(item.detail),
+            actionTitle: safe(item.actionTitle),
             targetType: item.targetType.rawValue,
             targetId: item.targetID?.uuidString,
-            dedupeKey: item.dedupeKey,
+            dedupeKey: safe(item.dedupeKey),
             confidence: item.confidence,
             createdAt: timestamp(item.createdAt),
             updatedAt: timestamp(item.updatedAt),
@@ -313,7 +314,7 @@ struct LocalJSONExportService {
             resolvedAt: item.resolvedAt.map(timestamp),
             snoozedUntil: item.snoozedUntil.map(timestamp),
             expiresAt: item.expiresAt.map(timestamp),
-            failureReason: item.failureReason,
+            failureReason: safe(item.failureReason),
             evidence: item.evidence.map(export)
         )
     }
@@ -322,8 +323,8 @@ struct LocalJSONExportService {
         LedgerReviewItemEvidenceExport(
             sourceType: evidence.sourceType.rawValue,
             sourceId: evidence.sourceID.uuidString,
-            summary: evidence.summary,
-            detail: evidence.detail
+            summary: safe(evidence.summary),
+            detail: safe(evidence.detail)
         )
     }
 
@@ -333,7 +334,7 @@ struct LocalJSONExportService {
                 kind: "extracted",
                 chatMessageId: messageID?.uuidString,
                 extractionRunId: extractionRunID?.uuidString,
-                sourceClientId: sourceClientID
+                sourceClientId: safe(sourceClientID)
             )
         }
         return ExportSource(kind: "manual")
@@ -394,6 +395,14 @@ struct LocalJSONExportService {
     private func decodeJSONValue(_ text: String) -> JSONValue? {
         guard let data = text.data(using: .utf8) else { return nil }
         return try? JSONDecoder().decode(JSONValue.self, from: data)
+    }
+
+    private func safe(_ value: String?) -> String? {
+        SecretRedactor.redact(value)
+    }
+
+    private func safe(_ value: String) -> String {
+        SecretRedactor.redact(value)
     }
 
     private func sortRules(_ lhs: LedgerRule, _ rhs: LedgerRule) -> Bool {

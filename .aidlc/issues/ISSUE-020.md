@@ -1,18 +1,24 @@
-# ISSUE-020: Lock timeline density and visual rhythm screenshots
+# ISSUE-020: Expand iOS reminder and rule lifecycle tests
 
-**Priority**: medium
-**Labels**: phase-7, visual-regression, timeline, density
-**Dependencies**: ISSUE-010, ISSUE-019
-**Status**: pending
+**Priority**: high
+**Labels**: ios, tests, reminders, rules, functionality
+**Dependencies**: ISSUE-018
+**Status**: implemented
 
 ## Description
 
-Add focused rendered visual contracts for the BRAINDUMP risks of density drift, visual hierarchy decay, and timeline quality loss. Unit tests protect constants, but .aidlc/research/timeline-density-visual-contracts.md explains where SwiftUI rendering needs screenshot coverage.
+Cover BRAINDUMP's reminder/rule lifecycle scope: creation, updates, carry-forward, pause/resume language, ambiguity handling, operational intervals, stale reminders, and rules list/detail/actions. Use `.aidlc/discovery/findings.md` surfaces under `LifeOrganize/Features/Rules/`, `ReminderRuleLifecycleMutation`, `RuleStatusService`, `OperationalIntervalInferenceService`, and related presentation services.
 
 ## Acceptance Criteria
 
-- [ ] Screenshot coverage includes a populated ChatView ledger feed with timestamp, marker, divider, row content, badges, and day sections visible.
-- [ ] Screenshots prove divider alignment begins at the content column and remains aligned with timestamp and marker chrome.
-- [ ] Narrow-width screenshots cover LedgerFeedRow fallback behavior, long text wrapping, and badge/pill compression without overlap.
-- [ ] Cross-surface screenshots compare shared LedgerRow density on search results, Things rows, reminders, and detail summaries.
-- [ ] Heavy-history screenshots verify dense scrolling rhythm and visual continuity after many records, not only the first screen.
+- [ ] Tests cover creating and updating reminder/rule records from extraction and manual mutation paths.
+- [ ] Carry-forward tests cover due, stale, completed, paused, resumed, and deactivated lifecycle states.
+- [ ] Pause/resume and ambiguity handling tests assert the correct persisted lifecycle state, next action availability, and downstream queue/search/timeline visibility.
+- [ ] Operational interval inference tests cover recurring, date-based, ongoing, ambiguous, timezone-sensitive, and stale intervals with deterministic dates.
+- [ ] Rules UI contract tests cover list/detail/action state transitions and navigation-relevant identifiers needed by UI tests.
+- [ ] Rule lifecycle mutations propagate consistently to ledger review queue generation, thing detail relationships, timeline visibility, and recall answers.
+
+## Implementation Notes
+
+
+Attempt 1: Expanded reminder/rule lifecycle coverage across extraction and manual mutation paths, pause visibility, stale/timezone interval inference, Carry Forward UI contracts, and downstream queue/search/timeline/thing-detail/recall behavior. Centralized Carry Forward accessibility identifiers.

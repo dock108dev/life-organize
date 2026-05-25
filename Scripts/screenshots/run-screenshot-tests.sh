@@ -50,6 +50,14 @@ trap print_failure_help ERR
 
 cd "$ROOT_DIR"
 
+if [[ "$MODE" == "compare" && ! -d "$BASELINE_DIR" ]]; then
+  cat >&2 <<EOF
+Screenshot baseline directory is missing: $BASELINE_DIR
+Run Scripts/screenshots/run-screenshot-tests.sh update and commit the generated baselines.
+EOF
+  exit 2
+fi
+
 simulator_udid() {
   python3 - "$DEVICE_NAME" "$DEVICE_OS" <<'PY'
 import json

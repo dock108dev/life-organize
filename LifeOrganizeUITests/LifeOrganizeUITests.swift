@@ -65,14 +65,21 @@ final class LifeOrganizeUITests: XCTestCase {
         XCTAssertTrue(cleanApp.buttons["Refresh Token"].exists)
     }
 
-    func testRootSearchEntryIsAvailableFromEveryPrimaryTab() throws {
+    func testPrimaryTabToolbarActionsMatchEachSurface() throws {
         let app = launchApp(resetStore: true)
 
         XCTAssertTrue(app.buttons["root-search-entry"].waitForFastExistence(timeout: 5))
-        tapPrimaryTab(at: 0.5, in: app)
+        XCTAssertTrue(app.buttons["settings-entry"].exists)
+
+        tapTab("Things", in: app)
+        XCTAssertTrue(app.navigationBars["Things"].waitForFastExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["root-search-entry"].exists)
+        XCTAssertTrue(app.buttons["settings-entry"].waitForFastExistence(timeout: 5))
+
+        tapTab("Carry Forward", in: app)
+        XCTAssertTrue(app.navigationBars["Carry Forward"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.buttons["root-search-entry"].waitForFastExistence(timeout: 5))
-        tapPrimaryTab(at: 0.84, in: app)
-        XCTAssertTrue(app.buttons["root-search-entry"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["settings-entry"].exists)
     }
 
     func testGlobalLedgerSearchNavigatesToResultContext() throws {
@@ -199,7 +206,7 @@ final class LifeOrganizeUITests: XCTestCase {
         send("No buying domains for 30 days.", in: app)
         dismissKeyboardIfVisible(in: app)
 
-        app.tabBars.buttons["Things"].tap()
+        tapTab("Things", in: app)
         XCTAssertTrue(app.navigationBars["Things"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["things-list"].waitForFastExistence(timeout: 5))
         let thingRow = app.buttons.matching(identifierPrefix: "thing-row-").firstMatch
@@ -210,7 +217,7 @@ final class LifeOrganizeUITests: XCTestCase {
         app.navigationBars.buttons["Things"].tap()
         XCTAssertTrue(app.navigationBars["Things"].waitForFastExistence(timeout: 5))
 
-        tapPrimaryTab(at: 0.84, in: app)
+        tapTab("Carry Forward", in: app)
         XCTAssertTrue(app.navigationBars["Carry Forward"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["carry-forward-list"].waitForFastExistence(timeout: 5))
         let carryForwardRow = app.buttons.matching(identifierPrefix: "carry-forward-row-").firstMatch
@@ -285,11 +292,5 @@ final class LifeOrganizeUITests: XCTestCase {
             resetDeviceToken: resetStore,
             useInMemoryStore: useInMemoryStore
         )
-    }
-
-    private func tapPrimaryTab(at xPosition: Double, in app: XCUIApplication) {
-        let tabBar = app.tabBars.firstMatch
-        XCTAssertTrue(tabBar.waitForFastExistence(timeout: 5))
-        tabBar.coordinate(withNormalizedOffset: CGVector(dx: xPosition, dy: 0.5)).tap()
     }
 }

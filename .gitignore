@@ -21,7 +21,6 @@ __pycache__/
 .coverage
 coverage.xml
 htmlcov/
-/Tests
 
 # Local environment and secrets
 .env

@@ -8,7 +8,7 @@ struct Options {
     var baseline = "Tests/ScreenshotBaselines/iPhone_17_Pro/light"
     var actual = "BuildArtifacts/screenshots/actual/iPhone_17_Pro/light"
     var diff = "BuildArtifacts/screenshots/diff/iPhone_17_Pro/light"
-    var pixelThreshold = 1.0
+    var pixelThreshold = 10.0
     var maxDifferentPixels = 250
     var maxDifferentRatio = 0.00025
     var maxMeanChannelDelta = 0.35

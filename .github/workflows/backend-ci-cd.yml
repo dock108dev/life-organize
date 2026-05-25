@@ -289,6 +289,7 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_ACTOR: ${{ github.actor }}
           GH_REPO: ${{ github.repository }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           GH_REF: ${{ github.ref_name }}
           GH_EVENT_NAME: ${{ github.event_name }}
@@ -298,7 +299,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: GHCR_TOKEN,GH_ACTOR,GH_REPO,DEPLOY_PATH,GH_REF,GH_EVENT_NAME,GH_BEFORE,GH_SHA
+          envs: GHCR_TOKEN,GH_ACTOR,GH_REPO,DEPLOY_HOST,DEPLOY_PATH,GH_REF,GH_EVENT_NAME,GH_BEFORE,GH_SHA
           script: |
             set -euo pipefail
 
@@ -424,8 +425,12 @@ jobs:
             fi
 
             echo "Verifying public health endpoint..."
+            curl_public_healthz() {
+              curl -fsS https://life.dock108.dev/healthz --max-time 10 ||
+                curl -k -fsS --resolve "life.dock108.dev:443:${DEPLOY_HOST}" https://life.dock108.dev/healthz --max-time 10
+            }
             for i in $(seq 1 12); do
-              if smoke_response="$(curl -fsS https://life.dock108.dev/healthz --max-time 10)"; then
+              if smoke_response="$(curl_public_healthz)"; then
                 if printf '%s' "$smoke_response" | python3 -c 'import json, sys; sys.exit(0 if json.load(sys.stdin) == {"ok": True} else 1)'; then
                   echo "Public health endpoint healthy"
                   break
@@ -435,7 +440,7 @@ jobs:
               sleep 5
             done
 
-            smoke_response="$(curl -fsS https://life.dock108.dev/healthz --max-time 10)"
+            smoke_response="$(curl_public_healthz)"
             printf '%s' "$smoke_response" | python3 -c 'import json, sys; sys.exit(0 if json.load(sys.stdin) == {"ok": True} else 1)'
 
             echo "Post-deploy cleanup..."
@@ -453,13 +458,19 @@ jobs:
     if: >-
       (github.event_name == 'push' && github.ref_name == 'main') ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.full_deploy == 'true')
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
     steps:
       - name: Curl production healthz
         run: |
           set -euo pipefail
 
+          curl_public_healthz() {
+            curl -fsS https://life.dock108.dev/healthz --max-time 10 ||
+              curl -k -fsS --resolve "life.dock108.dev:443:${DEPLOY_HOST}" https://life.dock108.dev/healthz --max-time 10
+          }
           for i in $(seq 1 6); do
-            if smoke_response="$(curl -fsS https://life.dock108.dev/healthz --max-time 10)"; then
+            if smoke_response="$(curl_public_healthz)"; then
               if printf '%s' "$smoke_response" | python3 -c 'import json, sys; sys.exit(0 if json.load(sys.stdin) == {"ok": True} else 1)'; then
                 echo "Production /healthz smoke passed"
                 exit 0
@@ -469,5 +480,5 @@ jobs:
             sleep 5
           done
 
-          smoke_response="$(curl -fsS https://life.dock108.dev/healthz --max-time 10)"
+          smoke_response="$(curl_public_healthz)"
           printf '%s' "$smoke_response" | python3 -c 'import json, sys; sys.exit(0 if json.load(sys.stdin) == {"ok": True} else 1)'

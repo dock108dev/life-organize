@@ -8,7 +8,7 @@ The backend deployment flow is:
 2. Backend coverage, Docker Compose smoke, and Python 3.11 compatibility checks run before image publishing.
 3. On `main` pushes for backend paths, or manual dispatch with `full_deploy=true`, it builds and pushes `ghcr.io/dock108dev/life-organize-api:<short-sha>` and `latest`.
 4. The deploy job SSHes to the server, resets the checkout in `DEPLOY_PATH` to the target branch, updates the `life.dock108.dev` Caddy site block when needed, pulls the image, runs Alembic migrations, starts Compose, waits for `lifeorganize-api` to become healthy, verifies the running image, and smokes `https://life.dock108.dev/healthz`.
-5. A separate `prod / healthz smoke` job repeats the public `/healthz` check after deploy.
+5. A separate `prod / healthz smoke` job repeats the public `/healthz` check after deploy. While DNS is being created or propagated, both smoke checks fall back to `curl -k --resolve life.dock108.dev:443:$DEPLOY_HOST`.
 
 See [Branch protection checks](branch-protection.md) for the status-check contract. Pull request protection should require only checks that run on pull requests; deploy-only checks such as `backend / docker publish`, `backend / deploy`, and `prod / healthz smoke` belong to main or deployment monitoring, not PR required checks.
 
@@ -72,6 +72,8 @@ docker compose --env-file ../.env --profile prod pull --policy always
 docker compose --env-file ../.env --profile prod run --rm migrate
 docker compose --env-file ../.env --profile prod up -d --remove-orphans --force-recreate postgres api
 curl -fsS https://life.dock108.dev/healthz
+# If DNS/cert issuance is not live yet:
+curl -k -fsS --resolve life.dock108.dev:443:37.27.222.59 https://life.dock108.dev/healthz
 docker compose --env-file ../.env --profile prod ps
 ```
 
@@ -85,6 +87,8 @@ cd /opt/life-organize/Backend/infra
 IMAGE_TAG=<previous-sha> docker compose --env-file ../.env --profile prod pull --policy always
 IMAGE_TAG=<previous-sha> docker compose --env-file ../.env --profile prod up -d --remove-orphans --force-recreate api
 curl -fsS https://life.dock108.dev/healthz
+# If DNS/cert issuance is not live yet:
+curl -k -fsS --resolve life.dock108.dev:443:37.27.222.59 https://life.dock108.dev/healthz
 ```
 
 Only run migrations during rollback when the schema compatibility has been checked.

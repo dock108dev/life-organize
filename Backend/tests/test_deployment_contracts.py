@@ -9,6 +9,7 @@ from infra.scripts.update_caddy_site_block import extract_site_block, replace_or
 ROOT = Path(__file__).resolve().parents[2]
 SITE_HEADER = "life.dock108.dev"
 PUBLIC_HEALTHZ_CURL = "curl -fsS https://life.dock108.dev/healthz"
+PUBLIC_HEALTHZ_RESOLVE = '-k -fsS --resolve "life.dock108.dev:443:${DEPLOY_HOST}"'
 SOURCE_BLOCK = """life.dock108.dev {
 \tencode gzip
 
@@ -154,6 +155,9 @@ def test_backend_deploy_smokes_public_health_after_container_health() -> None:
     cleanup = text.index('echo "Post-deploy cleanup..."')
 
     assert PUBLIC_HEALTHZ_CURL in text
+    assert PUBLIC_HEALTHZ_RESOLVE in text
+    assert "DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}" in text
+    assert "DEPLOY_HOST" in text[text.index("envs:") :]
     assert container_health < image_sha < public_smoke < cleanup
     assert 'json.load(sys.stdin) == {"ok": True}' in text
 
@@ -165,8 +169,10 @@ def test_backend_deploy_exposes_stable_prod_healthz_smoke_status() -> None:
     smoke_name = text.index("name: prod / healthz smoke", smoke_job)
     needs_deploy = text.index("needs: deploy", smoke_job)
     curl = text.index(PUBLIC_HEALTHZ_CURL, smoke_job)
+    forced_resolve = text.index(PUBLIC_HEALTHZ_RESOLVE, smoke_job)
 
     assert smoke_job < smoke_name < needs_deploy < curl
+    assert curl < forced_resolve
 
 
 def test_recent_image_workflow_requires_explicit_migration_approval() -> None:
@@ -191,6 +197,8 @@ def test_recent_image_workflow_smokes_public_health_after_container_health() -> 
     compose_status = text.index("docker compose --env-file ../.env --profile prod ps")
 
     assert PUBLIC_HEALTHZ_CURL in text
+    assert PUBLIC_HEALTHZ_RESOLVE in text
+    assert "DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}" in text
     assert container_health < public_smoke < compose_status
     assert 'json.load(sys.stdin) == {"ok": True}' in text
 

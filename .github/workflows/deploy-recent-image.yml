@@ -29,6 +29,7 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_ACTOR: ${{ github.actor }}
           GH_REPO: ${{ github.repository }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           GH_REF: ${{ github.ref_name }}
           IMAGE_TAG: ${{ github.event.inputs.image_tag }}
@@ -37,7 +38,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: GHCR_TOKEN,GH_ACTOR,GH_REPO,DEPLOY_PATH,GH_REF,IMAGE_TAG,RUN_MIGRATIONS
+          envs: GHCR_TOKEN,GH_ACTOR,GH_REPO,DEPLOY_HOST,DEPLOY_PATH,GH_REF,IMAGE_TAG,RUN_MIGRATIONS
           script: |
             set -euo pipefail
 
@@ -123,8 +124,12 @@ jobs:
             fi
 
             echo "Verifying public health endpoint..."
+            curl_public_healthz() {
+              curl -fsS https://life.dock108.dev/healthz --max-time 10 ||
+                curl -k -fsS --resolve "life.dock108.dev:443:${DEPLOY_HOST}" https://life.dock108.dev/healthz --max-time 10
+            }
             for i in $(seq 1 12); do
-              if smoke_response="$(curl -fsS https://life.dock108.dev/healthz --max-time 10)"; then
+              if smoke_response="$(curl_public_healthz)"; then
                 if printf '%s' "$smoke_response" | python3 -c 'import json, sys; sys.exit(0 if json.load(sys.stdin) == {"ok": True} else 1)'; then
                   echo "Public health endpoint healthy"
                   break
@@ -134,7 +139,7 @@ jobs:
               sleep 5
             done
 
-            smoke_response="$(curl -fsS https://life.dock108.dev/healthz --max-time 10)"
+            smoke_response="$(curl_public_healthz)"
             printf '%s' "$smoke_response" | python3 -c 'import json, sys; sys.exit(0 if json.load(sys.stdin) == {"ok": True} else 1)'
 
             docker compose --env-file ../.env --profile prod ps

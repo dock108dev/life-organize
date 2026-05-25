@@ -77,6 +77,10 @@ extension XCTestCase {
             tab.tap()
             return
         }
+        if !tab.frame.isEmpty {
+            tab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            return
+        }
 
         let fallbackPositions = [
             "Timeline": 0.17,

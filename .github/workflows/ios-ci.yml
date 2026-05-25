@@ -81,7 +81,7 @@ jobs:
             2>&1 | tee BuildArtifacts/Logs/build.log
       - name: Upload iOS build failure artifacts
         if: failure() || cancelled()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-build-failure-artifacts
           if-no-files-found: ignore
@@ -115,7 +115,7 @@ jobs:
           Scripts/verify-ios.sh 2>&1 | tee BuildArtifacts/Logs/test.log
       - name: Upload iOS test result bundle for coverage
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-test-result-bundle-${{ github.sha }}
           if-no-files-found: error
@@ -123,7 +123,7 @@ jobs:
             BuildArtifacts/LifeOrganizeTests.xcresult
       - name: Upload iOS test failure artifacts
         if: failure() || cancelled()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-test-failure-artifacts
           if-no-files-found: ignore
@@ -181,7 +181,7 @@ jobs:
           Scripts/screenshots/run-screenshot-tests.sh compare 2>&1 | tee BuildArtifacts/screenshots/compare.log
       - name: Upload screenshot failure artifacts
         if: failure() || cancelled()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: screenshot-failure-iPhone_17_Pro-light-${{ github.sha }}
           retention-days: 14
@@ -193,7 +193,7 @@ jobs:
             BuildArtifacts/screenshots/compare.log
       - name: Upload screenshot artifacts
         if: github.event_name == 'workflow_dispatch' && inputs.upload_screenshot_artifacts == true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: screenshot-artifacts-iPhone_17_Pro-light-${{ github.sha }}
           retention-days: 7

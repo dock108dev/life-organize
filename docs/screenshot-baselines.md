@@ -35,6 +35,6 @@ The stricter changed-pixel limit applies between the absolute and ratio limits. 
 
 ## CI Artifacts
 
-The iOS CI screenshot job runs the same compare command with the default `iPhone 17 Pro`, `iOS 26.0`, and light-appearance baseline path. Main pushes run the job unconditionally; pull requests run it when iOS rendering code, assets, localization, UI tests, screenshot scripts, baselines, Fastlane screenshot lanes, or screenshot documentation changes.
+The iOS CI screenshot job runs the same compare command with the default `iPhone 17 Pro`, `iOS 26.2`, and light-appearance baseline path. Main pushes run the job unconditionally; pull requests run it when iOS rendering code, assets, localization, UI tests, screenshot scripts, baselines, Fastlane screenshot lanes, or screenshot documentation changes.
 
 On failure, CI uploads `BuildArtifacts/ScreenshotTests.xcresult`, actual PNGs, diff PNGs when present, and `BuildArtifacts/screenshots/compare.log`. Baselines are not refreshed by CI. Intentional visual changes still require a local `Scripts/screenshots/run-screenshot-tests.sh update` run and a commit of the changed PNGs under `Tests/ScreenshotBaselines/`.

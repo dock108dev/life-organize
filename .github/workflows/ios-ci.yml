@@ -56,7 +56,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 30
     env:
-      IOS_DESTINATION: "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0"
+      IOS_DESTINATION: "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2"
       IOS_DERIVED_DATA: "BuildArtifacts/DerivedData"
     steps:
       - uses: actions/checkout@v6
@@ -95,7 +95,7 @@ jobs:
     timeout-minutes: 45
     needs: build-ios
     env:
-      IOS_DESTINATION: "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0"
+      IOS_DESTINATION: "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2"
       IOS_DERIVED_DATA: "BuildArtifacts/DerivedData"
       IOS_RESULT_BUNDLE: "BuildArtifacts/LifeOrganizeTests.xcresult"
       IOS_COVERAGE_THRESHOLD: "0.80"
@@ -160,7 +160,7 @@ jobs:
       SCREENSHOT_PROJECT: "LifeOrganize.xcodeproj"
       SCREENSHOT_SCHEME: "LifeOrganize"
       SCREENSHOT_DEVICE_NAME: "iPhone 17 Pro"
-      SCREENSHOT_DEVICE_OS: "26.0"
+      SCREENSHOT_DEVICE_OS: "26.2"
       SCREENSHOT_APPEARANCE: "light"
       SCREENSHOT_RESULT_BUNDLE: "BuildArtifacts/ScreenshotTests.xcresult"
       SCREENSHOT_ACTUAL_DIR: "BuildArtifacts/screenshots/actual/iPhone_17_Pro/light"

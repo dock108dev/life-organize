@@ -9,13 +9,13 @@ Open `LifeOrganize.xcodeproj` in Xcode, select the shared `LifeOrganize` scheme,
 Build from the command line:
 
 ```sh
-xcodebuild -project LifeOrganize.xcodeproj -scheme LifeOrganize -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0' build CODE_SIGNING_ALLOWED=NO
+xcodebuild -project LifeOrganize.xcodeproj -scheme LifeOrganize -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2' build CODE_SIGNING_ALLOWED=NO
 ```
 
 Run tests:
 
 ```sh
-xcodebuild test -project LifeOrganize.xcodeproj -scheme LifeOrganize -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0' CODE_SIGNING_ALLOWED=NO
+xcodebuild test -project LifeOrganize.xcodeproj -scheme LifeOrganize -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2' CODE_SIGNING_ALLOWED=NO
 ```
 
 Run the repository verification scripts:

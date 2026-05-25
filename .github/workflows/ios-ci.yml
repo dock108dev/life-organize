@@ -98,6 +98,7 @@ jobs:
       IOS_DESTINATION: "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2"
       IOS_DERIVED_DATA: "BuildArtifacts/DerivedData"
       IOS_RESULT_BUNDLE: "BuildArtifacts/LifeOrganizeTests.xcresult"
+      IOS_RESULT_PACKAGE: "BuildArtifacts/LifeOrganizeTests.xcresult.tar.gz"
       IOS_COVERAGE_THRESHOLD: "0.80"
       IOS_SKIP_COVERAGE_GATE: "1"
     steps:
@@ -113,6 +114,11 @@ jobs:
           set -o pipefail
           mkdir -p BuildArtifacts/Logs
           Scripts/verify-ios.sh 2>&1 | tee BuildArtifacts/Logs/test.log
+      - name: Package iOS test result bundle for coverage
+        run: |
+          test -f "$IOS_RESULT_BUNDLE/Info.plist"
+          rm -f "$IOS_RESULT_PACKAGE"
+          tar -czf "$IOS_RESULT_PACKAGE" -C BuildArtifacts LifeOrganizeTests.xcresult
       - name: Upload iOS test result bundle for coverage
         if: success()
         uses: actions/upload-artifact@v4
@@ -120,7 +126,7 @@ jobs:
           name: ios-test-result-bundle-${{ github.sha }}
           if-no-files-found: error
           path: |
-            BuildArtifacts/LifeOrganizeTests.xcresult
+            BuildArtifacts/LifeOrganizeTests.xcresult.tar.gz
       - name: Upload iOS test failure artifacts
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
@@ -139,6 +145,7 @@ jobs:
     needs: test-ios
     env:
       IOS_RESULT_BUNDLE: "BuildArtifacts/LifeOrganizeTests.xcresult"
+      IOS_RESULT_PACKAGE: "BuildArtifacts/LifeOrganizeTests.xcresult.tar.gz"
       IOS_COVERAGE_THRESHOLD: "0.80"
     steps:
       - uses: actions/checkout@v6
@@ -147,6 +154,11 @@ jobs:
         with:
           name: ios-test-result-bundle-${{ github.sha }}
           path: BuildArtifacts
+      - name: Extract iOS test result bundle
+        run: |
+          rm -rf "$IOS_RESULT_BUNDLE"
+          tar -xzf "$IOS_RESULT_PACKAGE" -C BuildArtifacts
+          test -f "$IOS_RESULT_BUNDLE/Info.plist"
       - name: Run iOS coverage gate
         run: |
           Scripts/ios_coverage_gate.py "$IOS_RESULT_BUNDLE" --threshold "$IOS_COVERAGE_THRESHOLD"

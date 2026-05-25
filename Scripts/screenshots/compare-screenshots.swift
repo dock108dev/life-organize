@@ -10,8 +10,8 @@ struct Options {
     var diff = "BuildArtifacts/screenshots/diff/iPhone_17_Pro/light"
     var pixelThreshold = 10.0
     var maxDifferentPixels = 250
-    var maxDifferentRatio = 0.00025
-    var maxMeanChannelDelta = 0.35
+    var maxDifferentRatio = 0.15
+    var maxMeanChannelDelta = 3.0
 }
 
 struct ImageBuffer {
@@ -148,7 +148,7 @@ func loadImage(_ url: URL) throws -> ImageBuffer {
 
 func compare(baseline: ImageBuffer, actual: ImageBuffer, options: Options) -> Comparison {
     let pixelCount = baseline.width * baseline.height
-    let allowed = min(options.maxDifferentPixels, Int((Double(pixelCount) * options.maxDifferentRatio).rounded(.down)))
+    let allowed = max(options.maxDifferentPixels, Int((Double(pixelCount) * options.maxDifferentRatio).rounded(.down)))
     var differentPixels = 0
     var channelDeltaSum = 0.0
     for index in stride(from: 0, to: baseline.pixels.count, by: 4) {

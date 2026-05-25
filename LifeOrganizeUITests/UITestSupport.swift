@@ -71,24 +71,54 @@ extension XCTestCase {
 
         let tabBar = app.tabBars.firstMatch
         XCTAssertTrue(tabBar.waitForFastExistence(timeout: 5))
-        let tab = tabBar.buttons[title]
-        XCTAssertTrue(tab.waitForFastExistence(timeout: 5))
-        if tab.isHittable {
-            tab.tap()
-            return
-        }
-        if !tab.frame.isEmpty {
-            tab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        let destination = app.navigationBars[title]
+        if destination.waitForFastExistence(timeout: 0.25) {
             return
         }
 
+        let tab = tabBar.buttons[title]
+        XCTAssertTrue(tab.waitForFastExistence(timeout: 5))
         let fallbackPositions = [
             "Timeline": 0.17,
             "Things": 0.50,
             "Carry Forward": 0.84
         ]
         let xPosition = fallbackPositions[title] ?? 0.5
-        tabBar.coordinate(withNormalizedOffset: CGVector(dx: xPosition, dy: 0.5)).tap()
+        let tapAttempts: [() -> Void] = [
+            {
+                if tab.isHittable {
+                    tab.tap()
+                }
+            },
+            {
+                if !tab.frame.isEmpty {
+                    tab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+                }
+            },
+            {
+                if !tab.frame.isEmpty {
+                    tab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85)).tap()
+                }
+            },
+            {
+                tabBar.coordinate(withNormalizedOffset: CGVector(dx: xPosition, dy: 0.30)).tap()
+            },
+            {
+                tabBar.coordinate(withNormalizedOffset: CGVector(dx: xPosition, dy: 0.55)).tap()
+            },
+            {
+                tabBar.coordinate(withNormalizedOffset: CGVector(dx: xPosition, dy: 0.82)).tap()
+            }
+        ]
+
+        for tapAttempt in tapAttempts {
+            tapAttempt()
+            if destination.waitForFastExistence(timeout: 2) {
+                return
+            }
+        }
+
+        XCTFail("Unable to navigate to \(title) tab")
     }
 
     func send(_ text: String, in app: XCUIApplication) {

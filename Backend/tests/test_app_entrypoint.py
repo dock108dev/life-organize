@@ -23,6 +23,15 @@ SECURITY_HEADERS = {
 }
 
 
+def test_root_is_browsable_service_status(client) -> None:
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert response.json() == {"service": "life-organize-backend", "ok": True}
+    for name, value in SECURITY_HEADERS.items():
+        assert response.headers[name] == value
+
+
 async def _collect_asgi_response(
     *,
     method: str,

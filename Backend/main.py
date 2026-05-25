@@ -21,6 +21,11 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RequestSizeLimitMiddleware)
 
 
+@app.get("/")
+async def root() -> dict[str, str | bool]:
+    return {"service": "life-organize-backend", "ok": True}
+
+
 @app.get("/healthz")
 async def healthz() -> dict[str, bool]:
     return {"ok": True}

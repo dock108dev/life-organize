@@ -232,7 +232,7 @@ final class ScenarioRunArtifactBundleTests: XCTestCase {
             git: ScenarioRunGitInfo(branch: "main", commit: "abcdef123456", dirty: false),
             xcode: ScenarioRunXcodeInfo(
                 scheme: "LifeOrganize",
-                destination: "platform=iOS Simulator,name=iPhone 16,OS=18.6",
+                destination: "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2",
                 resultBundlePath: "xctest/LifeOrganize.xcresult"
             ),
             determinism: ScenarioRunDeterminism(

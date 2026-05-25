@@ -57,7 +57,7 @@ class VerifyScriptContractTests(unittest.TestCase):
         self.assertIn("name: ios / unit and ui tests", text)
         self.assertIn("name: ios / coverage >= 80", text)
         self.assertIn("name: ios / screenshots", text)
-        self.assertIn("platform=iOS Simulator,name=iPhone 16,OS=18.6", text)
+        self.assertIn("platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2", text)
         self.assertIn("xcodebuild build-for-testing", text)
         self.assertIn("Scripts/verify-ios.sh", text)
         self.assertIn("IOS_SKIP_COVERAGE_GATE: \"1\"", text)
@@ -101,17 +101,17 @@ class VerifyScriptContractTests(unittest.TestCase):
         text = self.read_script(".github/workflows/ios-ci.yml")
 
         for expected in [
-            "SCREENSHOT_DEVICE_NAME: \"iPhone 16\"",
-            "SCREENSHOT_DEVICE_OS: \"18.6\"",
+            "SCREENSHOT_DEVICE_NAME: \"iPhone 17 Pro\"",
+            "SCREENSHOT_DEVICE_OS: \"26.2\"",
             "SCREENSHOT_APPEARANCE: \"light\"",
             "SCREENSHOT_RESULT_BUNDLE: \"BuildArtifacts/ScreenshotTests.xcresult\"",
-            "SCREENSHOT_ACTUAL_DIR: \"BuildArtifacts/screenshots/actual/iPhone_16/light\"",
-            "SCREENSHOT_DIFF_DIR: \"BuildArtifacts/screenshots/diff/iPhone_16/light\"",
-            "SCREENSHOT_BASELINE_DIR: \"Tests/ScreenshotBaselines/iPhone_16/light\"",
-            "BuildArtifacts/screenshots/actual/iPhone_16/light",
-            "BuildArtifacts/screenshots/diff/iPhone_16/light",
+            "SCREENSHOT_ACTUAL_DIR: \"BuildArtifacts/screenshots/actual/iPhone_17_Pro/light\"",
+            "SCREENSHOT_DIFF_DIR: \"BuildArtifacts/screenshots/diff/iPhone_17_Pro/light\"",
+            "SCREENSHOT_BASELINE_DIR: \"Tests/ScreenshotBaselines/iPhone_17_Pro/light\"",
+            "BuildArtifacts/screenshots/actual/iPhone_17_Pro/light",
+            "BuildArtifacts/screenshots/diff/iPhone_17_Pro/light",
             "BuildArtifacts/screenshots/compare.log",
-            "screenshot-failure-iPhone_16-light-${{ github.sha }}",
+            "screenshot-failure-iPhone_17_Pro-light-${{ github.sha }}",
         ]:
             self.assertIn(expected, text)
 

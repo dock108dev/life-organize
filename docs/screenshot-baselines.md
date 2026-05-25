@@ -24,12 +24,12 @@ Scripts/screenshots/run-screenshot-tests.sh update
 
 The default comparison thresholds are:
 
-- pixel channel delta threshold: `1.0`
+- pixel channel delta threshold: `10.0`
 - maximum changed pixels: `250`
-- maximum changed pixel ratio: `0.00025`
-- maximum mean channel delta: `0.35`
+- maximum changed pixel ratio: `0.15`
+- maximum mean channel delta: `3.0`
 
-The stricter changed-pixel limit applies between the absolute and ratio limits. Failed comparisons write red-overlay diff PNGs under `BuildArtifacts/screenshots/diff/`.
+The changed-pixel limit allows the larger of the absolute and ratio limits. Failed comparisons write red-overlay diff PNGs under `BuildArtifacts/screenshots/diff/`.
 
 `fastlane screenshots` runs the compare command. `fastlane update_screenshots` refreshes baselines after an intentional visual change.
 

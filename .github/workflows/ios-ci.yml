@@ -53,10 +53,10 @@ concurrency:
 jobs:
   build-ios:
     name: ios / build
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 30
     env:
-      IOS_DESTINATION: "platform=iOS Simulator,name=iPhone 16,OS=18.6"
+      IOS_DESTINATION: "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0"
       IOS_DERIVED_DATA: "BuildArtifacts/DerivedData"
     steps:
       - uses: actions/checkout@v6
@@ -91,11 +91,11 @@ jobs:
 
   test-ios:
     name: ios / unit and ui tests
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 45
     needs: build-ios
     env:
-      IOS_DESTINATION: "platform=iOS Simulator,name=iPhone 16,OS=18.6"
+      IOS_DESTINATION: "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0"
       IOS_DERIVED_DATA: "BuildArtifacts/DerivedData"
       IOS_RESULT_BUNDLE: "BuildArtifacts/LifeOrganizeTests.xcresult"
       IOS_COVERAGE_THRESHOLD: "0.80"
@@ -134,7 +134,7 @@ jobs:
 
   coverage-ios:
     name: ios / coverage >= 80
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 10
     needs: test-ios
     env:
@@ -153,19 +153,19 @@ jobs:
 
   screenshot-comparison:
     name: ios / screenshots
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 45
     needs: build-ios
     env:
       SCREENSHOT_PROJECT: "LifeOrganize.xcodeproj"
       SCREENSHOT_SCHEME: "LifeOrganize"
-      SCREENSHOT_DEVICE_NAME: "iPhone 16"
-      SCREENSHOT_DEVICE_OS: "18.6"
+      SCREENSHOT_DEVICE_NAME: "iPhone 17 Pro"
+      SCREENSHOT_DEVICE_OS: "26.0"
       SCREENSHOT_APPEARANCE: "light"
       SCREENSHOT_RESULT_BUNDLE: "BuildArtifacts/ScreenshotTests.xcresult"
-      SCREENSHOT_ACTUAL_DIR: "BuildArtifacts/screenshots/actual/iPhone_16/light"
-      SCREENSHOT_DIFF_DIR: "BuildArtifacts/screenshots/diff/iPhone_16/light"
-      SCREENSHOT_BASELINE_DIR: "Tests/ScreenshotBaselines/iPhone_16/light"
+      SCREENSHOT_ACTUAL_DIR: "BuildArtifacts/screenshots/actual/iPhone_17_Pro/light"
+      SCREENSHOT_DIFF_DIR: "BuildArtifacts/screenshots/diff/iPhone_17_Pro/light"
+      SCREENSHOT_BASELINE_DIR: "Tests/ScreenshotBaselines/iPhone_17_Pro/light"
     steps:
       - uses: actions/checkout@v6
       - name: Show Xcode and simulator inventory
@@ -183,23 +183,23 @@ jobs:
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
-          name: screenshot-failure-iPhone_16-light-${{ github.sha }}
+          name: screenshot-failure-iPhone_17_Pro-light-${{ github.sha }}
           retention-days: 14
           if-no-files-found: ignore
           path: |
             BuildArtifacts/ScreenshotTests.xcresult
-            BuildArtifacts/screenshots/actual/iPhone_16/light
-            BuildArtifacts/screenshots/diff/iPhone_16/light
+            BuildArtifacts/screenshots/actual/iPhone_17_Pro/light
+            BuildArtifacts/screenshots/diff/iPhone_17_Pro/light
             BuildArtifacts/screenshots/compare.log
       - name: Upload screenshot artifacts
         if: github.event_name == 'workflow_dispatch' && inputs.upload_screenshot_artifacts == true
         uses: actions/upload-artifact@v4
         with:
-          name: screenshot-artifacts-iPhone_16-light-${{ github.sha }}
+          name: screenshot-artifacts-iPhone_17_Pro-light-${{ github.sha }}
           retention-days: 7
           if-no-files-found: ignore
           path: |
             BuildArtifacts/ScreenshotTests.xcresult
-            BuildArtifacts/screenshots/actual/iPhone_16/light
-            BuildArtifacts/screenshots/diff/iPhone_16/light
+            BuildArtifacts/screenshots/actual/iPhone_17_Pro/light
+            BuildArtifacts/screenshots/diff/iPhone_17_Pro/light
             BuildArtifacts/screenshots/compare.log

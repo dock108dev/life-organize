@@ -37,6 +37,7 @@ extension LifeOrganizeScenarioUITests {
         filtersRow.tap()
         XCTAssertTrue(app.descendants(matching: .any)["thing-detail"].waitForFastExistence(timeout: 10))
         XCTAssertTrue(app.navigationBars["Home Air Filters"].waitForFastExistence(timeout: 10))
+        waitForScreenshotChromeToSettle()
 
         capture("thing_detail", from: app)
     }
@@ -136,6 +137,10 @@ extension LifeOrganizeScenarioUITests {
             file: file,
             line: line
         )
+    }
+
+    private func waitForScreenshotChromeToSettle() {
+        RunLoop.current.run(until: Date().addingTimeInterval(0.8))
     }
 
     private func capture(_ name: String, from app: XCUIApplication) {

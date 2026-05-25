@@ -2,7 +2,7 @@
 set -euo pipefail
 
 RESULT_BUNDLE="${1:-BuildArtifacts/ScreenshotTests.xcresult}"
-OUTPUT_DIR="${2:-BuildArtifacts/screenshots/actual/iPhone_16/light}"
+OUTPUT_DIR="${2:-BuildArtifacts/screenshots/actual/iPhone_17_Pro/light}"
 RAW_DIR="$OUTPUT_DIR/raw"
 
 if [[ ! -d "$RESULT_BUNDLE" ]]; then

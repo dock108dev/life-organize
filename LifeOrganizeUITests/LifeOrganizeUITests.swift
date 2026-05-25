@@ -118,9 +118,21 @@ final class LifeOrganizeUITests: XCTestCase {
         send("No buying domains for 30 days.", in: app)
         dismissKeyboardIfVisible(in: app)
         tapTab("Carry Forward", in: app)
+        XCTAssertTrue(app.navigationBars["Carry Forward"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["carry-forward-list"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(
             app.staticTexts.matching(labelContaining: "No buying domains").firstMatch.waitForFastExistence(timeout: 5)
         )
+        XCTAssertTrue(
+            app.descendants(matching: .any)
+                .matching(identifierPrefix: "carry-forward-row-")
+                .firstMatch
+                .waitForFastExistence(timeout: 10)
+        )
+        tapTab("Things", in: app)
+        XCTAssertTrue(app.navigationBars["Things"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["things-list"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts.matching(labelContaining: "Oil Change").firstMatch.waitForFastExistence(timeout: 5))
         tapTab("Timeline", in: app)
 
         app.buttons["root-search-entry"].tap()
@@ -137,14 +149,6 @@ final class LifeOrganizeUITests: XCTestCase {
         XCTAssertTrue(searchEventResult.waitForFastExistence(timeout: 5))
         dismissPresentedSearch(in: app)
         XCTAssertTrue(app.navigationBars["Timeline"].waitForFastExistence(timeout: 5))
-
-        tapTab("Things", in: app)
-        XCTAssertTrue(app.staticTexts.matching(labelContaining: "Oil Change").firstMatch.waitForFastExistence(timeout: 5))
-
-        tapTab("Carry Forward", in: app)
-        XCTAssertTrue(
-            app.buttons.matching(identifierPrefix: "carry-forward-row-").firstMatch.waitForFastExistence(timeout: 5)
-        )
     }
 
     func testReviewQueueRenderedFlowForAmbiguousGroomingSeed() throws {

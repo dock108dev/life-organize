@@ -5,9 +5,9 @@ import ImageIO
 import UniformTypeIdentifiers
 
 struct Options {
-    var baseline = "Tests/ScreenshotBaselines/iPhone_16/light"
-    var actual = "BuildArtifacts/screenshots/actual/iPhone_16/light"
-    var diff = "BuildArtifacts/screenshots/diff/iPhone_16/light"
+    var baseline = "Tests/ScreenshotBaselines/iPhone_17_Pro/light"
+    var actual = "BuildArtifacts/screenshots/actual/iPhone_17_Pro/light"
+    var diff = "BuildArtifacts/screenshots/diff/iPhone_17_Pro/light"
     var pixelThreshold = 1.0
     var maxDifferentPixels = 250
     var maxDifferentRatio = 0.00025

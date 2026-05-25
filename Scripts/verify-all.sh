@@ -44,7 +44,7 @@ while (($# > 0)); do
 done
 
 printf 'Full verification configuration:\n'
-printf '  IOS_DESTINATION=%s\n' "${IOS_DESTINATION:-platform=iOS Simulator,name=iPhone 16,OS=18.6}"
+printf '  IOS_DESTINATION=%s\n' "${IOS_DESTINATION:-platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0}"
 printf '  IOS_RESULT_BUNDLE=%s\n' "${IOS_RESULT_BUNDLE:-BuildArtifacts/LifeOrganizeTests.xcresult}"
 printf '  BACKEND_SMOKE_URL=%s\n' "${BACKEND_SMOKE_URL:-http://127.0.0.1:${API_PORT:-8787}/healthz}"
 printf '  PRODUCTION_SMOKE_URL=%s\n' "$PRODUCTION_SMOKE_URL"

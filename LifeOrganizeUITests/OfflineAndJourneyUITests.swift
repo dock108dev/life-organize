@@ -119,7 +119,9 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["carry-forward-detail"].waitForFastExistence(timeout: 5))
         app.buttons["Reminder Actions"].tap()
         app.buttons["Delete Reminder"].tap()
-        app.buttons["Delete Reminder"].tap()
+        let deleteConfirmation = app.sheets.buttons["Delete Reminder"].firstMatch
+        XCTAssertTrue(deleteConfirmation.waitForFastExistence(timeout: 5))
+        deleteConfirmation.tap()
         XCTAssertTrue(app.navigationBars["Carry Forward"].waitForFastExistence(timeout: 5))
         app.terminate()
 

@@ -7,6 +7,8 @@ extension XCTestCase {
         resetDeviceToken: Bool = false,
         useInMemoryStore: Bool = false
     ) -> XCUIApplication {
+        installSystemAlertDismissalMonitor()
+
         let app = XCUIApplication()
         app.launchArguments = [
             "-ui-testing",
@@ -39,10 +41,50 @@ extension XCTestCase {
         return app
     }
 
+    private func installSystemAlertDismissalMonitor() {
+        addUIInterruptionMonitor(withDescription: "Dismiss system prompts") { alert in
+            let dismissalLabels = [
+                "Don’t Enable",
+                "Don't Enable",
+                "Not Now",
+                "Don’t Allow",
+                "Don't Allow",
+                "Cancel",
+                "Dismiss",
+                "OK"
+            ]
+
+            for label in dismissalLabels {
+                let button = alert.buttons[label]
+                if button.exists {
+                    button.tap()
+                    return true
+                }
+            }
+
+            return false
+        }
+    }
+
     func tapTab(_ title: String, in app: XCUIApplication) {
-        let tab = app.tabBars.buttons[title]
+        dismissKeyboardIfVisible(in: app)
+
+        let tabBar = app.tabBars.firstMatch
+        XCTAssertTrue(tabBar.waitForFastExistence(timeout: 5))
+        let tab = tabBar.buttons[title]
         XCTAssertTrue(tab.waitForFastExistence(timeout: 5))
-        tab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        if tab.isHittable {
+            tab.tap()
+            return
+        }
+
+        let fallbackPositions = [
+            "Timeline": 0.17,
+            "Things": 0.50,
+            "Carry Forward": 0.84
+        ]
+        let xPosition = fallbackPositions[title] ?? 0.5
+        tabBar.coordinate(withNormalizedOffset: CGVector(dx: xPosition, dy: 0.5)).tap()
     }
 
     func send(_ text: String, in app: XCUIApplication) {

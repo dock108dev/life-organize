@@ -2,28 +2,24 @@
 
 ## Changes
 
-- Rewrote `README.md` into a lean root document covering repo purpose, local run commands, verification scripts, backend-only production deployment, iOS CI boundaries, and pointers to maintained docs.
-- Rewrote `docs/current-app-state.md` against the current Swift app, backend boundary, runtime arguments, verification scripts, GitHub Actions, and repository surface.
-- Tightened `docs/backend.md` around current FastAPI routes, Python support, local Docker binding, admin log behavior, production environment requirements, and the code-defined `OPENAI_MODEL` default.
-- Updated `docs/ops/deployment.md` to describe the current backend deploy flow, backend coverage and Docker gates, Python 3.11 compatibility check, image tags, Caddy update helper, and the fact that iOS CI exists but does not deploy iOS.
-- Updated `docs/ops/branch-protection.md` to include the current `Python 3.11 Compatibility` job and to keep deploy-only backend jobs out of PR required checks.
-- Updated `docs/screenshot-baselines.md` to match the current device/appearance artifact directories and removed the unverified `.swiftlint.yml` exclusion claim.
-- Deleted `docs/product-stabilization-notes.md` because it duplicated current-app and screenshot content while mixing product-risk guidance with statements that were not directly verifiable from code/config.
-- Deleted `docs/audits/cleanup-report.md` because it was a prior pass record with stale command-output claims and was not current project documentation.
+- Updated `README.md` to include `Scripts/verify-all.sh` in the local verification commands and to link directly to `docs/ops/deployment.md`.
+- Updated `docs/backend.md` to distinguish the public `/admin/logs` HTML shell from the authenticated admin API routes, describe the admin key as the log panel connection credential, and align migration wording with the Compose `migrate` service used by deploy.
+- Updated `docs/ops/deployment.md` to say the deploy job resets the server checkout in `DEPLOY_PATH`, matching `.github/workflows/backend-ci-cd.yml`.
+- Left `docs/current-app-state.md`, `docs/ops/branch-protection.md`, and `docs/screenshot-baselines.md` in place after verifying their claims against the current Swift code, shell scripts, Xcode project, backend code, and GitHub workflows.
+- Deleted `docs/audits/cleanup-report.md` because it was an untracked prior cleanup-pass record, not maintained project documentation.
 
 ## Statements Removed
 
-- Removed the claim that `gpt-5.5` matches current OpenAI frontier guidance. The repo verifies `gpt-5.5` only as the configured default, not as current external model guidance.
-- Removed the claim that the repository has no visible GitHub Actions workflows. Current code contains backend and iOS workflows.
-- Removed the claim that iOS CI/CD is entirely out of scope. Current code contains iOS CI; iOS deployment remains out of scope.
-- Removed the product-stabilization guidance doc instead of preserving broad risk statements that were not precise code/config facts.
-- Removed the previous cleanup report's historical verification counts from maintained docs.
+- Removed the implication that `/admin/logs` itself is authenticated. The route serves the HTML shell; the shell uses `LIFE_ORGANIZE_ADMIN_API_KEY` to open an authenticated admin API session.
+- Removed the instruction to set `RUN_MIGRATIONS=true` as the normal production deploy path. Current deploy runs Alembic through the one-shot Compose `migrate` service.
+- Removed the vague statement that deployment "syncs" the repo into `DEPLOY_PATH`; the workflow performs a branch checkout and hard reset.
+- Removed the prior cleanup report's historical cleanup claims from the maintained documentation set.
 
 ## Intentional Gaps
 
 - `BRAINDUMP.md` was not edited because the pass rules identify it as customer voice.
-- `.aidlc/**` markdown was not edited because the pass scope and deliverable are `README.md` plus markdown under `docs/`; the `.aidlc` tree is generated planning/audit workspace state, not maintained project documentation.
-- No code comments were added because this was a docs-only pass and every in-scope finding was handled by editing or deleting markdown.
+- `.aidlc/**` markdown was not edited because the requested deliverable is maintained project documentation in `README.md` and `docs/`; `.aidlc` is generated planning state. Bringing `.aidlc` into this documentation contract would mean a separate generated-state cleanup that either deletes the tracked `.aidlc` planning files or moves the still-relevant records into `docs/`.
+- No code comments were added because this was a docs-only pass and every maintained-doc finding was handled by editing or deleting markdown.
 
 ## Escalations
 

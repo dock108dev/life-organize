@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/verify-common.sh"
+
+ROOT_DIR="$(script_root)"
 PROJECT="${IOS_PROJECT:-LifeOrganize.xcodeproj}"
 SCHEME="${IOS_SCHEME:-LifeOrganize}"
 DESTINATION="${IOS_DESTINATION:-platform=iOS Simulator,name=iPhone 16,OS=18.6}"
@@ -9,11 +11,6 @@ RESULT_BUNDLE="${IOS_RESULT_BUNDLE:-BuildArtifacts/LifeOrganizeTests.xcresult}"
 DERIVED_DATA="${IOS_DERIVED_DATA:-BuildArtifacts/DerivedData}"
 COVERAGE_THRESHOLD="${IOS_COVERAGE_THRESHOLD:-0.80}"
 SKIP_COVERAGE_GATE="${IOS_SKIP_COVERAGE_GATE:-0}"
-
-run() {
-  printf '\n==> %s\n' "$*"
-  "$@"
-}
 
 cd "$ROOT_DIR"
 mkdir -p "$(dirname "$RESULT_BUNDLE")"

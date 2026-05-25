@@ -25,9 +25,9 @@ The iOS checks build and test the app only. They must not sign, archive, upload,
 
 ## Main And Deploy Checks
 
-`backend / docker publish`, `backend / deploy`, and `prod / healthz smoke` are deploy-path checks from `Backend CI/CD`. They run on `main` pushes for backend paths and manual full-deploy dispatches. Keep them out of pull request required checks.
+`backend / docker publish`, `backend / deploy`, and `prod / healthz smoke` are deploy-path checks from `Backend CI/CD`. They run on `main` pushes for backend paths and manual full-deploy dispatches. The production smoke check is deploy-only. Keep it out of pull request required checks.
 
-Backend deploy remains GitHub Actions to the configured SSH host. The image publish job depends on `backend / docker build` and `Python 3.11 Compatibility`; `backend / docker build` depends on the backend test, lint, compile, and coverage gates. The deploy job depends on image publish, and `prod / healthz smoke` depends on deploy.
+Backend deploy remains GitHub Actions to Hetzner through the configured SSH host. The image publish job depends on `backend / docker build` and `Python 3.11 Compatibility`; `backend / docker build` depends on the backend test, lint, compile, and coverage gates. The deploy job depends on image publish, and `prod / healthz smoke` depends on deploy.
 
 ## Renaming Checks
 

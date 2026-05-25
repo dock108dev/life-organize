@@ -21,6 +21,7 @@ xcodebuild test -project LifeOrganize.xcodeproj -scheme LifeOrganize -destinatio
 Run the repository verification scripts:
 
 ```sh
+Scripts/verify-all.sh
 Scripts/verify-backend.sh
 Scripts/verify-ios.sh
 Scripts/screenshots/run-screenshot-tests.sh compare
@@ -44,6 +45,7 @@ Production deployment is backend-only. GitHub Actions builds and publishes the b
 
 - [Current app state](docs/current-app-state.md)
 - [Backend](docs/backend.md)
+- [Backend deployment](docs/ops/deployment.md)
 - [Screenshot baselines](docs/screenshot-baselines.md)
 - [Branch protection checks](docs/ops/branch-protection.md)
 - [Testing and CI/CD braindump](BRAINDUMP.md)

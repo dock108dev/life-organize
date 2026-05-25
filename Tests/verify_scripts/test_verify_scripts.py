@@ -82,6 +82,7 @@ class VerifyScriptContractTests(unittest.TestCase):
             "LifeOrganize.xcodeproj/**",
             "Scripts/ios_coverage_gate.py",
             "Scripts/verify-ios.sh",
+            "Scripts/verify-common.sh",
             "Scripts/screenshots/**",
             "Tests/ScreenshotBaselines/**",
             "fastlane/**",

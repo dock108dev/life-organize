@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/verify-common.sh"
+
+ROOT_DIR="$(script_root)"
 RUN_BACKEND_SMOKE=0
 RUN_PRODUCTION_SMOKE=0
 PRODUCTION_SMOKE_URL="${PRODUCTION_SMOKE_URL:-https://life.dock108.dev/healthz}"
@@ -40,11 +42,6 @@ while (($# > 0)); do
   esac
   shift
 done
-
-run() {
-  printf '\n==> %s\n' "$*"
-  "$@"
-}
 
 printf 'Full verification configuration:\n'
 printf '  IOS_DESTINATION=%s\n' "${IOS_DESTINATION:-platform=iOS Simulator,name=iPhone 16,OS=18.6}"

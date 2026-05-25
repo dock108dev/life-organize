@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/verify-common.sh"
+
+ROOT_DIR="$(script_root)"
 BACKEND_DIR="$ROOT_DIR/Backend"
 VENV_DIR="${BACKEND_VENV:-$BACKEND_DIR/.venv}"
 PYTHON_BIN="${BACKEND_PYTHON:-python3}"
@@ -48,11 +50,6 @@ while (($# > 0)); do
   esac
   shift
 done
-
-run() {
-  printf '\n==> %s\n' "$*"
-  "$@"
-}
 
 print_config() {
   printf 'Backend verification configuration:\n'

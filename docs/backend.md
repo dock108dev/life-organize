@@ -7,16 +7,16 @@ The app routes to:
 - `POST /api/v1/extractions`
 - `POST /api/v1/web-requests`
 
-Admin surfaces are:
+Admin and operations surfaces are:
 
 - `GET /healthz`
 - `GET /api/admin/usage`
-- `GET /admin/logs`
 - `GET /api/admin/logs`
 - `GET /api/admin/logs/stream`
 - `POST /api/admin/logs/session`
 - `POST /api/admin/logs/mark`
 - `POST /api/admin/logs/clear`
+- `GET /admin/logs`, the HTML log panel shell that connects to the authenticated admin API routes.
 
 ## Local Run
 
@@ -56,7 +56,7 @@ Open the local backend log/control panel at:
 http://127.0.0.1:8787/admin/logs
 ```
 
-Use `LIFE_ORGANIZE_ADMIN_API_KEY` to connect. The page streams request and OpenAI gateway events, including status, latency, model, and OpenAI request IDs. The logged event metadata includes request text length, not raw user text, API keys, or raw model response bodies.
+Use `LIFE_ORGANIZE_ADMIN_API_KEY` to connect the log panel to the admin API. The page streams request and OpenAI gateway events, including status, latency, model, and OpenAI request IDs. The logged event metadata includes request text length, not raw user text, API keys, or raw model response bodies.
 
 ## Production
 
@@ -64,6 +64,6 @@ Use `LIFE_ORGANIZE_ADMIN_API_KEY` to connect. The page streams request and OpenA
 - `OPENAI_MODEL` defaults to `gpt-5.5` in `Backend/app/config.py` and `Backend/infra/docker-compose.yml`.
 - Set `DEVICE_TOKEN_SIGNING_SECRET` to a stable private value.
 - Set `LIFE_ORGANIZE_ADMIN_API_KEY` to a stable private value for admin routes and the log panel.
-- Set `RUN_MIGRATIONS=true` during deploy or run Alembic manually.
+- Run Alembic migrations before replacing the API container. The GitHub deploy workflow and manual runbook use the Compose `migrate` service; the API entrypoint also honors `RUN_MIGRATIONS=true` when that path is used.
 - Route `life.dock108.dev` to the API container through the Caddy example in `Backend/infra/`.
 - Keep `DATABASE_URL` off localhost for `production` and `staging`; startup validation rejects localhost database URLs in those environments.

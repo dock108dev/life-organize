@@ -8,19 +8,72 @@ Run the visual regression path from the repository root:
 Scripts/screenshots/run-screenshot-tests.sh compare
 ```
 
-The script runs selected screenshot methods on `LifeOrganizeUITests/LifeOrganizeScenarioUITests`, writes the result bundle to `BuildArtifacts/ScreenshotTests.xcresult`, extracts `screenshot__*` PNG attachments into `BuildArtifacts/screenshots/actual/<device>/<appearance>/`, and compares them with the baseline PNGs under `Tests/ScreenshotBaselines/<device>/<appearance>/`.
+The script runs selected screenshot methods on `LifeOrganizeUITests/LifeOrganizeScenarioUITests`, writes a target-specific result bundle under `BuildArtifacts/`, extracts `screenshot__*` PNG attachments into `BuildArtifacts/screenshots/actual/<target-key>/<orientation>/<appearance>/`, and compares them with the baseline PNGs under `Tests/ScreenshotBaselines/<target-key>/<orientation>/<appearance>/`.
 
-Baselines are grouped by simulator and appearance. The current default baseline directory is:
+Baselines are grouped by target key, orientation, and appearance:
 
 ```text
-Tests/ScreenshotBaselines/iPhone_17_Pro/light/
+Tests/ScreenshotBaselines/<target-key>/<orientation>/<appearance>/
 ```
+
+Generated actual and diff artifacts mirror the same matrix under `BuildArtifacts/screenshots/actual/` and `BuildArtifacts/screenshots/diff/`. Result bundles include the same target key, orientation, and appearance by default, for example `BuildArtifacts/ScreenshotTests-iPhone_17_Pro-portrait-light.xcresult`.
+
+The maintained light-appearance matrix is:
+
+| Target key | Device | Orientation | Baseline path |
+| --- | --- | --- | --- |
+| `iPhone_17_Pro` | `iPhone 17 Pro`, iOS `26.2` | `portrait` | `Tests/ScreenshotBaselines/iPhone_17_Pro/portrait/light/` |
+| `iPhone_17_Pro` | `iPhone 17 Pro`, iOS `26.2` | `landscape` | `Tests/ScreenshotBaselines/iPhone_17_Pro/landscape/light/` |
+| `iPad_Pro_13-inch_M5` | `iPad Pro 13-inch (M5)`, iOS `26.2` | `portrait` | `Tests/ScreenshotBaselines/iPad_Pro_13-inch_M5/portrait/light/` |
+| `iPad_Pro_13-inch_M5` | `iPad Pro 13-inch (M5)`, iOS `26.2` | `landscape` | `Tests/ScreenshotBaselines/iPad_Pro_13-inch_M5/landscape/light/` |
+
+The static iOS layout guard checks that each maintained light-appearance matrix cell contains the full scenario set.
 
 Generated actual and diff artifacts stay under `BuildArtifacts/`, which is ignored by `.gitignore`. To intentionally accept a visual change, run:
 
 ```sh
 Scripts/screenshots/run-screenshot-tests.sh update
 ```
+
+The default command compares the iPhone portrait light target. To run explicit matrix cells:
+
+```sh
+SCREENSHOT_TARGET_KEY=iPhone_17_Pro \
+SCREENSHOT_DEVICE_NAME="iPhone 17 Pro" \
+SCREENSHOT_DEVICE_OS=26.2 \
+SCREENSHOT_ORIENTATION=portrait \
+SCREENSHOT_APPEARANCE=light \
+Scripts/screenshots/run-screenshot-tests.sh compare
+```
+
+```sh
+SCREENSHOT_TARGET_KEY=iPhone_17_Pro \
+SCREENSHOT_DEVICE_NAME="iPhone 17 Pro" \
+SCREENSHOT_DEVICE_OS=26.2 \
+SCREENSHOT_ORIENTATION=landscape \
+SCREENSHOT_APPEARANCE=light \
+Scripts/screenshots/run-screenshot-tests.sh compare
+```
+
+```sh
+SCREENSHOT_TARGET_KEY=iPad_Pro_13-inch_M5 \
+SCREENSHOT_DEVICE_NAME="iPad Pro 13-inch (M5)" \
+SCREENSHOT_DEVICE_OS=26.2 \
+SCREENSHOT_ORIENTATION=portrait \
+SCREENSHOT_APPEARANCE=light \
+Scripts/screenshots/run-screenshot-tests.sh compare
+```
+
+```sh
+SCREENSHOT_TARGET_KEY=iPad_Pro_13-inch_M5 \
+SCREENSHOT_DEVICE_NAME="iPad Pro 13-inch (M5)" \
+SCREENSHOT_DEVICE_OS=26.2 \
+SCREENSHOT_ORIENTATION=landscape \
+SCREENSHOT_APPEARANCE=light \
+Scripts/screenshots/run-screenshot-tests.sh compare
+```
+
+Replace `compare` with `update` in the same commands to refresh that one baseline cell. The runner still accepts a legacy `Tests/ScreenshotBaselines/<target-key>/<appearance>/` directory only for default portrait comparisons when no explicit target key or orientation override is provided.
 
 The default comparison thresholds are:
 
@@ -33,8 +86,20 @@ The changed-pixel limit allows the larger of the absolute and ratio limits. Fail
 
 `fastlane screenshots` runs the compare command. `fastlane update_screenshots` refreshes baselines after an intentional visual change.
 
+## Adaptive Screen Validation
+
+Run the local adaptive screen matrix from the repository root:
+
+```sh
+Scripts/run-adaptive-screen-validation.sh compare
+```
+
+The command runs the maintained iPhone 17 Pro portrait and landscape screenshot comparisons, iPad Pro portrait and landscape screenshot comparisons, normal, Large, Accessibility Large, and Accessibility XXXL Dynamic Type smoke coverage, compact and regular adaptive shell UI checks, and a smaller iPad portrait adaptive shell smoke when a configured smaller iPad simulator exists locally. It writes result bundles and screenshot artifacts under `BuildArtifacts/AdaptiveScreenValidation` and `BuildArtifacts/screenshots/`.
+
+The command reports that Stage Manager or narrow iPad window sizing is not covered because CoreSimulator command-line tooling does not reliably create that window class for XCTest. Use `update` instead of `compare` only when intentionally refreshing the screenshot baseline cells owned by the matrix.
+
 ## CI Artifacts
 
-The iOS CI screenshot job runs the same compare command with the default `iPhone 17 Pro`, `iOS 26.2`, and light-appearance baseline path. Main pushes run the job unconditionally; pull requests run it when iOS rendering code, assets, localization, UI tests, screenshot scripts, baselines, Fastlane screenshot lanes, or screenshot documentation changes.
+The required iOS CI screenshot job runs the iPhone portrait light target. Main pushes run the job unconditionally; pull requests run it when iOS rendering code, assets, localization, UI tests, screenshot scripts, baselines, Fastlane screenshot lanes, or screenshot documentation changes. Manual workflow dispatch can run the iPad portrait light target with `screenshot_profile=ipad_portrait` or both CI light targets, iPhone portrait and iPad portrait, with `screenshot_profile=all_light`.
 
-On failure, CI uploads `BuildArtifacts/ScreenshotTests.xcresult`, actual PNGs, diff PNGs when present, and `BuildArtifacts/screenshots/compare.log`. Baselines are not refreshed by CI. Intentional visual changes still require a local `Scripts/screenshots/run-screenshot-tests.sh update` run and a commit of the changed PNGs under `Tests/ScreenshotBaselines/`.
+On failure, CI uploads the target-specific `BuildArtifacts/ScreenshotTests-*.xcresult`, actual PNGs, diff PNGs when present, and `BuildArtifacts/screenshots/compare.log`. Baselines are not refreshed by CI. Intentional visual changes still require a local `Scripts/screenshots/run-screenshot-tests.sh update` run and a commit of the changed PNGs under `Tests/ScreenshotBaselines/`.

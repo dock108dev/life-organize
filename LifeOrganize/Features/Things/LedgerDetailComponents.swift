@@ -208,13 +208,13 @@ struct LedgerDisclosureSection<Content: View>: View {
 enum LedgerReminderRowLines {
     static func lines(for presentation: ReminderContinuityPresentation, reason: String? = nil) -> [LedgerRowLine] {
         var lines = [
-            LedgerRowLine(text: presentation.primaryLine)
+            LedgerRowLine(text: presentation.primaryLine, role: .contentPreview)
         ]
         if let dateLine = presentation.dateLine {
-            lines.append(LedgerRowLine(text: dateLine))
+            lines.append(LedgerRowLine(text: dateLine, tone: .muted, role: .metadata))
         }
         if let reason, !reason.isEmpty {
-            lines.append(LedgerRowLine(text: reason, lineLimit: 2))
+            lines.append(LedgerRowLine(text: reason, role: .contentPreview, lineLimit: 2))
         }
         return lines
     }

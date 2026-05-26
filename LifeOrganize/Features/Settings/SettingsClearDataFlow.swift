@@ -85,8 +85,8 @@ struct SettingsClearDataSheet: View {
                         finalConfirmationSection
                     }
                 }
-                .padding(20)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .ledgerAdaptiveWidth(.sheet)
+                .padding(.vertical, 20)
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Clear local data?")
@@ -128,19 +128,33 @@ struct SettingsClearDataSheet: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            HStack(spacing: 10) {
-                Button(flow.step == .exportFailed ? "Retry Export" : "Export Local Copy") {
-                    flow.retryExport()
-                    onExport()
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 10) {
+                    exportButton
+                    continueToConfirmationButton
                 }
-                .buttonStyle(.borderedProminent)
 
-                Button("Continue to Confirmation", role: .destructive) {
-                    flow.continueToConfirmation()
+                VStack(alignment: .leading, spacing: 10) {
+                    exportButton
+                    continueToConfirmationButton
                 }
-                .buttonStyle(.bordered)
             }
         }
+    }
+
+    private var exportButton: some View {
+        Button(flow.step == .exportFailed ? "Retry Export" : "Export Local Copy") {
+            flow.retryExport()
+            onExport()
+        }
+        .buttonStyle(.borderedProminent)
+    }
+
+    private var continueToConfirmationButton: some View {
+        Button("Continue to Confirmation", role: .destructive) {
+            flow.continueToConfirmation()
+        }
+        .buttonStyle(.bordered)
     }
 
     private var finalConfirmationSection: some View {
@@ -162,7 +176,7 @@ struct SettingsSafetyRow: View {
     var body: some View {
         LedgerRow(
             primary: content.title,
-            secondary: [LedgerRowLine(text: content.detail, lineLimit: 2)],
+            secondary: [LedgerRowLine(text: content.detail, role: .contentPreview, lineLimit: 2)],
             density: .compact
         ) {
             LedgerPill(text: content.pillText, tone: content.tone, size: .small)

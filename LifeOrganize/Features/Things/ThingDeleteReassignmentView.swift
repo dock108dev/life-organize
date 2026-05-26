@@ -29,6 +29,7 @@ struct ThingDeleteReassignmentView: View {
                 ThingSelectionPicker(title: "Destination", things: targets, selection: $selectedThingID, includesNone: false)
             }
         }
+        .ledgerEditFormWidth(.deleteReassignment)
         .navigationTitle("Move & Delete")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

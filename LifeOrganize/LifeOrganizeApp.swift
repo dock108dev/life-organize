@@ -13,6 +13,9 @@ struct LifeOrganizeApp: App {
         self.runtime = runtime
         let defaults = runtime.userDefaults()
         runtime.resetLaunchStateIfNeeded(defaults: defaults)
+        if runtime.unlocksDeveloperMode {
+            defaults.set(true, forKey: AppDefaultsKeys.developerModeUnlocked)
+        }
         let deviceTokenStore: any DeviceTokenStore = runtime.deviceTokenStore()
         if runtime.shouldResetDeviceToken && runtime.isAutomationRuntime {
             try? deviceTokenStore.deleteDeviceToken()
@@ -42,7 +45,7 @@ struct LifeOrganizeApp: App {
         WindowGroup {
             AppRootView(
                 selectedTab: runtime.initialTab ?? AppRootView.initialTab,
-                initialSheet: runtime.initialSheet,
+                initialSection: runtime.initialSection,
                 searchText: runtime.screenshotSearchQuery ?? "",
                 deviceTokenStore: deviceTokenStore,
                 developerModeState: developerModeState

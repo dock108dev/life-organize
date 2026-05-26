@@ -33,7 +33,8 @@ struct ExtractionAttemptDebugView: View {
                         }
                     }
                     .pickerStyle(.segmented)
-                    .padding()
+                    .ledgerAdaptiveWidth(.debugDetail)
+                    .padding(.vertical)
 
                     switch tab {
                     case .overview:
@@ -94,6 +95,7 @@ struct DeveloperModeRequiredView: View {
             systemImage: content.systemImage,
             description: Text(content.description)
         )
+        .ledgerAdaptiveWidth(.form)
     }
 }
 
@@ -111,6 +113,7 @@ private struct ExtractionAttemptOverview: View {
                     Text(message.text)
                         .font(.footnote)
                         .textSelection(.enabled)
+                        .frame(maxWidth: LedgerAdaptiveLayout.Width.debugDetailMax, alignment: .leading)
                 }
             }
 
@@ -141,6 +144,7 @@ private struct ExtractionAttemptOverview: View {
 
             Section("Retry") {
                 ManualExtractionRetryButton(message: attempt.sourceMessage, deviceTokenStore: deviceTokenStore)
+                    .frame(maxWidth: LedgerAdaptiveLayout.Width.debugDetailMax, alignment: .leading)
             }
         }
     }
@@ -196,6 +200,7 @@ private struct ExtractionAttemptEntityAuditView: View {
                     Text(id)
                         .font(.system(.caption, design: .monospaced))
                         .textSelection(.enabled)
+                        .frame(maxWidth: LedgerAdaptiveLayout.Width.debugDetailMax, alignment: .leading)
                 }
             }
         }

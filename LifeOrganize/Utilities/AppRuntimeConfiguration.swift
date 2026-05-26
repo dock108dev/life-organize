@@ -17,9 +17,11 @@ struct AppRuntimeConfiguration {
     var shouldResetDeviceToken: Bool
     var shouldSkipLaunchMaintenance: Bool
     var enablesDeveloperMode: Bool
+    var unlocksDeveloperMode: Bool
     var simulatedAIServiceError: AppError?
     var seedScenarioIDs: [String]
     var initialTab: AppTab?
+    var initialSection: AppSection?
     var initialSheet: AppInitialSheet?
     var screenshotSeed: ScreenshotSeed?
     var screenshotSearchQuery: String?
@@ -50,6 +52,7 @@ struct AppRuntimeConfiguration {
         shouldResetDeviceToken = arguments.contains("-reset-device-token") || shouldResetFreshInstallState || screenshotMode
         shouldSkipLaunchMaintenance = arguments.contains("-skip-launch-maintenance") || arguments.contains("--skip-launch-maintenance")
         enablesDeveloperMode = arguments.contains("-enable-developer-mode")
+        unlocksDeveloperMode = automationRuntime && arguments.contains("-unlock-developer-mode")
         simulatedAIServiceError = Self.simulatedAIServiceError(from: arguments, isAutomationRuntime: automationRuntime)
         usesInMemoryAutomationStore = arguments.contains("-use-in-memory-store") || arguments.contains("--use-in-memory-store")
         screenshotSeed = Self.screenshotSeed(from: arguments)
@@ -61,7 +64,9 @@ struct AppRuntimeConfiguration {
         disablesAnimations = arguments.contains("-disable-animations") || screenshotMode
         aiServiceBaseURL = Self.aiServiceBaseURL(from: arguments)
         seedScenarioIDs = Self.seedScenarioIDs(from: arguments, screenshotSeed: screenshotSeed, isScreenshotMode: screenshotMode)
-        initialTab = Self.initialTab(from: arguments, screenshotStart: Self.screenshotStart(from: arguments))
+        let start = Self.screenshotStart(from: arguments)
+        initialTab = Self.initialTab(from: arguments, screenshotStart: start)
+        initialSection = start.map(AppSection.init)
         initialSheet = Self.initialSheet(from: arguments)
         fixedNow = Self.fixedDate(from: arguments) ?? (screenshotMode ? Self.defaultScreenshotNow : nil)
     }
@@ -408,90 +413,21 @@ enum AppInitialSheet: String {
     case reviewQueue
 }
 
-enum ScreenshotSeed: String {
-    case empty
-    case `default`
-    case review
-    case search
-    case carryForward
-    case heavy
-
-    init?(argumentValue: String) {
-        let normalized = argumentValue
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased()
-            .replacingOccurrences(of: "_", with: "-")
-        switch normalized {
-        case "empty":
-            self = .empty
-        case "default":
-            self = .default
-        case "review":
-            self = .review
-        case "search":
-            self = .search
-        case "carry-forward":
-            self = .carryForward
-        case "heavy":
-            self = .heavy
-        default:
-            return nil
-        }
-    }
-
-    var seedScenarioIDs: [String] {
-        switch self {
-        case .empty:
-            ["first_launch_empty"]
-        case .default, .carryForward:
-            ["operational_home"]
-        case .review:
-            ["ambiguous_dog_grooming"]
-        case .search:
-            ["timeline_search"]
-        case .heavy:
-            ["heavy_history"]
-        }
-    }
-}
-
-enum ScreenshotStart: String {
-    case timeline
-    case things
-    case carryForward
-    case settings
-    case search
-    case review
-
-    init?(argumentValue: String) {
-        let normalized = argumentValue
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased()
-            .replacingOccurrences(of: "_", with: "-")
-        switch normalized {
-        case "timeline", "log":
+private extension AppSection {
+    init(_ start: ScreenshotStart) {
+        switch start {
+        case .timeline:
             self = .timeline
-        case "things":
+        case .things:
             self = .things
-        case "carry-forward", "rules":
+        case .carryForward:
             self = .carryForward
-        case "settings":
+        case .settings:
             self = .settings
-        case "search":
+        case .search:
             self = .search
-        case "review", "review-queue":
+        case .review:
             self = .review
-        default:
-            return nil
         }
-    }
-}
-
-enum ScreenshotAppearance: String {
-    case light
-    case dark
-
-    init?(argumentValue: String) {
-        self.init(rawValue: argumentValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())
     }
 }

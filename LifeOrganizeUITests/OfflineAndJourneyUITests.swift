@@ -68,6 +68,7 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
         let app = launchUITestApp(
             extraArguments: [
                 "-enable-developer-mode",
+                "-unlock-developer-mode",
                 "--reset-db",
                 "--seed-scenario=ambiguous_dog_grooming"
             ],
@@ -76,7 +77,6 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
 
         app.buttons["settings-entry"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForFastExistence(timeout: 5))
-        unlockDeveloperMode(in: app)
 
         XCTAssertTrue(app.staticTexts["Developer Diagnostics"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Extraction Attempts"].exists)
@@ -96,7 +96,7 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
         let app = launchOperationalHomeSeedOnThings()
 
         XCTAssertTrue(app.navigationBars["Things"].waitForFastExistence(timeout: 5))
-        let thingRow = app.buttons.containing(.staticText, identifier: "Home Air Filters").firstMatch
+        let thingRow = app.buttons.matching(identifierPrefix: "thing-row-").firstMatch
         XCTAssertTrue(thingRow.waitForFastExistence(timeout: 10))
         thingRow.tap()
         XCTAssertTrue(app.descendants(matching: .any)["thing-detail"].waitForFastExistence(timeout: 5))
@@ -126,7 +126,7 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
         app.terminate()
 
         let deletionApp = launchOperationalHomeSeedOnThings()
-        let updatedThingRow = deletionApp.buttons.containing(.staticText, identifier: "Home Air Filters").firstMatch
+        let updatedThingRow = deletionApp.buttons.matching(identifierPrefix: "thing-row-").firstMatch
         XCTAssertTrue(updatedThingRow.waitForFastExistence(timeout: 5))
         updatedThingRow.tap()
         XCTAssertTrue(deletionApp.descendants(matching: .any)["thing-detail"].waitForFastExistence(timeout: 5))
@@ -145,15 +145,6 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
             ],
             useInMemoryStore: true
         )
-    }
-
-    private func unlockDeveloperMode(in app: XCUIApplication) {
-        let footer = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "LifeOrganize ")).firstMatch
-        for _ in 0..<4 where !footer.isHittable {
-            app.swipeUp()
-        }
-        XCTAssertTrue(footer.waitForFastExistence(timeout: 5))
-        footer.press(forDuration: 1.2)
     }
 
     private func assertNoProviderSecretsVisible(in app: XCUIApplication) {

@@ -28,8 +28,10 @@ on:
       - "**/*.ttf"
       - "**/*.otf"
       - "Scripts/ios_coverage_gate.py"
+      - "Scripts/ios_static_layout_guard.py"
       - "Scripts/verify-ios.sh"
       - "Scripts/verify-common.sh"
+      - "Scripts/simulator-common.sh"
       - "Scripts/screenshots/**"
       - "Tests/ScreenshotBaselines/**"
       - "fastlane/**"
@@ -42,6 +44,15 @@ on:
         required: false
         type: boolean
         default: false
+      screenshot_profile:
+        description: "Visual screenshot profile to run"
+        required: false
+        type: choice
+        default: "required"
+        options:
+          - required
+          - ipad_portrait
+          - all_light
 
 permissions:
   contents: read
@@ -168,16 +179,21 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 45
     needs: build-ios
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      contains(fromJSON('["required","all_light"]'), inputs.screenshot_profile)
     env:
       SCREENSHOT_PROJECT: "LifeOrganize.xcodeproj"
       SCREENSHOT_SCHEME: "LifeOrganize"
+      SCREENSHOT_TARGET_KEY: "iPhone_17_Pro"
       SCREENSHOT_DEVICE_NAME: "iPhone 17 Pro"
       SCREENSHOT_DEVICE_OS: "26.2"
+      SCREENSHOT_ORIENTATION: "portrait"
       SCREENSHOT_APPEARANCE: "light"
-      SCREENSHOT_RESULT_BUNDLE: "BuildArtifacts/ScreenshotTests.xcresult"
-      SCREENSHOT_ACTUAL_DIR: "BuildArtifacts/screenshots/actual/iPhone_17_Pro/light"
-      SCREENSHOT_DIFF_DIR: "BuildArtifacts/screenshots/diff/iPhone_17_Pro/light"
-      SCREENSHOT_BASELINE_DIR: "Tests/ScreenshotBaselines/iPhone_17_Pro/light"
+      SCREENSHOT_RESULT_BUNDLE: "BuildArtifacts/ScreenshotTests-iPhone_17_Pro-portrait-light.xcresult"
+      SCREENSHOT_ACTUAL_DIR: "BuildArtifacts/screenshots/actual/iPhone_17_Pro/portrait/light"
+      SCREENSHOT_DIFF_DIR: "BuildArtifacts/screenshots/diff/iPhone_17_Pro/portrait/light"
+      SCREENSHOT_BASELINE_DIR: "Tests/ScreenshotBaselines/iPhone_17_Pro/portrait/light"
     steps:
       - uses: actions/checkout@v6
       - name: Show Xcode and simulator inventory
@@ -199,9 +215,9 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
           path: |
-            BuildArtifacts/ScreenshotTests.xcresult
-            BuildArtifacts/screenshots/actual/iPhone_17_Pro/light
-            BuildArtifacts/screenshots/diff/iPhone_17_Pro/light
+            BuildArtifacts/ScreenshotTests-iPhone_17_Pro-portrait-light.xcresult
+            BuildArtifacts/screenshots/actual/iPhone_17_Pro/portrait/light
+            BuildArtifacts/screenshots/diff/iPhone_17_Pro/portrait/light
             BuildArtifacts/screenshots/compare.log
       - name: Upload screenshot artifacts
         if: github.event_name == 'workflow_dispatch' && inputs.upload_screenshot_artifacts == true
@@ -211,7 +227,65 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
           path: |
-            BuildArtifacts/ScreenshotTests.xcresult
-            BuildArtifacts/screenshots/actual/iPhone_17_Pro/light
-            BuildArtifacts/screenshots/diff/iPhone_17_Pro/light
+            BuildArtifacts/ScreenshotTests-iPhone_17_Pro-portrait-light.xcresult
+            BuildArtifacts/screenshots/actual/iPhone_17_Pro/portrait/light
+            BuildArtifacts/screenshots/diff/iPhone_17_Pro/portrait/light
+            BuildArtifacts/screenshots/compare.log
+
+  screenshot-ipad-portrait:
+    name: ios / screenshots / iPad portrait
+    runs-on: macos-26
+    timeout-minutes: 45
+    needs: build-ios
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      contains(fromJSON('["ipad_portrait","all_light"]'), inputs.screenshot_profile)
+    env:
+      SCREENSHOT_PROJECT: "LifeOrganize.xcodeproj"
+      SCREENSHOT_SCHEME: "LifeOrganize"
+      SCREENSHOT_TARGET_KEY: "iPad_Pro_13-inch_M5"
+      SCREENSHOT_DEVICE_NAME: "iPad Pro 13-inch (M5)"
+      SCREENSHOT_DEVICE_OS: "26.2"
+      SCREENSHOT_ORIENTATION: "portrait"
+      SCREENSHOT_APPEARANCE: "light"
+      SCREENSHOT_RESULT_BUNDLE: "BuildArtifacts/ScreenshotTests-iPad_Pro_13-inch_M5-portrait-light.xcresult"
+      SCREENSHOT_ACTUAL_DIR: "BuildArtifacts/screenshots/actual/iPad_Pro_13-inch_M5/portrait/light"
+      SCREENSHOT_DIFF_DIR: "BuildArtifacts/screenshots/diff/iPad_Pro_13-inch_M5/portrait/light"
+      SCREENSHOT_BASELINE_DIR: "Tests/ScreenshotBaselines/iPad_Pro_13-inch_M5/portrait/light"
+    steps:
+      - uses: actions/checkout@v6
+      - name: Show Xcode and simulator inventory
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+          xcrun simctl list runtimes
+          xcrun simctl list devices available
+      - name: Run iPad portrait screenshot comparison
+        run: |
+          set -o pipefail
+          mkdir -p BuildArtifacts/screenshots
+          Scripts/screenshots/run-screenshot-tests.sh compare 2>&1 | tee BuildArtifacts/screenshots/compare.log
+      - name: Upload iPad portrait screenshot failure artifacts
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-failure-iPad_Pro_13-inch_M5-portrait-light-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            BuildArtifacts/ScreenshotTests-iPad_Pro_13-inch_M5-portrait-light.xcresult
+            BuildArtifacts/screenshots/actual/iPad_Pro_13-inch_M5/portrait/light
+            BuildArtifacts/screenshots/diff/iPad_Pro_13-inch_M5/portrait/light
+            BuildArtifacts/screenshots/compare.log
+      - name: Upload iPad portrait screenshot artifacts
+        if: github.event_name == 'workflow_dispatch' && inputs.upload_screenshot_artifacts == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-artifacts-iPad_Pro_13-inch_M5-portrait-light-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            BuildArtifacts/ScreenshotTests-iPad_Pro_13-inch_M5-portrait-light.xcresult
+            BuildArtifacts/screenshots/actual/iPad_Pro_13-inch_M5/portrait/light
+            BuildArtifacts/screenshots/diff/iPad_Pro_13-inch_M5/portrait/light
             BuildArtifacts/screenshots/compare.log

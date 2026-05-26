@@ -12,7 +12,7 @@ extension LifeOrganizeScenarioUITests {
         let seededApp = launchOperationalHomeSeed(resetStore: false, initialTab: "things")
         XCTAssertTrue(seededApp.navigationBars["Things"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(seededApp.descendants(matching: .any)["things-list"].exists)
-        let filtersRow = seededApp.buttons.containing(.staticText, identifier: "Home Air Filters").firstMatch
+        let filtersRow = seededApp.buttons.matching(identifierPrefix: "thing-row-").firstMatch
         XCTAssertTrue(filtersRow.waitForFastExistence(timeout: 10))
         XCTAssertTrue(seededApp.staticTexts.matching(labelContaining: "Home Air Filters").firstMatch.waitForFastExistence(timeout: 10))
         attachScreenshot(named: "operational_home.things", from: seededApp)

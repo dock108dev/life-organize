@@ -1,3 +1,4 @@
+import SwiftUI
 import XCTest
 @testable import LifeOrganize
 
@@ -53,6 +54,21 @@ final class LedgerVisualSystemTests: XCTestCase {
         XCTAssertEqual(LedgerVisualSystem.Padding.noticeVertical, 8)
     }
 
+    func testLedgerRowLineRolesResolveDynamicTypeLimits() {
+        let metadata = LedgerRowLine(text: "May 26", role: .metadata)
+        let preview = LedgerRowLine(text: "Long result excerpt", role: .contentPreview)
+        let cappedPreview = LedgerRowLine(text: "Reason", role: .contentPreview, lineLimit: 4)
+        let detail = LedgerRowLine(text: "Full detail", role: .contentDetail)
+
+        XCTAssertEqual(metadata.resolvedLineLimit(for: .large), 1)
+        XCTAssertEqual(metadata.resolvedLineLimit(for: .accessibility1), 1)
+        XCTAssertEqual(preview.resolvedLineLimit(for: .large), 2)
+        XCTAssertEqual(preview.resolvedLineLimit(for: .accessibility1), 3)
+        XCTAssertEqual(cappedPreview.resolvedLineLimit(for: .accessibility1), 4)
+        XCTAssertNil(detail.resolvedLineLimit(for: .large))
+        XCTAssertNil(detail.resolvedLineLimit(for: .accessibility1))
+    }
+
     func testSearchRowsUseQuietLedgerPresentation() {
         let ruleID = UUID(uuidString: "00000000-0000-0000-0000-000000000222")!
         let record = LocalSearchRecord(
@@ -86,7 +102,9 @@ final class LedgerVisualSystemTests: XCTestCase {
         XCTAssertEqual(presentation.footerText, "For Honda Civic")
         XCTAssertEqual(presentation.dateText, DateFormatting.shortDate.string(from: fixedTestNow))
         XCTAssertEqual(presentation.secondaryLines.first?.text, presentation.dateText)
-        XCTAssertEqual(presentation.secondaryLines.map(\.lineLimit), [1, 1, 2])
+        XCTAssertEqual(presentation.secondaryLines.map(\.role), [.metadata, .contentPreview, .contentPreview])
+        XCTAssertEqual(presentation.secondaryLines.map { $0.resolvedLineLimit(for: .large) }, [1, 2, 2])
+        XCTAssertEqual(presentation.secondaryLines.map { $0.resolvedLineLimit(for: .accessibility1) }, [1, 3, 3])
         XCTAssertEqual(LedgerSurfaceDensity.searchResultRow.rowDensity, .compact)
     }
 

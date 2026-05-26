@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ChatView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     @EnvironmentObject private var sessionState: AppSessionState
     @Query(sort: \ChatMessage.createdAt, order: .reverse) private var messages: [ChatMessage]
     @Query(sort: \LedgerEvent.occurredAt, order: .reverse) private var events: [LedgerEvent]
@@ -57,12 +58,28 @@ struct ChatView: View {
         feedSections.isEmpty
     }
 
+    private var isCompressedVertically: Bool {
+        verticalSizeClass == .compact
+    }
+
+    private var isDraftEmpty: Bool {
+        viewModel.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var showsComposerSuggestions: Bool {
+        isFeedEmpty && isDraftEmpty && !isCompressedVertically
+    }
+
+    private var shouldAutofocusComposer: Bool {
+        !AppRuntimeConfiguration.current.isScreenshotMode && !isCompressedVertically
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             if !hasAIServiceCredential {
                 DeviceTokenNotice(onAddKey: onAddKey)
-                    .padding(.horizontal, 14)
                     .padding(.top, 8)
+                    .ledgerAdaptiveWidth(.readable)
             }
 
             ScrollViewReader { proxy in
@@ -74,6 +91,7 @@ struct ChatView: View {
                     if isFeedEmpty {
                         LedgerEmptyStateView(content: .chat)
                             .frame(maxWidth: .infinity, minHeight: 300)
+                            .ledgerAdaptiveWidth(.readable)
                     } else {
                         LazyVStack(alignment: .leading, spacing: LedgerFeedTimelineLayout.sectionSpacing) {
                             if !isTimelineContextDismissed {
@@ -102,7 +120,7 @@ struct ChatView: View {
                                 }
                             }
                         }
-                        .padding(.horizontal, LedgerFeedTimelineLayout.feedHorizontalPadding)
+                        .ledgerAdaptiveWidth(.readable)
                         .padding(.top, LedgerFeedTimelineLayout.feedTopPadding)
                         .padding(.bottom, LedgerFeedTimelineLayout.feedBottomPadding)
                     }
@@ -112,35 +130,37 @@ struct ChatView: View {
                 .scrollDismissesKeyboard(.interactively)
                 .defaultScrollAnchor(.top)
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    VStack(spacing: 0) {
-                        if isFeedEmpty {
-                            ChatSuggestionBar { suggestion in
-                                viewModel.applySuggestion(suggestion)
-                                isComposerFocused = true
+                    TimelineComposerInset {
+                        VStack(spacing: 0) {
+                            if showsComposerSuggestions {
+                                ChatSuggestionBar { suggestion in
+                                    viewModel.applySuggestion(suggestion)
+                                    isComposerFocused = true
+                                }
                             }
-                        }
 
-                        ChatInputBar(
-                            text: $viewModel.draft,
-                            placeholder: viewModel.inputPlaceholder(hasAIServiceCredential: hasAIServiceCredential),
-                            isCommittingSend: viewModel.isCommittingSend,
-                            isOrganizing: viewModel.isOrganizing,
-                            isFocused: $isComposerFocused
-                        ) {
-                            viewModel.sendDraft(
-                                modelContext: modelContext,
-                                deviceTokenStore: deviceTokenStore,
-                                dataGeneration: sessionState.dataGeneration,
-                                isDataGenerationCurrent: sessionState.isCurrentDataGeneration
-                            ) { messageID in
-                                isComposerFocused = !AppRuntimeConfiguration.current.isAutomationRuntime
-                                scrollToMessage(messageID, proxy: proxy)
+                            ChatInputBar(
+                                text: $viewModel.draft,
+                                placeholder: viewModel.inputPlaceholder(hasAIServiceCredential: hasAIServiceCredential),
+                                isCommittingSend: viewModel.isCommittingSend,
+                                isOrganizing: viewModel.isOrganizing,
+                                isFocused: $isComposerFocused
+                            ) {
+                                viewModel.sendDraft(
+                                    modelContext: modelContext,
+                                    deviceTokenStore: deviceTokenStore,
+                                    dataGeneration: sessionState.dataGeneration,
+                                    isDataGenerationCurrent: sessionState.isCurrentDataGeneration
+                                ) { messageID in
+                                    isComposerFocused = !AppRuntimeConfiguration.current.isAutomationRuntime
+                                    scrollToMessage(messageID, proxy: proxy)
+                                }
                             }
                         }
                     }
                 }
                 .onAppear {
-                    isComposerFocused = !AppRuntimeConfiguration.current.isScreenshotMode
+                    isComposerFocused = shouldAutofocusComposer
                     scrollToTop(proxy: proxy, animated: false)
                 }
                 .onChange(of: feedItemIDs) { _, _ in
@@ -254,6 +274,25 @@ private struct DeviceTokenNotice: View {
     }
 }
 
+private struct TimelineComposerInset<Content: View>: View {
+    let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        content
+            .ledgerAdaptiveWidth(.readable)
+            .frame(maxWidth: .infinity)
+            .background(.ultraThinMaterial)
+            .overlay(alignment: .top) {
+                Divider()
+                    .overlay(Color.secondary.opacity(0.18))
+            }
+    }
+}
+
 private struct ChatSuggestionBar: View {
     let onSelect: (ChatSuggestion) -> Void
 
@@ -271,7 +310,6 @@ private struct ChatSuggestionBar: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
         }
-        .background(.bar)
     }
 }
 

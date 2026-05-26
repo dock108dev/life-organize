@@ -207,7 +207,7 @@ struct TimelineSliceReplayView: View {
                     }
                 }
             }
-            .padding(.horizontal, 12)
+            .ledgerAdaptiveWidth(.detail)
             .padding(.vertical, 12)
         }
         .navigationTitle(model.title)
@@ -235,6 +235,8 @@ private struct TimelineSliceReplaySectionView: View {
     let rules: [LedgerRule]
     let notes: [LedgerNote]
     let messages: [ChatMessage]
+    @ScaledMetric(relativeTo: .caption2) private var timestampWidth = TimelineSliceReplayLayout.timestampWidth
+    @ScaledMetric(relativeTo: .caption2) private var markerSize = TimelineSliceReplayLayout.markerSize
 
     var body: some View {
         LedgerTimelineSectionChrome(
@@ -260,11 +262,23 @@ private struct TimelineSliceReplaySectionView: View {
                     .buttonStyle(.plain)
 
                     if row.id != section.rows.last?.id {
-                        TimelineSectionRowDivider(leadingPadding: TimelineSliceReplayLayout.dividerLeadingPadding)
+                        TimelineSectionRowDivider(leadingPadding: rowLayout.dividerLeadingPadding)
                     }
                 }
             }
         }
+    }
+
+    private var rowLayout: LedgerTimelineRowChromeLayout {
+        LedgerTimelineRowChromeLayout(
+            rowHorizontalPadding: LedgerVisualSystem.Padding.rowHorizontal,
+            rowVerticalPadding: LedgerVisualSystem.Padding.rowCompactVertical,
+            rowColumnSpacing: LedgerVisualSystem.Spacing.rowAccessoryGap,
+            timestampWidth: timestampWidth,
+            markerSize: markerSize,
+            timestampTopPadding: TimelineSliceReplayLayout.timestampTopPadding,
+            markerTopPadding: TimelineSliceReplayLayout.markerTopPadding
+        )
     }
 }
 
@@ -272,6 +286,7 @@ private struct TimelineSliceReplayRow: View {
     let row: TimelineSliceRow
     @ScaledMetric(relativeTo: .caption2) private var timestampWidth = TimelineSliceReplayLayout.timestampWidth
     @ScaledMetric(relativeTo: .caption2) private var markerSize = TimelineSliceReplayLayout.markerSize
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var content: TimelineSliceReplayRowContent {
         TimelineSliceReplayRowContent(row: row)
@@ -298,10 +313,7 @@ private struct TimelineSliceReplayRow: View {
                 timestampWeight: .semibold
             ) {
                 VStack(alignment: .leading, spacing: LedgerVisualSystem.Spacing.rowCompact) {
-                    HStack(alignment: .firstTextBaseline, spacing: LedgerVisualSystem.Spacing.rowBadgeGap) {
-                        LedgerBadgePill(badge: content.sourceBadge, size: .small)
-                        LedgerPill(text: content.dateKindLabel, tone: .neutral, size: .small)
-                    }
+                    metadataBadges
 
                     LedgerTimelinePrimaryText(text: content.primaryText, weight: .medium)
 
@@ -321,6 +333,32 @@ private struct TimelineSliceReplayRow: View {
                     }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var metadataBadges: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            stackedMetadataBadges
+        } else {
+            ViewThatFits(in: .horizontal) {
+                inlineMetadataBadges
+                stackedMetadataBadges
+            }
+        }
+    }
+
+    private var inlineMetadataBadges: some View {
+        HStack(alignment: .firstTextBaseline, spacing: LedgerVisualSystem.Spacing.rowBadgeGap) {
+            LedgerBadgePill(badge: content.sourceBadge, size: .small)
+            LedgerPill(text: content.dateKindLabel, tone: .neutral, size: .small)
+        }
+    }
+
+    private var stackedMetadataBadges: some View {
+        VStack(alignment: .leading, spacing: LedgerVisualSystem.Spacing.rowBadgeGap) {
+            LedgerBadgePill(badge: content.sourceBadge, size: .small)
+            LedgerPill(text: content.dateKindLabel, tone: .neutral, size: .small)
         }
     }
 }

@@ -90,6 +90,7 @@ struct EventEditView: View {
                 }
             }
         }
+        .ledgerEditFormWidth(.event)
         .navigationTitle(event == nil ? "Add Event" : "Edit Event")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

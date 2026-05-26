@@ -1,3 +1,4 @@
+import SwiftUI
 import XCTest
 @testable import LifeOrganize
 
@@ -127,6 +128,9 @@ final class ReminderContinuityPresentationTests: XCTestCase {
             "Carried forward until completed or rescheduled",
             "Keep policy active."
         ])
+        XCTAssertEqual(rowLines.map(\.role), [.contentPreview, .metadata, .contentPreview])
+        XCTAssertEqual(rowLines.map { $0.resolvedLineLimit(for: .large) }, [2, 1, 2])
+        XCTAssertEqual(rowLines.map { $0.resolvedLineLimit(for: .accessibility1) }, [3, 1, 3])
     }
 
     func testActiveOngoingReminderKeepsCarryForwardAsPrimaryConcept() {

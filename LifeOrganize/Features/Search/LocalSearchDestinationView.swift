@@ -120,6 +120,7 @@ struct MissingSearchRecordView: View {
                 dismiss()
             }
         }
+        .ledgerAdaptiveWidth(.detail)
         .navigationTitle(presentation.navigationTitle)
     }
 }
@@ -225,7 +226,7 @@ struct NoteDetailView: View {
 
                 noteContextSection
             }
-            .padding(.horizontal)
+            .ledgerAdaptiveWidth(.detail)
             .padding(.vertical, 14)
         }
         .background(Color(.systemBackground))
@@ -266,7 +267,7 @@ struct NoteDetailView: View {
                 } label: {
                     LedgerRow(
                         primary: thing.name,
-                        secondary: [LedgerRowLine(text: "Linked thing", tone: .muted)],
+                        secondary: [LedgerRowLine(text: "Linked thing", tone: .muted, role: .metadata)],
                         density: .detail
                     ) {
                         LedgerPill(text: "Thing", tone: .info, size: .small)
@@ -372,7 +373,7 @@ struct ChatMessageContextView: View {
 
                 messageContextSection
             }
-            .padding(.horizontal)
+            .ledgerAdaptiveWidth(.detail)
             .padding(.vertical, 14)
         }
         .background(Color(.systemBackground))

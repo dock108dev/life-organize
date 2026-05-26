@@ -21,6 +21,7 @@ struct QAReprocessEntryView: View {
                     Text(statusText)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
+                        .frame(maxWidth: LedgerAdaptiveLayout.Width.debugListMax, alignment: .leading)
                 }
             }
 
@@ -42,6 +43,7 @@ struct QAReprocessEntryView: View {
                             .disabled(reprocessingID != nil)
                         }
                         .padding(.vertical, 4)
+                        .frame(maxWidth: LedgerAdaptiveLayout.Width.debugListMax, alignment: .leading)
                     }
                 }
             }
@@ -88,6 +90,7 @@ struct QAGraphInspectorView: View {
                     Text(errorText)
                         .font(.footnote)
                         .foregroundStyle(.red)
+                        .frame(maxWidth: LedgerAdaptiveLayout.Width.debugDetailMax, alignment: .leading)
                 }
             }
 
@@ -135,6 +138,7 @@ struct QAGraphInspectorView: View {
                                         .foregroundStyle(.secondary)
                                 }
                             }
+                            .frame(maxWidth: LedgerAdaptiveLayout.Width.debugDetailMax, alignment: .leading)
                         }
                     }
                 }
@@ -151,6 +155,7 @@ struct QAGraphInspectorView: View {
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
+                            .frame(maxWidth: LedgerAdaptiveLayout.Width.debugDetailMax, alignment: .leading)
                         }
                     }
                 }
@@ -162,6 +167,7 @@ struct QAGraphInspectorView: View {
                 inspect()
             }
         }
+        .frame(maxWidth: LedgerAdaptiveLayout.Width.debugDetailMax, alignment: .leading)
     }
 
     private func findingRow(_ failure: RelationshipIntegrityFailure) -> some View {

@@ -2,7 +2,6 @@ import SwiftUI
 
 enum LedgerFeedTimelineLayout {
     static let sectionSpacing: CGFloat = 16
-    static let feedHorizontalPadding: CGFloat = 14
     static let feedTopPadding: CGFloat = 4
     static let feedBottomPadding: CGFloat = 10
     static let sectionContentSpacing: CGFloat = 8
@@ -33,6 +32,8 @@ struct LedgerFeedSectionView: View {
     let deviceTokenStore: any DeviceTokenStore
     let onAddKey: () -> Void
     let onReviewItemError: (String) -> Void
+    @ScaledMetric(relativeTo: .caption2) private var timestampWidth = LedgerFeedTimelineLayout.timestampWidth
+    @ScaledMetric(relativeTo: .caption2) private var markerSize = LedgerFeedTimelineLayout.markerSize
 
     var body: some View {
         LedgerTimelineSectionChrome(
@@ -54,11 +55,23 @@ struct LedgerFeedSectionView: View {
                     .id(item.id)
 
                     if item.id != section.items.last?.id {
-                        TimelineSectionRowDivider(leadingPadding: LedgerFeedTimelineLayout.dividerLeadingPadding)
+                        TimelineSectionRowDivider(leadingPadding: rowLayout.dividerLeadingPadding)
                     }
                 }
             }
         }
+    }
+
+    private var rowLayout: LedgerTimelineRowChromeLayout {
+        LedgerTimelineRowChromeLayout(
+            rowHorizontalPadding: LedgerFeedTimelineLayout.rowHorizontalPadding,
+            rowVerticalPadding: LedgerFeedTimelineLayout.rowVerticalPadding,
+            rowColumnSpacing: LedgerFeedTimelineLayout.rowColumnSpacing,
+            timestampWidth: timestampWidth,
+            markerSize: markerSize,
+            timestampTopPadding: LedgerFeedTimelineLayout.timestampTopPadding,
+            markerTopPadding: LedgerFeedTimelineLayout.markerTopPadding
+        )
     }
 
     private func reviewPresentation(for item: LedgerFeedItem) -> LedgerReviewItemPresentation? {
@@ -118,6 +131,7 @@ private struct LedgerFeedRow: View {
     let reviewPresentation: LedgerReviewItemPresentation?
     @ScaledMetric(relativeTo: .caption2) private var timestampWidth = LedgerFeedTimelineLayout.timestampWidth
     @ScaledMetric(relativeTo: .caption2) private var markerSize = LedgerFeedTimelineLayout.markerSize
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         LedgerTimelineRowContainer(layout: rowLayout) {
@@ -195,18 +209,41 @@ private struct LedgerFeedRow: View {
             layout: rowLayout,
             timestampWeight: .regular
         ) {
-            HStack(alignment: .firstTextBaseline, spacing: LedgerFeedTimelineLayout.rowBadgeGap) {
-                sourceLabel
-                    .fixedSize(horizontal: true, vertical: false)
-
-                Text(content.primaryText.ledgerFeedStatusSummaryText)
-                    .font(LedgerVisualSystem.Typography.rowSecondary)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            if dynamicTypeSize.isAccessibilitySize {
+                quietStackedStatusContent
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    quietInlineStatusContent
+                    quietStackedStatusContent
+                }
             }
         }
+    }
+
+    private var quietInlineStatusContent: some View {
+        HStack(alignment: .firstTextBaseline, spacing: LedgerFeedTimelineLayout.rowBadgeGap) {
+            sourceLabel
+                .fixedSize(horizontal: true, vertical: false)
+
+            statusSummaryText
+        }
+    }
+
+    private var quietStackedStatusContent: some View {
+        VStack(alignment: .leading, spacing: LedgerFeedTimelineLayout.rowContentSpacing) {
+            sourceLabel
+            statusSummaryText
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var statusSummaryText: some View {
+        Text(content.primaryText.ledgerFeedStatusSummaryText)
+            .font(LedgerVisualSystem.Typography.rowSecondary)
+            .foregroundStyle(.secondary)
+            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 2)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     @ViewBuilder
@@ -253,13 +290,13 @@ private struct LedgerFeedRow: View {
             Text(line.text)
                 .font(LedgerVisualSystem.Typography.rowSecondary)
                 .foregroundStyle(line.tone.foreground)
-                .lineLimit(line.lineLimit)
+                .lineLimit(line.resolvedLineLimit(for: dynamicTypeSize))
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
 
     private func statusLabel(_ badge: LedgerBadgePresentation) -> some View {
-        LedgerFeedMetadataLabel(badge: badge)
+        LedgerFeedMetadataLabel(badge: badge, allowsAccessibilityWrapping: true)
             .fixedSize(horizontal: false, vertical: true)
     }
 
@@ -310,19 +347,28 @@ private struct LedgerFeedRow: View {
     }
 
     private var shouldSeparateMetadata: Bool {
-        statusBadge != nil
+        statusBadge != nil || dynamicTypeSize.isAccessibilitySize
     }
 }
 
 private struct LedgerFeedMetadataLabel: View {
     let badge: LedgerBadgePresentation
+    var allowsAccessibilityWrapping = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         Text(badge.label)
             .font(LedgerVisualSystem.Typography.rowFooter.weight(.medium))
             .foregroundStyle(badge.tone.foreground.opacity(badge.tone == .muted ? 0.62 : 0.92))
-            .lineLimit(1)
-            .minimumScaleFactor(0.85)
+            .lineLimit(lineLimit)
+            .truncationMode(.tail)
+            .minimumScaleFactor(allowsAccessibilityWrapping && dynamicTypeSize.isAccessibilitySize ? 0.9 : 0.85)
+            .fixedSize(horizontal: false, vertical: allowsAccessibilityWrapping && dynamicTypeSize.isAccessibilitySize)
+            .accessibilityLabel(badge.label)
+    }
+
+    private var lineLimit: Int {
+        allowsAccessibilityWrapping && dynamicTypeSize.isAccessibilitySize ? 2 : 1
     }
 }
 

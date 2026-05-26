@@ -1,6 +1,6 @@
 # LifeOrganize
 
-LifeOrganize is a local-first iOS SwiftUI app for maintaining a personal ledger through conversational input. The app stores ledger records in SwiftData, uses a private FastAPI backend for AI extraction and web-backed requests, and exposes Timeline, Things, Carry Forward, local search, review, export, and developer diagnostics surfaces.
+LifeOrganize is a local-first iOS SwiftUI app for maintaining a personal ledger through conversational input. The app stores ledger records in SwiftData, uses a private FastAPI backend for AI extraction and web-backed requests, and exposes Timeline, Things, Carry Forward, local search, review, export, adaptive-screen validation, and developer diagnostics surfaces.
 
 ## Run Locally
 
@@ -24,6 +24,8 @@ Run the repository verification scripts:
 Scripts/verify-all.sh
 Scripts/verify-backend.sh
 Scripts/verify-ios.sh
+Scripts/run-adaptive-screen-validation.sh compare
+Scripts/run-dynamic-type-ui-smoke.sh
 Scripts/screenshots/run-screenshot-tests.sh compare
 ```
 

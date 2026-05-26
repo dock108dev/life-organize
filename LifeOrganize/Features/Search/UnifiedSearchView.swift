@@ -94,7 +94,7 @@ struct UnifiedSearchView: View {
                         } label: {
                             LedgerRow(
                                 primary: example.query,
-                                secondary: [LedgerRowLine(text: example.detail)],
+                                secondary: [LedgerRowLine(text: example.detail, role: .contentPreview)],
                                 density: .compact
                             ) {
                                 LedgerPill(text: example.pillText, tone: example.tone, size: .small)
@@ -104,9 +104,10 @@ struct UnifiedSearchView: View {
                         .accessibilityIdentifier("search-landing-example-\(example.accessibilityKey)")
                     }
                 }
-                .frame(maxWidth: 320)
+                .frame(maxWidth: LedgerAdaptiveLayout.EmptyState.contentMaxWidth)
             }
-            .frame(maxWidth: .infinity, minHeight: 420)
+            .frame(maxWidth: .infinity, minHeight: LedgerAdaptiveLayout.EmptyState.searchLandingMinHeight)
+            .ledgerAdaptiveWidth(.readable)
         }
     }
 

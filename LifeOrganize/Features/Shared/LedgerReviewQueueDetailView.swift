@@ -2,6 +2,8 @@ import SwiftData
 import SwiftUI
 
 struct LedgerReviewQueueDetailView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var sessionState: AppSessionState
 
@@ -43,26 +45,11 @@ struct LedgerReviewQueueDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                if let successMessage {
-                    updatedPanel(successMessage)
-                }
-
-                ReconciliationPanelView(panel: presentation.source, prominence: .source) { row in
-                    destination(for: row)
-                }
-                ReconciliationPanelView(panel: presentation.suggestion, prominence: .suggestion) { row in
-                    destination(for: row)
-                }
-                if let evidence = presentation.evidence {
-                    ReconciliationPanelView(panel: evidence, prominence: .evidence) { row in
-                        destination(for: row)
-                    }
-                }
-                actionsPanel
+        GeometryReader { proxy in
+            ScrollView {
+                adaptiveReviewLayout(width: proxy.size.width)
+                    .padding(ReviewQueueDetailLayout.outerPadding)
             }
-            .padding(16)
         }
         .background(Color(.systemGroupedBackground))
         .accessibilityIdentifier("review-queue-detail")
@@ -106,39 +93,113 @@ struct LedgerReviewQueueDetailView: View {
         }
     }
 
+    @ViewBuilder
+    private func adaptiveReviewLayout(width: CGFloat) -> some View {
+        let availableWidth = max(0, width - ReviewQueueDetailLayout.outerPadding * 2)
+        let mode = ReviewQueueDetailLayout.mode(
+            for: availableWidth,
+            horizontalSizeClass: horizontalSizeClass,
+            isAccessibilitySize: dynamicTypeSize.isAccessibilitySize
+        )
+
+        switch mode {
+        case .twoColumn:
+            let actionWidth = ReviewQueueDetailLayout.actionColumnWidth(for: availableWidth)
+            HStack(alignment: .top, spacing: ReviewQueueDetailLayout.columnSpacing) {
+                reviewContentColumn
+                    .frame(maxWidth: ReviewQueueDetailLayout.contentMaxWidth, alignment: .leading)
+                    .layoutPriority(1)
+
+                reviewActionsColumn
+                    .frame(width: actionWidth, alignment: .topLeading)
+            }
+            .frame(
+                maxWidth: ReviewQueueDetailLayout.contentMaxWidth + actionWidth + ReviewQueueDetailLayout.columnSpacing,
+                alignment: .center
+            )
+            .frame(maxWidth: .infinity, alignment: .center)
+        case .singleColumn:
+            VStack(alignment: .leading, spacing: 16) {
+                reviewContentColumn
+                reviewActionsColumn
+            }
+            .frame(maxWidth: ReviewQueueDetailLayout.contentMaxWidth, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .center)
+        }
+    }
+
+    private var reviewContentColumn: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if let successMessage {
+                updatedPanel(successMessage)
+            }
+
+            ReconciliationPanelView(panel: presentation.source, prominence: .source) { row in
+                destination(for: row)
+            }
+            ReconciliationPanelView(panel: presentation.suggestion, prominence: .suggestion) { row in
+                destination(for: row)
+            }
+            if let evidence = presentation.evidence {
+                ReconciliationPanelView(panel: evidence, prominence: .evidence) { row in
+                    destination(for: row)
+                }
+            }
+        }
+    }
+
+    private var reviewActionsColumn: some View {
+        actionsPanel
+    }
+
     private var actionsPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
             LedgerSectionHeader(title: "Actions")
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
                 if let primary = presentation.actions.primary {
                     actionControl(primary)
                         .accessibilityIdentifier(primary.accessibilityIdentifier)
                         .buttonStyle(.borderedProminent)
+                        .controlSize(.regular)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
                 if entry.correctionClass == .adjustReminderTiming, let rule = targetRule {
+                    Divider()
                     reminderTimingControls(for: rule)
                 }
 
-                ForEach(presentation.actions.contextual) { action in
-                    actionControl(action)
-                        .accessibilityIdentifier(action.accessibilityIdentifier)
-                        .buttonStyle(.bordered)
+                if !presentation.actions.contextual.isEmpty {
+                    Divider()
+                    ForEach(presentation.actions.contextual) { action in
+                        actionControl(action)
+                            .accessibilityIdentifier(action.accessibilityIdentifier)
+                            .buttonStyle(.bordered)
+                            .controlSize(.regular)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
 
-                Divider()
-
-                ForEach(presentation.actions.reviewState) { action in
-                    actionControl(action)
-                        .accessibilityIdentifier(action.accessibilityIdentifier)
-                        .buttonStyle(.plain)
+                if !presentation.actions.reviewState.isEmpty {
+                    Divider()
+                    ForEach(presentation.actions.reviewState) { action in
+                        actionControl(action)
+                            .accessibilityIdentifier(action.accessibilityIdentifier)
+                            .buttonStyle(.plain)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
 
-                ForEach(presentation.actions.destructive) { action in
-                    actionControl(action)
-                        .accessibilityIdentifier(action.accessibilityIdentifier)
-                        .buttonStyle(.plain)
-                        .foregroundStyle(.red)
+                if !presentation.actions.destructive.isEmpty {
+                    Divider()
+                    ForEach(presentation.actions.destructive) { action in
+                        actionControl(action)
+                            .accessibilityIdentifier(action.accessibilityIdentifier)
+                            .buttonStyle(.plain)
+                            .foregroundStyle(.red)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -235,13 +296,17 @@ struct LedgerReviewQueueDetailView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             DatePicker(reminderDateLabel(for: rule), selection: $reminderDate, displayedComponents: .date)
+                .datePickerStyle(.compact)
             Button(reminderDateActionTitle(for: rule)) {
                 pendingAction = .adjustReminderTiming(reminderDate, reminderDateActionTitle(for: rule))
             }
+            .buttonStyle(.borderedProminent)
             if let lifecycleAction = reminderLifecycleAction(for: rule) {
                 Button(lifecycleAction.title, role: .destructive) {
                     pendingAction = .applyReminderLifecycle(lifecycleAction.title)
                 }
+                .buttonStyle(.plain)
+                .foregroundStyle(.red)
             }
         }
         .padding(.vertical, 4)
@@ -427,21 +492,6 @@ struct LedgerReviewQueueDetailView: View {
             } else {
                 MissingSearchRecordView()
             }
-        }
-    }
-}
-
-private extension LedgerReviewReconciliationAction {
-    var accessibilityIdentifier: String {
-        switch kind {
-        case .dismiss:
-            return "review-queue-dismiss-button"
-        case .openRecord, .mergeThing, .reassignRecords, .buildReminderDraft, .adjustReminderTiming:
-            return "review-queue-edit-button"
-        case .connectService, .retry, .confirm, .saveAsNote, .snooze:
-            return "review-queue-accept-button"
-        case .blocked:
-            return "review-queue-blocked-action"
         }
     }
 }

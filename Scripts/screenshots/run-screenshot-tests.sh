@@ -3,16 +3,22 @@ set -euo pipefail
 
 MODE="${1:-compare}"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "$ROOT_DIR/Scripts/simulator-common.sh"
+
 PROJECT="${SCREENSHOT_PROJECT:-LifeOrganize.xcodeproj}"
 SCHEME="${SCREENSHOT_SCHEME:-LifeOrganize}"
 DEVICE_NAME="${SCREENSHOT_DEVICE_NAME:-iPhone 17 Pro}"
 DEVICE_OS="${SCREENSHOT_DEVICE_OS:-26.2}"
 APPEARANCE="${SCREENSHOT_APPEARANCE:-light}"
-DEVICE_DIR="${DEVICE_NAME// /_}"
-RESULT_BUNDLE="${SCREENSHOT_RESULT_BUNDLE:-BuildArtifacts/ScreenshotTests.xcresult}"
-ACTUAL_DIR="${SCREENSHOT_ACTUAL_DIR:-BuildArtifacts/screenshots/actual/$DEVICE_DIR/$APPEARANCE}"
-DIFF_DIR="${SCREENSHOT_DIFF_DIR:-BuildArtifacts/screenshots/diff/$DEVICE_DIR/$APPEARANCE}"
-BASELINE_DIR="${SCREENSHOT_BASELINE_DIR:-Tests/ScreenshotBaselines/$DEVICE_DIR/$APPEARANCE}"
+DEVICE_SLUG="${SCREENSHOT_DEVICE_SLUG:-${DEVICE_NAME// /_}}"
+TARGET_KEY="${SCREENSHOT_TARGET_KEY:-$DEVICE_SLUG}"
+ORIENTATION="${SCREENSHOT_ORIENTATION:-portrait}"
+RESULT_BUNDLE="${SCREENSHOT_RESULT_BUNDLE:-BuildArtifacts/ScreenshotTests-$TARGET_KEY-$ORIENTATION-$APPEARANCE.xcresult}"
+ACTUAL_DIR="${SCREENSHOT_ACTUAL_DIR:-BuildArtifacts/screenshots/actual/$TARGET_KEY/$ORIENTATION/$APPEARANCE}"
+DIFF_DIR="${SCREENSHOT_DIFF_DIR:-BuildArtifacts/screenshots/diff/$TARGET_KEY/$ORIENTATION/$APPEARANCE}"
+BASELINE_DIR="${SCREENSHOT_BASELINE_DIR:-Tests/ScreenshotBaselines/$TARGET_KEY/$ORIENTATION/$APPEARANCE}"
+LEGACY_BASELINE_DIR="Tests/ScreenshotBaselines/$TARGET_KEY/$APPEARANCE"
+ORIENTATION_CONFIG="$ROOT_DIR/BuildArtifacts/screenshots/orientation.txt"
 SCREENSHOT_TESTS=(
   "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testFirstLaunchAndEmptyTimelineScreenshots"
   "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testTimelineScreenshot"
@@ -27,6 +33,15 @@ case "$MODE" in
   compare|update) ;;
   *)
     echo "Usage: $0 [compare|update]" >&2
+    exit 2
+    ;;
+esac
+
+case "$ORIENTATION" in
+  portrait|landscape) ;;
+  *)
+    echo "Unsupported SCREENSHOT_ORIENTATION: $ORIENTATION" >&2
+    echo "Expected one of: portrait, landscape" >&2
     exit 2
     ;;
 esac
@@ -47,8 +62,16 @@ EOF
 }
 
 trap print_failure_help ERR
+cleanup_orientation_config() {
+  rm -f "$ORIENTATION_CONFIG"
+}
+trap cleanup_orientation_config EXIT
 
 cd "$ROOT_DIR"
+
+if [[ "$MODE" == "compare" && ! -d "$BASELINE_DIR" && -z "${SCREENSHOT_TARGET_KEY:-}" && -z "${SCREENSHOT_ORIENTATION:-}" && -d "$LEGACY_BASELINE_DIR" ]]; then
+  BASELINE_DIR="$LEGACY_BASELINE_DIR"
+fi
 
 if [[ "$MODE" == "compare" && ! -d "$BASELINE_DIR" ]]; then
   cat >&2 <<EOF
@@ -58,47 +81,13 @@ EOF
   exit 2
 fi
 
-simulator_udid() {
-  python3 - "$DEVICE_NAME" "$DEVICE_OS" <<'PY'
-import json
-import subprocess
-import sys
-
-name = sys.argv[1]
-os_version = sys.argv[2].replace(".", "-")
-payload = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"]))
-for runtime, devices in payload.get("devices", {}).items():
-    if os_version and not runtime.endswith(f"iOS-{os_version}"):
-        continue
-    for device in devices:
-        if device.get("name") == name and device.get("isAvailable", True):
-            print(device["udid"])
-            sys.exit(0)
-sys.exit(1)
-PY
-}
-
 configure_simulator() {
   local udid
-  if ! udid="$(simulator_udid)"; then
+  if ! udid="$(simulator_udid_for "$DEVICE_NAME" "$DEVICE_OS")"; then
     echo "No available simulator found for $DEVICE_NAME iOS $DEVICE_OS" >&2
     return 1
   fi
-  xcrun simctl boot "$udid" >/dev/null 2>&1 || true
-  xcrun simctl bootstatus "$udid" -b >/dev/null
-  xcrun simctl status_bar "$udid" clear >/dev/null 2>&1 || true
-  xcrun simctl status_bar "$udid" override \
-    --time "9:41" \
-    --dataNetwork wifi \
-    --wifiMode active \
-    --wifiBars 3 \
-    --cellularMode active \
-    --cellularBars 4 \
-    --operatorName "" \
-    --batteryState charged \
-    --batteryLevel 100 >/dev/null 2>&1 || true
-  xcrun simctl ui "$udid" appearance "$APPEARANCE" >/dev/null 2>&1 || true
-  xcrun simctl ui "$udid" content_size large >/dev/null 2>&1 || true
+  configure_simulator_for_ui_capture "$udid" "$APPEARANCE" large
 }
 
 configure_simulator
@@ -108,6 +97,10 @@ ONLY_TESTING_ARGS=()
 for test_identifier in "${SCREENSHOT_TESTS[@]}"; do
   ONLY_TESTING_ARGS+=("-only-testing:$test_identifier")
 done
+
+export SCREENSHOT_ORIENTATION="$ORIENTATION"
+mkdir -p "$(dirname "$ORIENTATION_CONFIG")"
+printf '%s\n' "$ORIENTATION" > "$ORIENTATION_CONFIG"
 
 xcodebuild test \
   -project "$PROJECT" \

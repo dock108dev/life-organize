@@ -1,3 +1,4 @@
+import SwiftUI
 import XCTest
 @testable import LifeOrganize
 
@@ -14,6 +15,21 @@ final class LedgerTimelineChromeTests: XCTestCase {
         )
 
         XCTAssertEqual(layout.dividerLeadingPadding, 80)
+    }
+
+    func testTimestampAccessibilityFallbackPreservesLocalizedSuffixes() {
+        XCTAssertEqual(LedgerTimelineTimestampLabel.accessibilityWrappedText(for: "12:59 PM"), "12:59\nPM")
+        XCTAssertEqual(LedgerTimelineTimestampLabel.accessibilityWrappedText(for: "12:59\u{202F}PM"), "12:59\nPM")
+        XCTAssertEqual(LedgerTimelineTimestampLabel.accessibilityWrappedText(for: "23:59"), "23:59")
+    }
+
+    func testTimelineContentLineLimitsExpandAtAccessibilitySizes() {
+        XCTAssertEqual(LedgerTimelineDetailText.lineLimit(for: .large), 2)
+        XCTAssertEqual(LedgerTimelineDetailText.lineLimit(for: .accessibility1), 4)
+        XCTAssertEqual(LedgerTimelineSectionChrome<EmptyView>.subtitleLineLimit(for: .large), 1)
+        XCTAssertEqual(LedgerTimelineSectionChrome<EmptyView>.subtitleLineLimit(for: .accessibility1), 2)
+        XCTAssertEqual(LedgerTimelineSectionChrome<EmptyView>.summaryLineLimit(for: .large), 1)
+        XCTAssertEqual(LedgerTimelineSectionChrome<EmptyView>.summaryLineLimit(for: .accessibility1), 2)
     }
 
     func testFeedAndReplayUseSharedChromeWithoutConvergingDensity() {

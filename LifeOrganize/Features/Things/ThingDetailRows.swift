@@ -42,13 +42,13 @@ struct LedgerEventRow: View {
 
     private var rowLines: [LedgerRowLine] {
         var lines = [
-            LedgerRowLine(text: DateFormatting.fullDate.string(from: event.occurredAt))
+            LedgerRowLine(text: DateFormatting.fullDate.string(from: event.occurredAt), role: .metadata)
         ]
         if let metadata = EventMetadataDisplayFormatter.summary(for: event.metadataEntries, eventType: event.eventType, limit: 3) {
-            lines.append(LedgerRowLine(text: metadata))
+            lines.append(LedgerRowLine(text: metadata, role: .contentPreview))
         }
         if let note = event.note, !note.isEmpty {
-            lines.append(LedgerRowLine(text: note))
+            lines.append(LedgerRowLine(text: note, role: .contentPreview))
         }
         return lines
     }
@@ -155,7 +155,7 @@ struct LedgerNoteRow: View {
     var body: some View {
         LedgerRow(
             primary: note.text,
-            secondary: [LedgerRowLine(text: DateFormatting.fullDate.string(from: note.updatedAt), tone: .note)],
+            secondary: [LedgerRowLine(text: DateFormatting.fullDate.string(from: note.updatedAt), tone: .note, role: .metadata)],
             density: LedgerSurfaceDensity.detailSummary.rowDensity
         )
     }

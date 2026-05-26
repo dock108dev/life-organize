@@ -14,7 +14,7 @@ struct LedgerReviewItemPresentation: Identifiable {
     var tone: LedgerTone { badge.tone }
 
     var rowLine: LedgerRowLine {
-        LedgerRowLine(text: rowText, tone: tone, lineLimit: 2)
+        LedgerRowLine(text: rowText, tone: tone, role: .contentPreview, lineLimit: 2)
     }
 
     var bannerMessage: String {

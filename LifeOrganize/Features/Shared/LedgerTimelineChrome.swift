@@ -20,6 +20,7 @@ struct LedgerTimelineSectionChrome<Rows: View>: View {
     let summaryText: String
     let spacing: CGFloat
     let rows: Rows
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(
         title: String,
@@ -38,21 +39,12 @@ struct LedgerTimelineSectionChrome<Rows: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: spacing) {
             VStack(alignment: .leading, spacing: 1) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    LedgerSectionHeader(title: title)
-
-                    if let subtitle {
-                        Text(subtitle)
-                            .font(LedgerVisualSystem.Typography.metadataDetail.weight(.medium))
-                            .foregroundStyle(.tertiary)
-                            .lineLimit(1)
-                    }
-                }
+                header
 
                 Text(summaryText)
                     .font(LedgerVisualSystem.Typography.metadataDetail)
                     .foregroundStyle(.tertiary)
-                    .lineLimit(1)
+                    .lineLimit(Self.summaryLineLimit(for: dynamicTypeSize))
                     .opacity(0.85)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -63,6 +55,40 @@ struct LedgerTimelineSectionChrome<Rows: View>: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 10)
         .ledgerSurface(cornerRadius: 14)
+    }
+
+    @ViewBuilder
+    private var header: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: 1) {
+                LedgerSectionHeader(title: title)
+                subtitleText
+            }
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                LedgerSectionHeader(title: title)
+                subtitleText
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var subtitleText: some View {
+        if let subtitle {
+            Text(subtitle)
+                .font(LedgerVisualSystem.Typography.metadataDetail.weight(.medium))
+                .foregroundStyle(.tertiary)
+                .lineLimit(Self.subtitleLineLimit(for: dynamicTypeSize))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    static func subtitleLineLimit(for dynamicTypeSize: DynamicTypeSize) -> Int {
+        dynamicTypeSize.isAccessibilitySize ? 2 : 1
+    }
+
+    static func summaryLineLimit(for dynamicTypeSize: DynamicTypeSize) -> Int {
+        dynamicTypeSize.isAccessibilitySize ? 2 : 1
     }
 }
 
@@ -127,14 +153,43 @@ struct LedgerTimelineTimestampLabel: View {
     let text: String
     let width: CGFloat
     let weight: Font.Weight
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            wrappedTimestamp
+        } else {
+            singleLineTimestamp
+        }
+    }
+
+    private var singleLineTimestamp: some View {
         Text(text)
             .font(LedgerVisualSystem.Typography.rowFooter.weight(weight).monospacedDigit())
             .foregroundStyle(.secondary)
             .lineLimit(1)
+            .truncationMode(.tail)
             .minimumScaleFactor(0.85)
             .frame(width: width, alignment: .leading)
+            .accessibilityLabel(text)
+    }
+
+    private var wrappedTimestamp: some View {
+        Text(Self.accessibilityWrappedText(for: text))
+            .font(LedgerVisualSystem.Typography.rowFooter.weight(weight).monospacedDigit())
+            .foregroundStyle(.secondary)
+            .lineLimit(2)
+            .multilineTextAlignment(.leading)
+            .minimumScaleFactor(0.9)
+            .frame(width: width, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityLabel(text)
+    }
+
+    static func accessibilityWrappedText(for text: String) -> String {
+        let parts = text.split(whereSeparator: \.isWhitespace)
+        guard parts.count > 1 else { return text }
+        return parts.map(String.init).joined(separator: "\n")
     }
 }
 
@@ -174,13 +229,18 @@ struct LedgerTimelinePrimaryText: View {
 
 struct LedgerTimelineDetailText: View {
     let text: String
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         Text(text)
             .font(LedgerVisualSystem.Typography.rowSecondary)
             .foregroundStyle(.secondary)
-            .lineLimit(2)
+            .lineLimit(Self.lineLimit(for: dynamicTypeSize))
             .fixedSize(horizontal: false, vertical: true)
+    }
+
+    static func lineLimit(for dynamicTypeSize: DynamicTypeSize) -> Int {
+        dynamicTypeSize.isAccessibilitySize ? 4 : 2
     }
 }
 

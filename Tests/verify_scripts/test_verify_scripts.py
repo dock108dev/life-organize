@@ -18,6 +18,9 @@ class VerifyScriptContractTests(unittest.TestCase):
             "Scripts/verify-backend.sh",
             "Scripts/verify-ios.sh",
             "Scripts/verify-all.sh",
+            "Scripts/run-adaptive-screen-validation.sh",
+            "Scripts/ios_static_layout_guard.py",
+            "Scripts/simulator-common.sh",
         ]:
             path = self.script(relative_path)
             self.assertTrue(path.exists(), relative_path)
@@ -38,15 +41,43 @@ class VerifyScriptContractTests(unittest.TestCase):
         text = self.read_script("Scripts/verify-ios.sh")
 
         self.assertIn("IOS_DESTINATION", text)
+        self.assertIn("IOS_DEVICE_NAME", text)
+        self.assertIn("IOS_DEVICE_OS", text)
         self.assertIn("IOS_RESULT_BUNDLE", text)
         self.assertIn("IOS_DERIVED_DATA", text)
+        self.assertIn("simulator-common.sh", text)
+        self.assertIn("simulator_udid_for", text)
+        self.assertIn("configure_simulator_for_ui_capture", text)
+        self.assertIn("platform=iOS Simulator,id=$SIMULATOR_UDID", text)
         self.assertIn("-enableCodeCoverage YES", text)
         self.assertIn("-derivedDataPath \"$DERIVED_DATA\"", text)
         self.assertIn("-resultBundlePath \"$RESULT_BUNDLE\"", text)
         self.assertIn("CODE_SIGNING_ALLOWED=NO", text)
         self.assertIn("CODE_SIGNING_REQUIRED=NO", text)
         self.assertIn("IOS_SKIP_COVERAGE_GATE", text)
+        self.assertIn("ios_static_layout_guard.py", text)
+        self.assertLess(text.index("ios_static_layout_guard.py"), text.index("xcodebuild test"))
         self.assertIn("ios_coverage_gate.py", text)
+
+    def test_ios_static_layout_guard_contract(self):
+        text = self.read_script("Scripts/ios_static_layout_guard.py")
+
+        for expected in [
+            '"LifeOrganize"',
+            '"LifeOrganizeTests"',
+            '"LifeOrganizeUITests"',
+            "UIScreen",
+            "UIDevice",
+            "SUSPICIOUS_WIDTH_MIN = 300",
+            "SUSPICIOUS_HEIGHT_MIN = 500",
+            "layout-guard:",
+            '"iPhone_17_Pro", "landscape", "light"',
+            '"iPad_Pro_13-inch_M5", "portrait", "light"',
+            '"iPad_Pro_13-inch_M5", "landscape", "light"',
+            '"timeline_empty"',
+            "missing screenshot baseline",
+        ]:
+            self.assertIn(expected, text)
 
     def test_ios_workflow_is_ci_only_with_stable_checks(self):
         text = self.read_script(".github/workflows/ios-ci.yml")
@@ -74,7 +105,7 @@ class VerifyScriptContractTests(unittest.TestCase):
         self.assertIn("CODE_SIGNING_REQUIRED=NO", text)
         self.assertIn("actions/upload-artifact@v4", text)
         self.assertIn("BuildArtifacts/LifeOrganizeTests.xcresult", text)
-        self.assertIn("BuildArtifacts/ScreenshotTests.xcresult", text)
+        self.assertIn("BuildArtifacts/ScreenshotTests-iPhone_17_Pro-portrait-light.xcresult", text)
         self.assertIn("BuildArtifacts/Logs/test.log", text)
         self.assertIn("BuildArtifacts/screenshots/compare.log", text)
 
@@ -87,8 +118,10 @@ class VerifyScriptContractTests(unittest.TestCase):
             "LifeOrganizeUITests/**",
             "LifeOrganize.xcodeproj/**",
             "Scripts/ios_coverage_gate.py",
+            "Scripts/ios_static_layout_guard.py",
             "Scripts/verify-ios.sh",
             "Scripts/verify-common.sh",
+            "Scripts/simulator-common.sh",
             "Scripts/screenshots/**",
             "Tests/ScreenshotBaselines/**",
             "fastlane/**",
@@ -109,15 +142,23 @@ class VerifyScriptContractTests(unittest.TestCase):
         for expected in [
             "SCREENSHOT_DEVICE_NAME: \"iPhone 17 Pro\"",
             "SCREENSHOT_DEVICE_OS: \"26.2\"",
+            "SCREENSHOT_TARGET_KEY: \"iPhone_17_Pro\"",
+            "SCREENSHOT_ORIENTATION: \"portrait\"",
             "SCREENSHOT_APPEARANCE: \"light\"",
-            "SCREENSHOT_RESULT_BUNDLE: \"BuildArtifacts/ScreenshotTests.xcresult\"",
-            "SCREENSHOT_ACTUAL_DIR: \"BuildArtifacts/screenshots/actual/iPhone_17_Pro/light\"",
-            "SCREENSHOT_DIFF_DIR: \"BuildArtifacts/screenshots/diff/iPhone_17_Pro/light\"",
-            "SCREENSHOT_BASELINE_DIR: \"Tests/ScreenshotBaselines/iPhone_17_Pro/light\"",
-            "BuildArtifacts/screenshots/actual/iPhone_17_Pro/light",
-            "BuildArtifacts/screenshots/diff/iPhone_17_Pro/light",
+            "SCREENSHOT_RESULT_BUNDLE: \"BuildArtifacts/ScreenshotTests-iPhone_17_Pro-portrait-light.xcresult\"",
+            "SCREENSHOT_ACTUAL_DIR: \"BuildArtifacts/screenshots/actual/iPhone_17_Pro/portrait/light\"",
+            "SCREENSHOT_DIFF_DIR: \"BuildArtifacts/screenshots/diff/iPhone_17_Pro/portrait/light\"",
+            "SCREENSHOT_BASELINE_DIR: \"Tests/ScreenshotBaselines/iPhone_17_Pro/portrait/light\"",
+            "BuildArtifacts/screenshots/actual/iPhone_17_Pro/portrait/light",
+            "BuildArtifacts/screenshots/diff/iPhone_17_Pro/portrait/light",
             "BuildArtifacts/screenshots/compare.log",
             "screenshot-failure-iPhone_17_Pro-light-${{ github.sha }}",
+            "screenshot_profile",
+            "SCREENSHOT_TARGET_KEY: \"iPad_Pro_13-inch_M5\"",
+            "SCREENSHOT_DEVICE_NAME: \"iPad Pro 13-inch (M5)\"",
+            "BuildArtifacts/screenshots/actual/iPad_Pro_13-inch_M5/portrait/light",
+            "Tests/ScreenshotBaselines/iPad_Pro_13-inch_M5/portrait/light",
+            "ios / screenshots / iPad portrait",
         ]:
             self.assertIn(expected, text)
 
@@ -164,6 +205,12 @@ class VerifyScriptContractTests(unittest.TestCase):
 
         self.assertIn("Do not require deploy-only jobs on pull requests", text)
         self.assertIn("Keep it out of pull request required checks", text)
+        self.assertIn("`ios / screenshots` is the required pull request visual check", text)
+        self.assertIn("`ios / screenshots / iPad portrait` is a non-required iOS CI job", text)
+        self.assertIn("screenshot_profile=ipad_portrait", text)
+        self.assertIn("screenshot_profile=all_light", text)
+        self.assertIn("Scripts/run-adaptive-screen-validation.sh compare", text)
+        self.assertIn("Keep iPad landscape screenshots, Dynamic Type smoke, and broader simulator matrix checks manual or nightly", text)
         self.assertIn("GitHub Actions to Hetzner", text)
         self.assertIn("must not sign, archive", text)
         self.assertIn("update branch protection in the same", text)
@@ -186,6 +233,67 @@ class VerifyScriptContractTests(unittest.TestCase):
         self.assertIn("IOS_DESTINATION", text)
         self.assertLess(backend_smoke, production_smoke)
 
+    def test_adaptive_screen_validation_matrix_contract(self):
+        text = self.read_script("Scripts/run-adaptive-screen-validation.sh")
+
+        for expected in [
+            "iPhone_17_Pro|$IPHONE_DEVICE|portrait",
+            "iPhone_17_Pro|$IPHONE_DEVICE|landscape",
+            "iPad_Pro_13-inch_M5|$IPAD_PRO_DEVICE|portrait",
+            "iPad_Pro_13-inch_M5|$IPAD_PRO_DEVICE|landscape",
+            "iPad mini (A17 Pro)|iPad (A16)|iPad Air 11-inch (M3)|iPad Pro 11-inch (M5)",
+            "stage_manager_narrow_window=not covered",
+            "CoreSimulator CLI cannot reliably create or size Stage Manager windows",
+            "BuildArtifacts/AdaptiveScreenValidation",
+            "ADAPTIVE_SCREEN_SCREENSHOT_ATTEMPTS",
+            "screenshot_attempts=%s",
+            "Retrying screenshot matrix cell after failed capture or comparison",
+            "SCREENSHOT_RESULT_BUNDLE=\"$ARTIFACT_ROOT/ScreenshotTests-$target_key-$orientation-$APPEARANCE.xcresult\"",
+            "SCREENSHOT_ACTUAL_DIR=\"BuildArtifacts/screenshots/actual/$target_key/$orientation/$APPEARANCE\"",
+            "SCREENSHOT_DIFF_DIR=\"BuildArtifacts/screenshots/diff/$target_key/$orientation/$APPEARANCE\"",
+            "SCREENSHOT_BASELINE_DIR=\"Tests/ScreenshotBaselines/$target_key/$orientation/$APPEARANCE\"",
+            "\"$SCRIPT_DIR/screenshots/run-screenshot-tests.sh\" \"$MODE\"",
+            "DYNAMIC_TYPE_RESULT_ROOT=\"$ARTIFACT_ROOT/DynamicTypeSmoke\"",
+            "\"$SCRIPT_DIR/run-dynamic-type-ui-smoke.sh\"",
+            "LifeOrganizeUITests/AdaptiveShellUITests/testCompactLaunchKeepsTabsAndUtilityModals",
+            "LifeOrganizeUITests/AdaptiveShellUITests/testRegularWidthSidebarShowsWorkspaceUtilitiesAndConditionalReview",
+            "LifeOrganizeUITests/AdaptiveShellUITests/testRegularWidthScreenshotStartsRouteToSidebarDestinations",
+            "LifeOrganizeUITests/AdaptiveShellUITests/testPadPortraitShellKeepsCoreDestinationsReachable",
+            "AdaptiveShell-$label.xcresult",
+            "compare|update",
+        ]:
+            self.assertIn(expected, text)
+
+    def test_dynamic_type_smoke_script_runs_required_accessibility_sizes(self):
+        text = self.read_script("Scripts/run-dynamic-type-ui-smoke.sh")
+
+        for expected in [
+            "large|large|LifeOrganizeUITests/DynamicTypeSmokeUITests/testLargeTextSizeCoreControlsStayReachable",
+            "accessibility-large|accessibility-large|LifeOrganizeUITests/DynamicTypeSmokeUITests/testAccessibilityLargeTextSizeCoreControlsStayReachable",
+            "accessibility-extra-extra-extra-large|accessibility-extra-extra-extra-large|LifeOrganizeUITests/DynamicTypeSmokeUITests/testAccessibilityXXXLTextSizeCoreControlsStayReachable",
+            "DYNAMIC_TYPE_TEST_EXECUTION_ALLOWANCE",
+            "Usage: Scripts/run-dynamic-type-ui-smoke.sh",
+            "-h|--help",
+            "-test-timeouts-enabled YES",
+            "-default-test-execution-time-allowance \"$TEST_EXECUTION_ALLOWANCE\"",
+            "-maximum-test-execution-time-allowance \"$TEST_EXECUTION_ALLOWANCE\"",
+        ]:
+            self.assertIn(expected, text)
+
+    def test_adaptive_shell_ui_tests_include_pad_portrait_smoke(self):
+        text = self.read_script("LifeOrganizeUITests/AdaptiveShellUITests.swift")
+
+        for expected in [
+            "testPadPortraitShellKeepsCoreDestinationsReachable",
+            "XCUIDevice.shared.orientation = .portrait",
+            "--seed-scenario=operational_home",
+            "sidebar-section-timeline",
+            "tabBars.buttons[\"Timeline\"]",
+            "root-search-entry",
+            "settings-entry",
+        ]:
+            self.assertIn(expected, text)
+
     def test_screenshot_script_targets_current_screenshot_methods(self):
         text = self.read_script("Scripts/screenshots/run-screenshot-tests.sh")
 
@@ -197,8 +305,31 @@ class VerifyScriptContractTests(unittest.TestCase):
         self.assertIn("LifeOrganizeScenarioUITests/testReviewQueueScreenshot", text)
         self.assertIn("LifeOrganizeScenarioUITests/testHeavyTimelineScreenshot", text)
         self.assertIn("extract-xcresult-screenshots.sh", text)
-        self.assertIn("BuildArtifacts/ScreenshotTests.xcresult", text)
+        self.assertIn("SCREENSHOT_TARGET_KEY", text)
+        self.assertIn("SCREENSHOT_ORIENTATION", text)
+        self.assertIn("portrait|landscape", text)
+        self.assertIn("BuildArtifacts/screenshots/orientation.txt", text)
+        self.assertIn("BuildArtifacts/ScreenshotTests-$TARGET_KEY-$ORIENTATION-$APPEARANCE.xcresult", text)
+        self.assertIn("BuildArtifacts/screenshots/actual/$TARGET_KEY/$ORIENTATION/$APPEARANCE", text)
+        self.assertIn("Tests/ScreenshotBaselines/$TARGET_KEY/$ORIENTATION/$APPEARANCE", text)
+        self.assertIn("LEGACY_BASELINE_DIR", text)
+        self.assertIn("simulator-common.sh", text)
+        self.assertIn("configure_simulator_for_ui_capture", text)
         self.assertIn("Scripts/screenshots/run-screenshot-tests.sh update", text)
+
+    def test_simulator_common_script_owns_ui_capture_setup(self):
+        text = self.read_script("Scripts/simulator-common.sh")
+
+        for expected in [
+            "simulator_udid_for()",
+            '"Booted"',
+            "user_app_bundle_ids_for()",
+            "configure_simulator_for_ui_capture()",
+            "xcrun simctl status_bar",
+            "xcrun simctl ui \"$udid\" appearance",
+            "xcrun simctl ui \"$udid\" content_size",
+        ]:
+            self.assertIn(expected, text)
 
     def test_screenshot_compare_output_distinguishes_failure_modes(self):
         text = self.read_script("Scripts/screenshots/compare-screenshots.swift")

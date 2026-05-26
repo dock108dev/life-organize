@@ -88,12 +88,8 @@ struct ChatInputBar: View {
                     .stroke(LedgerPalette.hairline, lineWidth: 1)
             }
             .padding(.horizontal, 10)
+            .padding(.top, isOrganizing ? 2 : 8)
             .padding(.bottom, 8)
-        }
-        .background(.ultraThinMaterial)
-        .overlay(alignment: .top) {
-            Divider()
-                .overlay(Color.secondary.opacity(0.18))
         }
     }
 

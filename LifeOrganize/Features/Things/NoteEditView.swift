@@ -55,6 +55,7 @@ struct NoteEditView: View {
                 }
             }
         }
+        .ledgerEditFormWidth(.note)
         .navigationTitle(note == nil ? "Add Note" : "Edit Note")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

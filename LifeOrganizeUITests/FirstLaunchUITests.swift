@@ -71,4 +71,27 @@ final class LifeOrganizeScenarioUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Nothing to carry forward yet"].waitForFastExistence(timeout: 5))
         XCTAssertFalse(app.buttons.matching(identifierPrefix: "carry-forward-row-").firstMatch.exists)
     }
+
+    func testTimelineComposerStaysReadableDuringFocusedDraftEntry() throws {
+        let app = launchUITestApp(extraArguments: ["--reset-db"], useInMemoryStore: true)
+
+        XCTAssertTrue(app.navigationBars["Timeline"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Save note"].exists)
+        let input = app.textFields["chat-input"]
+        XCTAssertTrue(input.waitForFastExistence(timeout: 5))
+        if app.frame.width >= 760 {
+            XCTAssertLessThanOrEqual(input.frame.width, 620)
+            XCTAssertGreaterThan(input.frame.minX, 40)
+            XCTAssertLessThan(input.frame.maxX, app.frame.maxX - 40)
+        }
+
+        input.tap()
+        input.typeText("Draft while the keyboard is open")
+
+        XCTAssertFalse(app.buttons["Save note"].exists)
+        XCTAssertTrue(input.exists)
+        if app.keyboards.firstMatch.exists {
+            XCTAssertLessThanOrEqual(input.frame.maxY, app.keyboards.firstMatch.frame.minY + 2)
+        }
+    }
 }

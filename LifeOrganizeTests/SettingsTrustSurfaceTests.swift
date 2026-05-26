@@ -134,6 +134,35 @@ final class SettingsTrustSurfaceTests: XCTestCase {
         XCTAssertFalse(source.contains("LedgerPill(text: token"))
     }
 
+    func testSettingsShareSurfacesHaveSeparateOwners() throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let settingsSource = try String(
+            contentsOf: root.appendingPathComponent("LifeOrganize/Features/Settings/SettingsView.swift"),
+            encoding: .utf8
+        )
+        let clearDataSource = try String(
+            contentsOf: root.appendingPathComponent("LifeOrganize/Features/Settings/SettingsClearDataFlow.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(settingsSource.contains("@State private var settingsExportShareItem: ExportShareItem?"))
+        XCTAssertTrue(settingsSource.contains("@State private var clearDataExportShareItem: ExportShareItem?"))
+        XCTAssertTrue(settingsSource.contains("exportShareItem: $clearDataExportShareItem"))
+        XCTAssertTrue(settingsSource.contains(".sheet(item: $settingsExportShareItem)"))
+        XCTAssertTrue(clearDataSource.contains(".sheet(item: $exportShareItem)"))
+    }
+
+    func testClearDataSheetUsesAdaptiveSheetWidth() throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let source = try String(
+            contentsOf: root.appendingPathComponent("LifeOrganize/Features/Settings/SettingsClearDataFlow.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(source.contains(".ledgerAdaptiveWidth(.sheet)"))
+        XCTAssertTrue(source.contains("ViewThatFits(in: .horizontal)"))
+    }
+
     func testClearDataFlowOffersExportBeforeTypedConfirmation() {
         var flow = SettingsClearDataFlow()
 

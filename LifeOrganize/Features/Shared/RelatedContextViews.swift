@@ -35,10 +35,10 @@ struct RelatedContextRowPresentation: Equatable {
         for result: RelationshipTraversalResult,
         records: RelationshipTraversalRecords
     ) -> [LedgerRowLine] {
-        var lines = [LedgerRowLine(text: result.sourceLabel)]
+        var lines = [LedgerRowLine(text: result.sourceLabel, role: .metadata)]
         let date = records.sortDate(for: result.target)
         if date > .distantPast {
-            lines.append(LedgerRowLine(text: DateFormatting.shortDate.string(from: date)))
+            lines.append(LedgerRowLine(text: DateFormatting.shortDate.string(from: date), role: .metadata))
         }
         return lines
     }

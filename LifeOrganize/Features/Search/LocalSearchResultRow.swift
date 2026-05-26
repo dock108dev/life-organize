@@ -35,14 +35,14 @@ struct LocalSearchResultRowPresentation: Equatable {
 
     private static func secondaryLines(for result: LocalSearchResult) -> [LedgerRowLine] {
         let dateText = dateText(for: result)
-        var lines = [LedgerRowLine(text: dateText, tone: .muted)]
+        var lines = [LedgerRowLine(text: dateText, tone: .muted, role: .metadata)]
         var shownText = [result.title, dateText]
 
         if let subtitle = result.subtitle,
            !subtitle.isEmpty,
            result.sourceKind != .timelineSlice,
            !isDuplicate(subtitle, ofAny: shownText) {
-            lines.append(LedgerRowLine(text: subtitle))
+            lines.append(LedgerRowLine(text: subtitle, role: .contentPreview))
             shownText.append(subtitle)
         }
 
@@ -50,7 +50,7 @@ struct LocalSearchResultRowPresentation: Equatable {
            !body.isEmpty,
            !isDuplicate(body, ofAny: shownText),
            !bodyRepeatsTitle(body, title: result.title) {
-            lines.append(LedgerRowLine(text: body, lineLimit: 2))
+            lines.append(LedgerRowLine(text: body, role: .contentPreview, lineLimit: 2))
         }
         return lines
     }

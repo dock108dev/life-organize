@@ -59,6 +59,18 @@ extension LedgerEmptyStateContent {
         title: "No matching things",
         body: "Try another name or detail."
     )
+
+    static let reviewAllCaughtUp = LedgerEmptyStateContent(
+        symbolName: "text.badge.checkmark",
+        title: "All caught up",
+        body: "Nothing needs a decision right now."
+    )
+
+    static let reviewContextEmpty = LedgerEmptyStateContent(
+        symbolName: "text.badge.checkmark",
+        title: "Nothing to review here",
+        body: "Nothing needs a decision right now."
+    )
 }
 
 struct LedgerEmptyStateView<Actions: View>: View {
@@ -106,12 +118,12 @@ struct LedgerEmptyStateView<Actions: View>: View {
                 .font(.subheadline)
                 .padding(.top, 4)
         }
-        .frame(maxWidth: LedgerVisualSystem.Spacing.emptyStateWidth)
+        .frame(maxWidth: LedgerAdaptiveLayout.EmptyState.contentMaxWidth)
+        .padding(.horizontal, LedgerAdaptiveLayout.EmptyState.horizontalPadding)
+        .padding(.vertical, LedgerAdaptiveLayout.EmptyState.verticalPadding)
+        .frame(maxWidth: LedgerAdaptiveLayout.EmptyState.surfaceMaxWidth)
+        .ledgerSurface(cornerRadius: LedgerAdaptiveLayout.EmptyState.cornerRadius)
         .frame(maxWidth: .infinity)
-        .padding(.horizontal, 24)
-        .padding(.vertical, 28)
-        .ledgerSurface(cornerRadius: 18)
-        .padding(.horizontal, 16)
     }
 }
 
@@ -119,5 +131,47 @@ extension LedgerEmptyStateView where Actions == EmptyView {
     init(content: LedgerEmptyStateContent) {
         self.content = content
         self.actions = EmptyView()
+    }
+}
+
+struct LedgerNoSelectionPlaceholderView: View {
+    let title: String
+    let symbolName: String
+    let description: String?
+
+    init(_ title: String, systemImage symbolName: String, description: String? = nil) {
+        self.title = title
+        self.symbolName = symbolName
+        self.description = description
+    }
+
+    var body: some View {
+        VStack(spacing: LedgerVisualSystem.Spacing.section) {
+            Image(systemName: symbolName)
+                .font(.system(size: 24, weight: .medium))
+                .foregroundStyle(.tertiary)
+                .frame(width: 54, height: 54)
+                .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+                .accessibilityHidden(true)
+
+            VStack(spacing: 6) {
+                Text(title)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+
+                if let description {
+                    Text(description)
+                        .font(.footnote)
+                        .foregroundStyle(.tertiary)
+                        .multilineTextAlignment(.center)
+                }
+            }
+        }
+        .frame(maxWidth: LedgerAdaptiveLayout.EmptyState.contentMaxWidth)
+        .padding(.horizontal, LedgerAdaptiveLayout.EmptyState.horizontalPadding)
+        .padding(.vertical, LedgerAdaptiveLayout.EmptyState.secondaryVerticalPadding)
+        .frame(maxWidth: LedgerAdaptiveLayout.EmptyState.surfaceMaxWidth)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

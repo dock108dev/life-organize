@@ -23,6 +23,14 @@ Require only checks that run on pull requests for the protected branch. Do not r
 
 The iOS checks build and test the app only. They must not sign, archive, upload, notarize, deploy to TestFlight, deploy to the App Store, or deploy iOS through GitHub Actions.
 
+## Visual Check Tiers
+
+`ios / screenshots` is the required pull request visual check. It runs the iPhone 17 Pro portrait light target and should remain the only required screenshot check during the initial iPad rollout.
+
+`ios / screenshots / iPad portrait` is a non-required iOS CI job. Run it from manual workflow dispatch with `screenshot_profile=ipad_portrait`, or run it alongside the required target with `screenshot_profile=all_light`. Do not add this job to branch protection until the iPad portrait baselines are stable and the local adaptive screen validation matrix is green.
+
+To promote iPad portrait screenshots, first confirm `Scripts/run-adaptive-screen-validation.sh compare` is green with the canonical iPad portrait baseline set committed. Then add `ios / screenshots / iPad portrait` to required checks for pull requests that touch iOS UI, screenshot baselines, screenshot scripts, assets, or localization. Keep iPad landscape screenshots, Dynamic Type smoke, and broader simulator matrix checks manual or nightly unless they are intentionally promoted in a later branch-protection update.
+
 ## Main And Deploy Checks
 
 `backend / docker publish`, `backend / deploy`, and `prod / healthz smoke` are deploy-path checks from `Backend CI/CD`. They run on `main` pushes for backend paths and manual full-deploy dispatches. The production smoke check is deploy-only. Keep it out of pull request required checks.

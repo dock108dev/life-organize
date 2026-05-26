@@ -30,10 +30,12 @@ Backend/.venv/bin/pip install -r Backend/requirements.txt
 Run the API from `Backend/` with the environment required by `Backend/app/config.py`:
 
 ```sh
+cd Backend
 DATABASE_URL=postgresql+asyncpg://lifeorganize:lifeorganize@localhost:5433/lifeorganize \
 DEVICE_TOKEN_SIGNING_SECRET=dev-secret \
 OPENAI_API_KEY=sk-... \
-uvicorn main:app --reload --port 8787
+LIFE_ORGANIZE_ADMIN_API_KEY=dev-admin \
+.venv/bin/python -m uvicorn main:app --reload --port 8787
 ```
 
 Or run the local Docker stack from the repo root:
@@ -56,7 +58,7 @@ Open the local backend log/control panel at:
 http://127.0.0.1:8787/admin/logs
 ```
 
-Use `LIFE_ORGANIZE_ADMIN_API_KEY` to connect the log panel to the admin API. The page streams request and OpenAI gateway events, including status, latency, model, and OpenAI request IDs. The logged event metadata includes request text length, not raw user text, API keys, or raw model response bodies.
+Use `LIFE_ORGANIZE_ADMIN_API_KEY` to open an admin session from the log panel. The panel connects to the authenticated admin API routes with the `x-admin-api-key` header, then uses the admin session cookie for subsequent log reads and streaming. The page streams request and OpenAI gateway events, including status, latency, model, and OpenAI request IDs. The logged event metadata includes request text length, not raw user text, API keys, device tokens, provider request JSON, or raw model response bodies.
 
 ## Production
 

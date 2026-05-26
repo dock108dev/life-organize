@@ -44,7 +44,10 @@ func event(
     eventType: String = "generic",
     metadata: [String] = []
 ) -> String {
-    #"{"ref":"\#(ref)","thingRef":\#(jsonLiteral(thingRef)),"title":"\#(title)","eventType":"\#(eventType)","rawText":"\#(title)","occurredAt":\#(resolvedDate(occurredAt)),"note":\#(jsonLiteral(note)),"metadata":[\#(metadata.joined(separator: ","))],"confidence":0.96}"#
+    let thingRefJSON = DeterministicFixtureJSON.literal(thingRef)
+    let occurredAtJSON = DeterministicFixtureJSON.resolvedDate(occurredAt, sourceText: occurredAt)
+    let noteJSON = DeterministicFixtureJSON.literal(note)
+    return #"{"ref":"\#(ref)","thingRef":\#(thingRefJSON),"title":"\#(title)","eventType":"\#(eventType)","rawText":"\#(title)","occurredAt":\#(occurredAtJSON),"note":\#(noteJSON),"metadata":[\#(metadata.joined(separator: ","))],"confidence":0.96}"#
 }
 
 func singleEventResponse(
@@ -77,7 +80,13 @@ func metadata(
     unit: String? = nil,
     sourceText: String? = nil
 ) -> String {
-    #"{"key":"\#(key)","valueKind":"\#(valueKind)","stringValue":\#(jsonLiteral(stringValue)),"numberValue":\#(jsonNumberLiteral(numberValue)),"dateValue":\#(jsonLiteral(dateValue)),"boolValue":\#(jsonBoolLiteral(boolValue)),"unit":\#(jsonLiteral(unit)),"sourceText":\#(jsonLiteral(sourceText))}"#
+    let stringJSON = DeterministicFixtureJSON.literal(stringValue)
+    let numberJSON = DeterministicFixtureJSON.numberLiteral(numberValue)
+    let dateJSON = DeterministicFixtureJSON.literal(dateValue)
+    let boolJSON = DeterministicFixtureJSON.boolLiteral(boolValue)
+    let unitJSON = DeterministicFixtureJSON.literal(unit)
+    let sourceTextJSON = DeterministicFixtureJSON.literal(sourceText)
+    return #"{"key":"\#(key)","valueKind":"\#(valueKind)","stringValue":\#(stringJSON),"numberValue":\#(numberJSON),"dateValue":\#(dateJSON),"boolValue":\#(boolJSON),"unit":\#(unitJSON),"sourceText":\#(sourceTextJSON)}"#
 }
 
 func rule(
@@ -89,11 +98,14 @@ func rule(
     expiresAt: String?,
     rawText: String? = nil
 ) -> String {
-    #"{"ref":"\#(ref)","thingRef":\#(jsonLiteral(thingRef)),"title":"\#(title)","ruleType":"\#(ruleType)","rawText":"\#(rawText ?? title)","reason":null,"startsAt":\#(resolvedDate(startsAt)),"expiresAt":\#(resolvedDate(expiresAt)),"isActiveOnCreatedDate":true,"confidence":0.96}"#
+    let thingRefJSON = DeterministicFixtureJSON.literal(thingRef)
+    let startsAtJSON = DeterministicFixtureJSON.resolvedDate(startsAt, sourceText: startsAt)
+    let expiresAtJSON = DeterministicFixtureJSON.resolvedDate(expiresAt, sourceText: expiresAt)
+    return #"{"ref":"\#(ref)","thingRef":\#(thingRefJSON),"title":"\#(title)","ruleType":"\#(ruleType)","rawText":"\#(rawText ?? title)","reason":null,"startsAt":\#(startsAtJSON),"expiresAt":\#(expiresAtJSON),"isActiveOnCreatedDate":true,"confidence":0.96}"#
 }
 
 func note(_ ref: String, text: String, linkedThingRefs: [String]) -> String {
-    let refs = linkedThingRefs.map(jsonLiteral).joined(separator: ",")
+    let refs = linkedThingRefs.map(DeterministicFixtureJSON.literal).joined(separator: ",")
     return #"{"ref":"\#(ref)","text":"\#(text)","rawText":"\#(text)","linkedThingRefs":[\#(refs)],"confidence":0.96}"#
 }
 
@@ -107,17 +119,24 @@ func dateEvidence(
     confidence: Double = 0.95,
     resolvedConfidence: Double = 0.95
 ) -> String {
-    """
-    {"ref":"\(ref)","sourceText":\(jsonLiteral(sourceText)),"resolved":\(resolvedDate(date, sourceText: sourceText, confidence: resolvedConfidence)),"dateRole":"\(dateRole)","ownerRef":\(jsonLiteral(ownerRef)),"ownerField":"\(ownerField)","confidence":\(confidence)}
+    let sourceTextJSON = DeterministicFixtureJSON.literal(sourceText)
+    let resolvedDateJSON = DeterministicFixtureJSON.resolvedDate(
+        date,
+        sourceText: sourceText,
+        confidence: resolvedConfidence
+    )
+    let ownerRefJSON = DeterministicFixtureJSON.literal(ownerRef)
+    return """
+    {"ref":"\(ref)","sourceText":\(sourceTextJSON),"resolved":\(resolvedDateJSON),"dateRole":"\(dateRole)","ownerRef":\(ownerRefJSON),"ownerField":"\(ownerField)","confidence":\(confidence)}
     """
 }
 
 func recallQuery(_ ref: String, queryType: String, thingName: String?, rawText: String) -> String {
-    #"{"ref":"\#(ref)","queryType":"\#(queryType)","thingName":\#(jsonLiteral(thingName)),"thingRef":null,"rawText":\#(jsonLiteral(rawText)),"confidence":0.95}"#
+    #"{"ref":"\#(ref)","queryType":"\#(queryType)","thingName":\#(DeterministicFixtureJSON.literal(thingName)),"thingRef":null,"rawText":\#(DeterministicFixtureJSON.literal(rawText)),"confidence":0.95}"#
 }
 
 func extractionError(_ code: String, message: String, severity: String, sourceText: String?) -> String {
-    #"{"code":"\#(code)","message":"\#(message)","severity":"\#(severity)","sourceText":\#(jsonLiteral(sourceText))}"#
+    #"{"code":"\#(code)","message":"\#(message)","severity":"\#(severity)","sourceText":\#(DeterministicFixtureJSON.literal(sourceText))}"#
 }
 
 func dateString(from date: Date) -> String {
@@ -138,26 +157,29 @@ func dateString(byAddingDays days: Int, to date: Date) -> String {
     return dateString(from: resolvedDate)
 }
 
-private func resolvedDate(_ date: String?) -> String {
-    resolvedDate(date, sourceText: date, confidence: 0.95)
-}
+enum DeterministicFixtureJSON {
+    static func resolvedDate(
+        _ date: String?,
+        sourceText: String? = nil,
+        isInferred: Bool = true,
+        confidence: Double = 0.95
+    ) -> String {
+        #"{"date":\#(literal(date)),"precision":"day","isInferred":\#(boolLiteral(isInferred)),"sourceText":\#(literal(sourceText)),"confidence":\#(confidence)}"#
+    }
 
-private func resolvedDate(_ date: String?, sourceText: String?, confidence: Double) -> String {
-    #"{"date":\#(jsonLiteral(date)),"precision":"day","isInferred":true,"sourceText":\#(jsonLiteral(sourceText)),"confidence":\#(confidence)}"#
-}
+    static func literal(_ value: String?) -> String {
+        guard let value else { return "null" }
+        let data = (try? JSONEncoder().encode(value)) ?? Data(#""""#.utf8)
+        return String(data: data, encoding: .utf8) ?? #""""#
+    }
 
-private func jsonLiteral(_ value: String?) -> String {
-    guard let value else { return "null" }
-    let data = (try? JSONEncoder().encode(value)) ?? Data(#""""#.utf8)
-    return String(data: data, encoding: .utf8) ?? #""""#
-}
+    static func numberLiteral(_ value: Double?) -> String {
+        guard let value else { return "null" }
+        return String(value)
+    }
 
-private func jsonNumberLiteral(_ value: Double?) -> String {
-    guard let value else { return "null" }
-    return String(value)
-}
-
-private func jsonBoolLiteral(_ value: Bool?) -> String {
-    guard let value else { return "null" }
-    return value ? "true" : "false"
+    static func boolLiteral(_ value: Bool?) -> String {
+        guard let value else { return "null" }
+        return value ? "true" : "false"
+    }
 }

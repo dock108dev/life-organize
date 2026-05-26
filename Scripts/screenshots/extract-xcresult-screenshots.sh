@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-RESULT_BUNDLE="${1:-BuildArtifacts/ScreenshotTests.xcresult}"
-OUTPUT_DIR="${2:-BuildArtifacts/screenshots/actual/iPhone_17_Pro/light}"
+RESULT_BUNDLE="${1:-BuildArtifacts/ScreenshotTests-iPhone_17_Pro-portrait-light.xcresult}"
+OUTPUT_DIR="${2:-BuildArtifacts/screenshots/actual/iPhone_17_Pro/portrait/light}"
 RAW_DIR="$OUTPUT_DIR/raw"
 
 if [[ ! -d "$RESULT_BUNDLE" ]]; then

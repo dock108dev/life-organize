@@ -87,7 +87,7 @@ struct EventDetailView: View {
     private func relatedReminderRowLines(for reminder: LedgerRule) -> [LedgerRowLine] {
         var lines = EventRelatedReminderRow.lines(for: reminder)
         if let label = relationshipSourceLabel(for: .rule(reminder.id)) {
-            lines.append(LedgerRowLine(text: label))
+            lines.append(LedgerRowLine(text: label, role: .metadata))
         }
         return lines
     }
@@ -129,7 +129,7 @@ struct EventDetailView: View {
                     diagnosticsSection
                 }
             }
-            .padding(.horizontal)
+            .ledgerAdaptiveWidth(.detail)
             .padding(.vertical, 14)
         }
         .background(LedgerScreenBackground().ignoresSafeArea())
@@ -220,7 +220,7 @@ struct EventDetailView: View {
                 } label: {
                     LedgerRow(
                         primary: thing.name,
-                        secondary: [LedgerRowLine(text: "Linked thing")],
+                        secondary: [LedgerRowLine(text: "Linked thing", role: .metadata)],
                         density: .detail
                     ) {
                         LedgerPill(text: "THING", tone: .link, size: .small)

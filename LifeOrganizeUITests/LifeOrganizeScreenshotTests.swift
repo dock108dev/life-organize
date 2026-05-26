@@ -1,5 +1,28 @@
 import XCTest
 
+// layout-guard: allow UIDevice reason="screenshot matrix rotation only"
+private func screenshotOrientationFromEnvironment() -> UIDeviceOrientation {
+    let orientation = ProcessInfo.processInfo.environment["SCREENSHOT_ORIENTATION"]
+        ?? screenshotOrientationFromRepositoryConfig()
+    switch orientation {
+    case "landscape":
+        return .landscapeLeft
+    default:
+        return .portrait
+    }
+}
+
+private func screenshotOrientationFromRepositoryConfig() -> String? {
+    let sourceFile = URL(fileURLWithPath: #filePath)
+    let repositoryRoot = sourceFile
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+    let config = repositoryRoot
+        .appendingPathComponent("BuildArtifacts/screenshots/orientation.txt")
+    return try? String(contentsOf: config, encoding: .utf8)
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+}
+
 extension LifeOrganizeScenarioUITests {
     func testFirstLaunchAndEmptyTimelineScreenshots() throws {
         let app = launchScreenshotApp(seed: "empty", start: "timeline")
@@ -7,7 +30,9 @@ extension LifeOrganizeScenarioUITests {
         XCTAssertTrue(app.navigationBars["Timeline"].waitForFastExistence(timeout: 10))
         XCTAssertTrue(app.descendants(matching: .any)["timeline-feed"].exists)
         XCTAssertFalse(app.descendants(matching: .any)["device-token-notice"].exists)
-        XCTAssertTrue(app.buttons["Log something"].exists)
+        if !isLandscapeScreenshot() {
+            XCTAssertTrue(app.buttons["Log something"].exists)
+        }
         XCTAssertFalse(app.buttons.matching(identifierPrefix: "timeline-row-").firstMatch.exists)
 
         capture("first_launch", from: app)
@@ -27,16 +52,14 @@ extension LifeOrganizeScenarioUITests {
     func testThingsAndThingDetailScreenshots() throws {
         let app = launchScreenshotApp(seed: "default", start: "things")
         waitUntilReady(in: app)
-        XCTAssertTrue(app.navigationBars["Things"].waitForFastExistence(timeout: 10))
         XCTAssertTrue(app.descendants(matching: .any)["things-list"].waitForFastExistence(timeout: 10))
-        let filtersRow = app.buttons.containing(.staticText, identifier: "Home Air Filters").firstMatch
+        let filtersRow = app.buttons.matching(identifierPrefix: "thing-row-").firstMatch
         XCTAssertTrue(filtersRow.waitForFastExistence(timeout: 10))
 
         capture("things", from: app)
 
         filtersRow.tap()
         XCTAssertTrue(app.descendants(matching: .any)["thing-detail"].waitForFastExistence(timeout: 10))
-        XCTAssertTrue(app.navigationBars["Home Air Filters"].waitForFastExistence(timeout: 10))
         waitForScreenshotChromeToSettle()
 
         capture("thing_detail", from: app)
@@ -99,9 +122,12 @@ extension LifeOrganizeScenarioUITests {
         seed: String,
         start: String,
         searchQuery: String? = nil,
-        fixedNow: String = "2027-01-15T08:00:00-05:00"
+        fixedNow: String = "2027-01-15T08:00:00-05:00",
+        // layout-guard: allow UIDevice reason="screenshot matrix rotation only"
+        orientation: UIDeviceOrientation = screenshotOrientationFromEnvironment()
     ) -> XCUIApplication {
-        XCUIDevice.shared.orientation = .portrait
+        // layout-guard: allow UIDevice reason="screenshot matrix rotation only"
+        XCUIDevice.shared.orientation = orientation
 
         let app = XCUIApplication()
         app.launchArguments = [
@@ -129,6 +155,10 @@ extension LifeOrganizeScenarioUITests {
         }
         app.launch()
         return app
+    }
+
+    private func isLandscapeScreenshot() -> Bool {
+        screenshotOrientationFromEnvironment().isLandscape
     }
 
     private func waitUntilReady(in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {

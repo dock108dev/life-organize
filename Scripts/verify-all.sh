@@ -48,7 +48,7 @@ printf '  IOS_DESTINATION=%s\n' "${IOS_DESTINATION:-platform=iOS Simulator,name=
 printf '  IOS_RESULT_BUNDLE=%s\n' "${IOS_RESULT_BUNDLE:-BuildArtifacts/LifeOrganizeTests.xcresult}"
 printf '  BACKEND_SMOKE_URL=%s\n' "${BACKEND_SMOKE_URL:-http://127.0.0.1:${API_PORT:-8787}/healthz}"
 printf '  PRODUCTION_SMOKE_URL=%s\n' "$PRODUCTION_SMOKE_URL"
-printf '  Screenshot failure artifacts: BuildArtifacts/ScreenshotTests.xcresult, BuildArtifacts/screenshots/actual, BuildArtifacts/screenshots/diff\n'
+printf '  Screenshot failure artifacts: BuildArtifacts/ScreenshotTests-*, BuildArtifacts/screenshots/actual, BuildArtifacts/screenshots/diff\n'
 
 cd "$ROOT_DIR"
 

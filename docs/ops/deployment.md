@@ -51,9 +51,9 @@ The Compose file uses the internal database URL automatically, so `DATABASE_URL`
 
 `Backend/infra/scripts/update_caddy_site_block.py` replaces or appends only the matching `life.dock108.dev` site block in the host Caddyfile.
 
-The deploy user needs passwordless sudo for:
+The deploy workflow checks `sudo -n true` before updating the active Caddy config. The deploy user also needs passwordless sudo for:
 
-- `python3` when writing `/etc/caddy/Caddyfile`
+- `python3 Backend/infra/scripts/update_caddy_site_block.py` when writing `/etc/caddy/Caddyfile`
 - `caddy validate`
 - `systemctl reload caddy`
 

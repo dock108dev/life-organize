@@ -107,6 +107,7 @@ struct RuleEditView: View {
                 }
             }
         }
+        .ledgerEditFormWidth(.rule)
         .navigationTitle(rule == nil ? "Add Reminder" : "Edit Reminder")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

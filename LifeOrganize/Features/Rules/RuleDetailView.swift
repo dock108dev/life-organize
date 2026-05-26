@@ -3,6 +3,7 @@ import SwiftUI
 
 struct RuleDetailView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \LedgerEvent.occurredAt, order: .reverse) private var events: [LedgerEvent]
     @Query(sort: \Thing.updatedAt, order: .reverse) private var things: [Thing]
@@ -46,6 +47,18 @@ struct RuleDetailView: View {
         ReminderDetailActionPolicy.lifecycleAction(for: rule, status: status)
     }
 
+    private var hasSummaryActions: Bool {
+        dateAction != nil || availableLifecycleAction != nil
+    }
+
+    private var shouldShowRegularSummaryActions: Bool {
+        horizontalSizeClass == .regular && hasSummaryActions
+    }
+
+    private var shouldShowCompactSummaryActions: Bool {
+        horizontalSizeClass != .regular && summaryPresentation.actionSentence != nil && hasSummaryActions
+    }
+
     private var relatedEvents: [RelatedRuleEvent] {
         relatedEventService.relatedEvents(for: rule, events: events, entityLinks: entityLinks)
     }
@@ -81,7 +94,7 @@ struct RuleDetailView: View {
                     relatedContextSection
                 }
             }
-            .padding(.horizontal)
+            .ledgerAdaptiveWidth(.detail)
             .padding(.vertical, 14)
         }
         .background(LedgerScreenBackground().ignoresSafeArea())
@@ -182,7 +195,11 @@ struct RuleDetailView: View {
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
+            }
 
+            if shouldShowRegularSummaryActions {
+                regularSummaryActionBar
+            } else if shouldShowCompactSummaryActions {
                 summaryActionTray
             }
 
@@ -214,7 +231,7 @@ struct RuleDetailView: View {
                 Button {
                     activeSheet = dateAction.sheet
                 } label: {
-                    Label(dateAction.title, systemImage: "calendar.badge.clock")
+                    Label(dateAction.title, systemImage: dateAction.systemImage)
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.blue)
@@ -224,7 +241,7 @@ struct RuleDetailView: View {
                 Button(role: .destructive) {
                     lifecycleAction = availableLifecycleAction
                 } label: {
-                    Label(availableLifecycleAction.title, systemImage: "checkmark.circle")
+                    Label(availableLifecycleAction.title, systemImage: availableLifecycleAction.systemImage)
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.red)
@@ -232,6 +249,45 @@ struct RuleDetailView: View {
         }
         .font(.subheadline.weight(.semibold))
         .padding(.top, 2)
+    }
+
+    private var regularSummaryActionBar: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 10) {
+                summaryActionButtons
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                summaryActionButtons
+            }
+        }
+        .font(.subheadline.weight(.semibold))
+        .padding(.top, 2)
+    }
+
+    @ViewBuilder
+    private var summaryActionButtons: some View {
+        if let dateAction {
+            Button {
+                activeSheet = dateAction.sheet
+            } label: {
+                Label(dateAction.title, systemImage: dateAction.systemImage)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .tint(.blue)
+        }
+
+        if let availableLifecycleAction {
+            Button(role: .destructive) {
+                lifecycleAction = availableLifecycleAction
+            } label: {
+                Label(availableLifecycleAction.title, systemImage: availableLifecycleAction.systemImage)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .tint(.red)
+        }
     }
 
     private var relatedEventsSection: some View {
@@ -322,11 +378,11 @@ private struct RelatedRuleEventRow: View {
 
     private var rowLines: [LedgerRowLine] {
         var lines = [
-            LedgerRowLine(text: DateFormatting.shortDate.string(from: relatedEvent.event.occurredAt)),
-            LedgerRowLine(text: relatedEvent.sourceLabel)
+            LedgerRowLine(text: DateFormatting.shortDate.string(from: relatedEvent.event.occurredAt), role: .metadata),
+            LedgerRowLine(text: relatedEvent.sourceLabel, role: .metadata)
         ]
         if let detail = relatedEvent.event.note?.nilIfEmpty {
-            lines.append(LedgerRowLine(text: detail, lineLimit: 2))
+            lines.append(LedgerRowLine(text: detail, role: .contentPreview, lineLimit: 2))
         }
         return lines
     }

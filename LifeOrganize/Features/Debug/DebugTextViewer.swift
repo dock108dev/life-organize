@@ -36,7 +36,8 @@ struct DebugTextViewer: View {
                     )
                 }
             }
-            .padding()
+            .ledgerAdaptiveWidth(.debugPayload, alignment: .leading)
+            .padding(.vertical)
         }
     }
 }
@@ -63,8 +64,8 @@ struct DebugJSONViewer: View {
                     .foregroundStyle(.secondary)
                 Spacer()
             }
-            .padding(.horizontal)
             .padding(.top)
+            .ledgerAdaptiveWidth(.debugPayload, alignment: .leading)
 
             DebugTextViewer(title: title, text: prettyJSON ?? jsonText)
         }

@@ -1,3 +1,4 @@
+import SwiftUI
 import XCTest
 @testable import LifeOrganize
 
@@ -109,7 +110,9 @@ final class LedgerReviewItemPresentationTests: XCTestCase {
 
         XCTAssertEqual(listPresentation?.tone, .attention)
         XCTAssertEqual(listPresentation?.tone, queuePresentation.tone)
-        XCTAssertEqual(listPresentation?.rowLine.lineLimit, 2)
+        XCTAssertEqual(listPresentation?.rowLine.role, .contentPreview)
+        XCTAssertEqual(listPresentation?.rowLine.resolvedLineLimit(for: .large), 2)
+        XCTAssertEqual(listPresentation?.rowLine.resolvedLineLimit(for: .accessibility1), 3)
     }
 
     func testNoItemStateReturnsNoAmbientPresentation() {

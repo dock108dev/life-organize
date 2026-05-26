@@ -1,3 +1,4 @@
+import SwiftUI
 import XCTest
 @testable import LifeOrganize
 
@@ -48,7 +49,6 @@ final class LedgerDensityContractTests: XCTestCase {
 
     func testFeedTimelineUsesDenseEditorialRowGeometry() {
         XCTAssertEqual(LedgerFeedTimelineLayout.sectionSpacing, 16)
-        XCTAssertEqual(LedgerFeedTimelineLayout.feedHorizontalPadding, 14)
         XCTAssertEqual(LedgerFeedTimelineLayout.feedTopPadding, 4)
         XCTAssertEqual(LedgerFeedTimelineLayout.feedBottomPadding, 10)
         XCTAssertEqual(LedgerFeedTimelineLayout.sectionContentSpacing, 8)
@@ -108,7 +108,9 @@ final class LedgerDensityContractTests: XCTestCase {
 
         XCTAssertEqual(LedgerSurfaceDensity.searchResultRow.rowDensity, .compact)
         XCTAssertLessThanOrEqual(search.secondaryLines.count, 3)
-        XCTAssertEqual(search.secondaryLines.map(\.lineLimit), [1, 1, 2])
+        XCTAssertEqual(search.secondaryLines.map(\.role), [.metadata, .contentPreview, .contentPreview])
+        XCTAssertEqual(search.secondaryLines.map { $0.resolvedLineLimit(for: .large) }, [1, 2, 2])
+        XCTAssertEqual(search.secondaryLines.map { $0.resolvedLineLimit(for: .accessibility1) }, [1, 3, 3])
         XCTAssertEqual(LedgerSurfaceDensity.thingsRow.rowDensity, .compact)
         XCTAssertLessThanOrEqual(preview.continuityLines.count, 5)
         XCTAssertEqual(LedgerSurfaceDensity.reminderRow.rowDensity, .standard)

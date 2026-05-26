@@ -361,24 +361,32 @@ struct ThingPreviewSnapshot {
     ) -> LedgerRowLine {
         let recordText = LedgerDisplayFormatting.count(recordCount, singular: "record", plural: "records")
         if activeReminderCount > 0, let state = primaryActiveReminderState {
-            return LedgerRowLine(text: "\(recordText) · Reminder \(state.lowercased())", tone: .attention)
+            return LedgerRowLine(text: "\(recordText) · Reminder \(state.lowercased())", tone: .attention, role: .contentPreview)
         }
         if let upcomingReminderRelativeDueText {
-            return LedgerRowLine(text: "\(recordText) · Reminder \(upcomingReminderRelativeDueText)", tone: .attention)
+            return LedgerRowLine(text: "\(recordText) · Reminder \(upcomingReminderRelativeDueText)", tone: .attention, role: .contentPreview)
         }
         if let latestEventTitle {
             let detail = latestEventDate.map { DateFormatting.ledgerDateSummary($0, calendar: calendar, now: now) }
-            return LedgerRowLine(text: [recordText, detail, latestEventTitle].compactMap { $0 }.joined(separator: " · "), tone: .success)
+            return LedgerRowLine(
+                text: [recordText, detail, latestEventTitle].compactMap { $0 }.joined(separator: " · "),
+                tone: .success,
+                role: .contentPreview
+            )
         }
         if latestNoteSnippet != nil {
-            return LedgerRowLine(text: "\(recordText) · Recent note", tone: .note)
+            return LedgerRowLine(text: "\(recordText) · Recent note", tone: .note, role: .contentPreview)
         }
         if recordCount > 0 {
             let latestSourceDate = sourceMessages.map(\.createdAt).max()
             let detail = latestSourceDate.map { "Last touched \(DateFormatting.shortDate.string(from: $0))" }
-            return LedgerRowLine(text: [recordText, detail].compactMap { $0 }.joined(separator: " · "), tone: .info)
+            return LedgerRowLine(
+                text: [recordText, detail].compactMap { $0 }.joined(separator: " · "),
+                tone: .info,
+                role: .contentPreview
+            )
         }
-        return LedgerRowLine(text: "History: No records yet", tone: .muted)
+        return LedgerRowLine(text: "History: No records yet", tone: .muted, role: .contentPreview)
     }
 
     private static func recordCount(

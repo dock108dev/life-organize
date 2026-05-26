@@ -41,15 +41,14 @@ struct LedgerNoticeBanner: View {
 struct LedgerSearchResultsList: View {
     let results: [LocalSearchResult]
     var emptyContent: LedgerEmptyStateContent = .noSearchResults
+    var onSelect: ((LocalSearchResult) -> Void)?
 
     var body: some View {
         if results.isEmpty {
             LedgerEmptyStateView(content: emptyContent)
         } else {
             List(results) { result in
-                NavigationLink(value: result) {
-                    LocalSearchResultRow(result: result)
-                }
+                searchResultRow(result)
                 .accessibilityIdentifier("ledger-search-result-\(result.sourceKind.rawValue)-\(result.stableID.uuidString)")
                 .accessibilityLabel("\(result.sourceKind.displayName): \(result.title)")
                 .listRowInsets(EdgeInsets(top: 5, leading: 12, bottom: 5, trailing: 12))
@@ -60,6 +59,22 @@ struct LedgerSearchResultsList: View {
             .scrollContentBackground(.hidden)
             .background(LedgerScreenBackground().ignoresSafeArea())
             .accessibilityIdentifier("ledger-search-results-list")
+        }
+    }
+
+    @ViewBuilder
+    private func searchResultRow(_ result: LocalSearchResult) -> some View {
+        if let onSelect {
+            Button {
+                onSelect(result)
+            } label: {
+                LocalSearchResultRow(result: result)
+            }
+            .buttonStyle(.plain)
+        } else {
+            NavigationLink(value: result) {
+                LocalSearchResultRow(result: result)
+            }
         }
     }
 }

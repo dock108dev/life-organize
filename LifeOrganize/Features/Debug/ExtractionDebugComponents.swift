@@ -80,6 +80,7 @@ struct DebugMetadataRow: View {
                 .textSelection(.enabled)
         }
         .font(.footnote)
+        .frame(maxWidth: LedgerAdaptiveLayout.Width.debugDetailMax, alignment: .leading)
     }
 }
 

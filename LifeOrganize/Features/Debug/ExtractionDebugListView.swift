@@ -63,6 +63,10 @@ struct ExtractionDebugListView: View {
                                 ExtractionAttemptDebugView(attempt: attempt, deviceTokenStore: deviceTokenStore)
                             } label: {
                                 ExtractionAttemptRow(attempt: attempt)
+                                    .frame(
+                                        maxWidth: LedgerAdaptiveLayout.Width.debugListMax,
+                                        alignment: .leading
+                                    )
                             }
                         }
                     }

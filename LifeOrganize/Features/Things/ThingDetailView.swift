@@ -13,7 +13,6 @@ struct ThingDetailView: View {
     @Query(sort: \LedgerReviewItem.updatedAt, order: .reverse) private var reviewItems: [LedgerReviewItem]
     @Query(sort: \Thing.name) private var things: [Thing]
     let thing: Thing
-
     @State private var activeSheet: ThingDetailSheet?
     @State private var isConfirmingDelete = false
     @State private var errorMessage: String?
@@ -23,13 +22,10 @@ struct ThingDetailView: View {
     @State private var isPausedRemindersExpanded = false
     @State private var isRelatedContextExpanded = false
     @State private var isIdentityExpanded = false
-
     private let relationshipService = RelationshipTraversalService()
-
     private var snapshot: ThingDetailSnapshot {
         ThingDetailSnapshot(thing: thing)
     }
-
     private var relatedRecords: [RelationshipTraversalResult] {
         relationshipService.relatedRecords(
             for: .thing(thing.id),
@@ -37,7 +33,6 @@ struct ThingDetailView: View {
             allowedTargetTypes: [.chatMessage, .event, .note, .rule]
         )
     }
-
     private var relationshipRecords: RelationshipTraversalRecords {
         RelationshipTraversalRecords(
             messages: messages,
@@ -48,7 +43,6 @@ struct ThingDetailView: View {
             entityLinks: entityLinks
         )
     }
-
     private var relatedContextRecords: [RelationshipTraversalResult] {
         let directKeys = Set(
             snapshot.events.map { RelationshipNode.event($0.id).stableKey }
@@ -60,7 +54,6 @@ struct ThingDetailView: View {
             .prefix(8)
             .map { $0 }
     }
-
     private var thingSourceMessage: ChatMessage? {
         if let result = relatedRecords.first(where: { $0.target.type == .chatMessage }),
            let message = messages.first(where: { $0.id == result.target.id }) {
@@ -68,11 +61,9 @@ struct ThingDetailView: View {
         }
         return messages.first { thing.sourceMessageIDs.contains($0.id) }
     }
-
     private var deleteReassignmentTargets: [Thing] {
         things.filter { $0.id != thing.id }
     }
-
     private var reviewPresentation: LedgerReviewItemPresentation? {
         LedgerReviewItemPresentationService().primaryPresentation(
             for: .thing,
@@ -80,53 +71,25 @@ struct ThingDetailView: View {
             in: reviewItems
         )
     }
-
     var body: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 18) {
-                operationalSummarySection
-
-                if !snapshot.upcomingReminders.isEmpty {
-                    rulesSection(title: "Now & Coming Up", rules: snapshot.upcomingReminders)
+        GeometryReader { proxy in
+            ScrollView {
+                ThingDetailAdaptiveContainer(availableWidth: proxy.size.width) {
+                    singleColumnSections
+                } fullTop: {
+                    operationalSummarySection
+                } leftColumn: {
+                    currentStateSections
+                } rightColumn: {
+                    recordExplorationSections
+                } fullBottom: {
+                    diagnosticSections
                 }
-
-                if snapshot.latestEventSummary != nil || snapshot.latestNoteSummary != nil {
-                    recentActivitySection
-                }
-
-                if snapshot.hasHistory {
-                    timelineReplaySection
-                }
-
-                if !snapshot.events.isEmpty {
-                    eventsSection
-                }
-
-                if !snapshot.notes.isEmpty {
-                    notesSection
-                }
-
-                if !snapshot.inactiveReminders.isEmpty {
-                    rulesSection(title: "Review & Paused", rules: snapshot.inactiveReminders)
-                }
-
-                if !relatedContextRecords.isEmpty {
-                    relatedContextSection
-                }
-
-                if !snapshot.identityRows.isEmpty {
-                    aboutSection
-                }
-
-                if debugAccessPolicy.allowsExtractionDebugScreens {
-                    sourceMetadataSection
-                }
+                .padding(.vertical, 14)
             }
-            .padding(.horizontal)
-            .padding(.vertical, 14)
+            .accessibilityIdentifier("thing-detail")
         }
         .background(LedgerScreenBackground().ignoresSafeArea())
-        .accessibilityIdentifier("thing-detail")
         .navigationTitle(thing.name)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -182,7 +145,72 @@ struct ThingDetailView: View {
             Text(errorMessage ?? "")
         }
     }
-
+    @ViewBuilder
+    private var singleColumnSections: some View {
+        operationalSummarySection
+        currentTopSections
+        recordSections
+        reviewSections
+        relatedSection
+        identitySections
+        diagnosticSections
+    }
+    @ViewBuilder
+    private var currentStateSections: some View {
+        currentTopSections
+        reviewSections
+        identitySections
+    }
+    @ViewBuilder
+    private var currentTopSections: some View {
+        if !snapshot.upcomingReminders.isEmpty {
+            rulesSection(title: "Now & Coming Up", rules: snapshot.upcomingReminders)
+        }
+        if snapshot.latestEventSummary != nil || snapshot.latestNoteSummary != nil {
+            recentActivitySection
+        }
+    }
+    @ViewBuilder
+    private var reviewSections: some View {
+        if !snapshot.inactiveReminders.isEmpty {
+            rulesSection(title: "Review & Paused", rules: snapshot.inactiveReminders)
+        }
+    }
+    @ViewBuilder
+    private var identitySections: some View {
+        if !snapshot.identityRows.isEmpty {
+            aboutSection
+        }
+    }
+    @ViewBuilder
+    private var recordExplorationSections: some View {
+        recordSections
+        relatedSection
+    }
+    @ViewBuilder
+    private var recordSections: some View {
+        if snapshot.hasHistory {
+            timelineReplaySection
+        }
+        if !snapshot.events.isEmpty {
+            eventsSection
+        }
+        if !snapshot.notes.isEmpty {
+            notesSection
+        }
+    }
+    @ViewBuilder
+    private var relatedSection: some View {
+        if !relatedContextRecords.isEmpty {
+            relatedContextSection
+        }
+    }
+    @ViewBuilder
+    private var diagnosticSections: some View {
+        if debugAccessPolicy.allowsExtractionDebugScreens {
+            sourceMetadataSection
+        }
+    }
     private var operationalSummarySection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
@@ -191,19 +219,14 @@ struct ThingDetailView: View {
                 Spacer()
                 LedgerPill(text: snapshot.status.rawValue, tone: statusTone)
             }
-
             LedgerOperationalMetric(snapshot.statusSummary, prominence: .primary)
-
             if let primaryOperationalSummary = snapshot.primaryOperationalSummary {
                 LedgerOperationalMetric(primaryOperationalSummary)
             }
-
             if let continuitySummary = snapshot.continuitySummary {
                 LedgerOperationalMetric(continuitySummary)
             }
-
             LedgerOperationalMetric(snapshot.reminderSummary)
-
             if !snapshot.hasHistory {
                 LedgerOperationalMetric(
                     label: "Last activity",
@@ -211,7 +234,6 @@ struct ThingDetailView: View {
                     detail: "Add an event, reminder, or note to start the record."
                 )
             }
-
             if let reviewPresentation {
                 if reviewPresentation.isHighPriority {
                     LedgerNoticeBanner(
@@ -222,14 +244,12 @@ struct ThingDetailView: View {
                         action: { performDetailAction(for: reviewPresentation.item.kind) }
                     )
                 }
-
                 LedgerOperationalMetric(
                     label: "Review item",
                     value: reviewPresentation.title,
                     detail: reviewPresentation.detail
                 )
             }
-
             if let reminderHistorySummary = snapshot.reminderHistorySummary {
                 Text(reminderHistorySummary.value)
                     .font(LedgerVisualSystem.Typography.rowSecondary)
@@ -240,7 +260,6 @@ struct ThingDetailView: View {
         .padding(.vertical, 4)
         .accessibilityIdentifier("thing-detail-title")
     }
-
     private var statusTone: LedgerTone {
         switch snapshot.status {
         case .active:
@@ -251,18 +270,15 @@ struct ThingDetailView: View {
             return .muted
         }
     }
-
     private func summaryMetric(_ metric: ThingDetailSnapshot.SummaryMetric) -> some View {
         LedgerSummaryMetric(label: metric.label, value: metric.value, detail: metric.detail)
     }
-
     private var recentActivitySection: some View {
         LedgerDetailSection(title: "Recent Activity") {
             if let latestEventSummary = snapshot.latestEventSummary { LedgerOperationalMetric(latestEventSummary) }
             if let latestNoteSummary = snapshot.latestNoteSummary { LedgerOperationalMetric(latestNoteSummary) }
         }
     }
-
     private var timelineReplaySection: some View {
         LedgerDisclosureSection(
             title: "History",
@@ -274,26 +290,22 @@ struct ThingDetailView: View {
             } label: {
                 LedgerRow(
                     primary: "Open \(thing.name) timeline",
-                    secondary: [LedgerRowLine(text: "Replay events, reminders, notes, and linked activity together.")],
+                    secondary: [LedgerRowLine(text: "Replay events, reminders, notes, and linked activity together.", role: .contentPreview)],
                     density: .detail
                 ) {
                     LedgerPill(text: "History", tone: .info, size: .small)
                 }
             }
             .buttonStyle(.plain)
-
             if !snapshot.timelineEntryPoints.isEmpty { Divider() }
-
             ForEach(Array(snapshot.timelineEntryPoints.enumerated()), id: \.element.id) { index, entry in
                 timelineEntryRow(entry)
-
                 if index < snapshot.timelineEntryPoints.count - 1 {
                     Divider()
                 }
             }
         }
     }
-
     @ViewBuilder
     private func timelineEntryRow(_ entry: ThingDetailSnapshot.TimelineEntryPoint) -> some View {
         switch entry.navigationTarget {
@@ -322,15 +334,13 @@ struct ThingDetailView: View {
             timelineLedgerRow(entry)
         }
     }
-
     private func timelineLedgerRow(_ entry: ThingDetailSnapshot.TimelineEntryPoint) -> some View {
         LedgerRow(
             primary: entry.value,
-            secondary: [LedgerRowLine(text: [entry.label, entry.detail].compactMap { $0 }.joined(separator: " · "))],
+            secondary: [LedgerRowLine(text: [entry.label, entry.detail].compactMap { $0 }.joined(separator: " · "), role: .contentPreview)],
             density: .detail
         )
     }
-
     private var eventsSection: some View {
         LedgerDisclosureSection(
             title: "Events",
@@ -344,7 +354,6 @@ struct ThingDetailView: View {
                     LedgerEventRow(event: event)
                 }
                 .buttonStyle(.plain)
-
                 if index < snapshot.events.count - 1 {
                     Divider()
                 }
@@ -352,7 +361,6 @@ struct ThingDetailView: View {
         }
         .accessibilityIdentifier("thing-detail-events-section")
     }
-
     private var notesSection: some View {
         LedgerDisclosureSection(
             title: "Notes",
@@ -366,36 +374,30 @@ struct ThingDetailView: View {
                     LedgerNoteRow(note: note)
                 }
                 .buttonStyle(.plain)
-
                 if index < snapshot.notes.count - 1 {
                     Divider()
                 }
             }
         }
     }
-
     private var aboutSection: some View {
         LedgerDisclosureSection(title: "Details", isExpanded: $isIdentityExpanded) {
             ForEach(Array(snapshot.identityRows.enumerated()), id: \.offset) { index, row in
                 summaryMetric(row)
-
                 if index < snapshot.identityRows.count - 1 {
                     Divider()
                 }
             }
         }
     }
-
     private var sourceMetadataSection: some View {
         LedgerDetailSection(title: "Developer Diagnostics") {
             ForEach(Array(snapshot.diagnosticRows.enumerated()), id: \.offset) { index, row in
                 summaryMetric(row)
-
                 if index < snapshot.diagnosticRows.count - 1 {
                     Divider()
                 }
             }
-
             SourceDisclosure(
                 sourceMessage: thingSourceMessage,
                 manualDate: thing.createdAt,
@@ -403,7 +405,6 @@ struct ThingDetailView: View {
             )
         }
     }
-
     private var relatedContextSection: some View {
         LedgerDisclosureSection(
             title: "Connected Context",

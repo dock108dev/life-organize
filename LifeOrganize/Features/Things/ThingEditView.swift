@@ -107,6 +107,7 @@ struct ThingEditView: View {
                 }
             }
         }
+        .ledgerEditFormWidth(.thing)
         .navigationTitle(existingThing == nil ? "Add Thing" : "Edit Thing")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

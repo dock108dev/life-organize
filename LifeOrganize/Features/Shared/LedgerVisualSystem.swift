@@ -9,7 +9,6 @@ enum LedgerVisualSystem {
         static let section: CGFloat = 10
         static let noticeContentGap: CGFloat = 8
         static let noticeActionGap: CGFloat = 6
-        static let emptyStateWidth: CGFloat = 320
     }
 
     enum Padding {
@@ -146,6 +145,7 @@ struct LedgerPill: View {
             .font(size.font)
             .foregroundStyle(tone.foreground)
             .lineLimit(1)
+            .truncationMode(.tail)
             .minimumScaleFactor(0.8)
             .padding(.horizontal, size.horizontalPadding)
             .padding(.vertical, size.verticalPadding)
@@ -154,6 +154,7 @@ struct LedgerPill: View {
                 Capsule()
                     .stroke(tone.foreground.opacity(0.16), lineWidth: 0.75)
             }
+            .accessibilityLabel(text)
     }
 }
 
@@ -243,7 +244,28 @@ enum LedgerRowEmphasis {
 struct LedgerRowLine: Equatable {
     let text: String
     var tone: LedgerTone = .neutral
-    var lineLimit: Int? = 1
+    var role: LedgerRowLineRole = .contentPreview
+    var lineLimit: Int?
+
+    func resolvedLineLimit(for dynamicTypeSize: DynamicTypeSize) -> Int? {
+        switch role {
+        case .metadata:
+            return 1
+        case .contentPreview:
+            if dynamicTypeSize.isAccessibilitySize {
+                return max(lineLimit ?? 2, 3)
+            }
+            return lineLimit ?? 2
+        case .contentDetail:
+            return nil
+        }
+    }
+}
+
+enum LedgerRowLineRole: Equatable {
+    case metadata
+    case contentPreview
+    case contentDetail
 }
 
 struct LedgerRow<Badges: View, Accessory: View>: View {
@@ -254,6 +276,7 @@ struct LedgerRow<Badges: View, Accessory: View>: View {
     var emphasis: LedgerRowEmphasis = .normal
     let badges: Badges
     let accessory: Accessory
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(
         primary: String,
@@ -276,20 +299,14 @@ struct LedgerRow<Badges: View, Accessory: View>: View {
     var body: some View {
         HStack(alignment: .top, spacing: LedgerVisualSystem.Spacing.rowAccessoryGap) {
             VStack(alignment: .leading, spacing: density.verticalSpacing) {
-                HStack(alignment: .firstTextBaseline, spacing: LedgerVisualSystem.Spacing.rowBadgeGap) {
-                    Text(primary)
-                        .font(density.primaryFont.weight(emphasis.primaryWeight))
-                        .foregroundStyle(emphasis.primaryTone?.foreground ?? Color.primary)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    badges
-                }
+                primaryAndBadges
 
                 ForEach(Array(secondary.enumerated()), id: \.offset) { _, line in
                     Text(line.text)
                         .font(LedgerVisualSystem.Typography.rowSecondary)
                         .foregroundStyle(line.tone.foreground)
-                        .lineLimit(line.lineLimit)
+                        .lineLimit(line.resolvedLineLimit(for: dynamicTypeSize))
+                        .truncationMode(.tail)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
@@ -316,6 +333,28 @@ struct LedgerRow<Badges: View, Accessory: View>: View {
                 .stroke(rowBorder, lineWidth: 0.75)
         }
         .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder
+    private var primaryAndBadges: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: LedgerVisualSystem.Spacing.rowBadgeGap) {
+                primaryText
+                badges
+            }
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: LedgerVisualSystem.Spacing.rowBadgeGap) {
+                primaryText
+                badges
+            }
+        }
+    }
+
+    private var primaryText: some View {
+        Text(primary)
+            .font(density.primaryFont.weight(emphasis.primaryWeight))
+            .foregroundStyle(emphasis.primaryTone?.foreground ?? Color.primary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     private var rowBackground: Color {

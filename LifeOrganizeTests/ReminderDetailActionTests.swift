@@ -92,13 +92,113 @@ final class ReminderDetailActionTests: XCTestCase {
         XCTAssertEqual(RuleDetailSheet.edit.id, "edit")
         XCTAssertEqual(RuleDetailSheet.reschedule.id, "reschedule")
         XCTAssertEqual(RuleDetailSheet.endDate.id, "end-date")
-        XCTAssertEqual(ReminderDetailActionPolicy.lifecycleAction(for: dateReminder, status: .scheduled)?.id, "stop-scheduled")
+        XCTAssertEqual(
+            ReminderDetailActionPolicy.dateAction(for: dateReminder, status: .scheduled)?.systemImage,
+            "calendar.badge.clock"
+        )
+        XCTAssertEqual(
+            ReminderDetailActionPolicy.dateAction(for: windowReminder, status: .active)?.systemImage,
+            "calendar.badge.plus"
+        )
+        XCTAssertEqual(
+            ReminderDetailActionPolicy.lifecycleAction(for: dateReminder, status: .active)?.systemImage,
+            "checkmark.circle"
+        )
+        XCTAssertEqual(
+            ReminderDetailActionPolicy.lifecycleAction(for: dateReminder, status: .scheduled)?.id,
+            "stop-scheduled"
+        )
         XCTAssertEqual(ReminderDetailActionPolicy.lifecycleAction(for: dateReminder, status: .active)?.id, "mark-done")
         XCTAssertEqual(ReminderDetailActionPolicy.lifecycleAction(for: dateReminder, status: .expired)?.id, "let-rest")
         XCTAssertNil(ReminderDetailActionPolicy.lifecycleAction(for: inactiveReminder, status: .inactive))
-        XCTAssertEqual(ReminderDetailActionPolicy.dateAction(for: inactiveReminder, status: .inactive)?.sheet, .reschedule)
+        XCTAssertEqual(
+            ReminderDetailActionPolicy.dateAction(for: inactiveReminder, status: .inactive)?.sheet,
+            .reschedule
+        )
         XCTAssertEqual(ReminderDetailActionPolicy.dateAction(for: windowReminder, status: .active)?.sheet, .endDate)
         XCTAssertNil(ReminderDetailActionPolicy.dateAction(for: windowReminder, status: .inactive))
+    }
+
+    func testReminderDetailActionPolicyPreservesAvailabilityMatrices() throws {
+        let start = try XCTUnwrap(ExtractionService.parseDate("2027-03-15"))
+        let end = try XCTUnwrap(ExtractionService.parseDate("2027-03-22"))
+        let dateReminder = LedgerRule(
+            title: "Replace air filters",
+            ruleType: .reminder,
+            continuityBehavior: .dateBasedReminder,
+            startsAt: start,
+            createdAt: fixedTestNow
+        )
+        let windowReminder = LedgerRule(
+            title: "Submit rebate",
+            ruleType: .reminder,
+            continuityBehavior: .timeLimitedWindow,
+            startsAt: start,
+            expiresAt: end,
+            createdAt: fixedTestNow
+        )
+        let ongoingWithEnd = LedgerRule(
+            title: "Carry gym bag",
+            ruleType: .reminder,
+            continuityBehavior: .ongoing,
+            startsAt: start,
+            expiresAt: end,
+            createdAt: fixedTestNow
+        )
+        let ongoingWithoutEnd = LedgerRule(
+            title: "Carry gym bag",
+            ruleType: .reminder,
+            continuityBehavior: .ongoing,
+            startsAt: start,
+            createdAt: fixedTestNow
+        )
+        let recurringReminder = LedgerRule(
+            title: "Check filters monthly",
+            ruleType: .reminder,
+            continuityBehavior: .recurringText,
+            rawText: "Check filters every month",
+            startsAt: start,
+            createdAt: fixedTestNow
+        )
+
+        for status in RuleStatus.allCases {
+            XCTAssertEqual(ReminderDetailActionPolicy.dateAction(for: dateReminder, status: status)?.sheet, .reschedule)
+            XCTAssertNil(ReminderDetailActionPolicy.dateAction(for: ongoingWithoutEnd, status: status))
+            XCTAssertNil(ReminderDetailActionPolicy.dateAction(for: recurringReminder, status: status))
+        }
+        for status in [RuleStatus.scheduled, .active, .expired] {
+            XCTAssertEqual(ReminderDetailActionPolicy.dateAction(for: windowReminder, status: status)?.sheet, .endDate)
+            XCTAssertEqual(ReminderDetailActionPolicy.dateAction(for: ongoingWithEnd, status: status)?.sheet, .endDate)
+        }
+        XCTAssertNil(ReminderDetailActionPolicy.dateAction(for: windowReminder, status: .inactive))
+        XCTAssertNil(ReminderDetailActionPolicy.dateAction(for: ongoingWithEnd, status: .inactive))
+
+        assertLifecycleAction(dateReminder, status: .scheduled, title: "Stop Carrying")
+        assertLifecycleAction(dateReminder, status: .active, title: "Mark Done")
+        assertLifecycleAction(dateReminder, status: .expired, title: "Let It Rest")
+        assertLifecycleAction(windowReminder, status: .scheduled, title: "Cancel Window")
+        assertLifecycleAction(windowReminder, status: .active, title: "Close Window")
+        assertLifecycleAction(windowReminder, status: .expired, title: "Let Window Rest")
+        assertLifecycleAction(ongoingWithEnd, status: .scheduled, title: "Stop Carrying")
+        assertLifecycleAction(ongoingWithEnd, status: .active, title: "Stop Carrying")
+        assertLifecycleAction(ongoingWithEnd, status: .expired, title: "Let It Rest")
+        assertLifecycleAction(recurringReminder, status: .scheduled, title: "Pause Pattern")
+        assertLifecycleAction(recurringReminder, status: .active, title: "Pause Pattern")
+        assertLifecycleAction(recurringReminder, status: .expired, title: "Let Pattern Rest")
+        for rule in [dateReminder, windowReminder, ongoingWithEnd, recurringReminder] {
+            XCTAssertNil(ReminderDetailActionPolicy.lifecycleAction(for: rule, status: .inactive))
+        }
+    }
+
+    func testReminderDetailRegularActionsUseAvailabilityAndConstrainedSheets() throws {
+        let detailSource = try sourceFile("LifeOrganize/Features/Rules/RuleDetailView.swift")
+        XCTAssertTrue(detailSource.contains("horizontalSizeClass == .regular && hasSummaryActions"))
+        XCTAssertTrue(detailSource.contains("summaryPresentation.actionSentence != nil && hasSummaryActions"))
+        XCTAssertTrue(detailSource.contains("private var regularSummaryActionBar"))
+        XCTAssertTrue(detailSource.contains("lifecycleAction = availableLifecycleAction"))
+
+        let actionSource = try sourceFile("LifeOrganize/Features/Rules/ReminderDetailActions.swift")
+        XCTAssertTrue(actionSource.contains(".ledgerAdaptiveWidth(.sheet)"))
     }
 
     func testReminderEditValidationBlocksContradictoryDateRanges() throws {
@@ -190,5 +290,25 @@ final class ReminderDetailActionTests: XCTestCase {
         XCTAssertEqual(valid.statusTone, .neutral)
         XCTAssertEqual(invalid.statusMessage, "Choose a date after the current end date.")
         XCTAssertEqual(invalid.statusTone, .danger)
+    }
+
+    private func sourceFile(_ relativePath: String) throws -> String {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        return try String(contentsOf: root.appendingPathComponent(relativePath), encoding: .utf8)
+    }
+
+    private func assertLifecycleAction(
+        _ rule: LedgerRule,
+        status: RuleStatus,
+        title: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(
+            ReminderDetailActionPolicy.lifecycleAction(for: rule, status: status)?.title,
+            title,
+            file: file,
+            line: line
+        )
     }
 }

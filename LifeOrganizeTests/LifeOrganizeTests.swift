@@ -12,6 +12,77 @@ final class LifeOrganizeTests: XCTestCase {
         XCTAssertEqual(AppTab.allCases.map(\.title), ["Timeline", "Things", "Carry Forward"])
     }
 
+    func testCompactShellPreservesPrimaryTabOrder() {
+        XCTAssertEqual(CompactRootShell.tabOrder, [.log, .things, .rules])
+        XCTAssertEqual(CompactRootShell.tabOrder.map(\.title), ["Timeline", "Things", "Carry Forward"])
+    }
+
+    func testRegularShellPromotesUtilitiesToRootSections() {
+        XCTAssertEqual(
+            RegularRootShell.sectionOrder,
+            [.timeline, .things, .carryForward, .search, .review, .settings]
+        )
+        XCTAssertEqual(
+            RegularRootShell.sectionOrder.map(\.title),
+            ["Timeline", "Things", "Carry Forward", "Search", "Review", "Settings"]
+        )
+    }
+
+    func testRegularShellHidesReviewSectionWhenNoReviewItemsAreAmbient() {
+        let state = AppToolbarState(openReviewItemCount: 0)
+
+        XCTAssertEqual(
+            RegularRootShell.sectionOrder(for: state),
+            [.timeline, .things, .carryForward, .search, .settings]
+        )
+        XCTAssertEqual(RegularRootShell.validSelection(.review, toolbarState: state), .timeline)
+    }
+
+    func testRegularShellShowsReviewSectionWhenReviewItemsAreAmbient() {
+        let state = AppToolbarState(openReviewItemCount: 2)
+
+        XCTAssertEqual(
+            RegularRootShell.sectionOrder(for: state),
+            [.timeline, .things, .carryForward, .search, .review, .settings]
+        )
+        XCTAssertEqual(RegularRootShell.validSelection(.review, toolbarState: state), .review)
+    }
+
+    func testPrimaryTabsBridgeToRegularSections() {
+        XCTAssertEqual(AppTab.log.section, .timeline)
+        XCTAssertEqual(AppTab.things.section, .things)
+        XCTAssertEqual(AppTab.rules.section, .carryForward)
+        XCTAssertEqual(AppTab(section: .timeline), .log)
+        XCTAssertEqual(AppTab(section: .things), .things)
+        XCTAssertEqual(AppTab(section: .carryForward), .rules)
+        XCTAssertNil(AppTab(section: .search))
+        XCTAssertNil(AppTab(section: .review))
+        XCTAssertNil(AppTab(section: .settings))
+    }
+
+    func testAppSectionArgumentAliasesCoverRootDestinations() {
+        XCTAssertEqual(AppSection(argumentValue: "timeline"), .timeline)
+        XCTAssertEqual(AppSection(argumentValue: "log"), .timeline)
+        XCTAssertEqual(AppSection(argumentValue: "things"), .things)
+        XCTAssertEqual(AppSection(argumentValue: "carry_forward"), .carryForward)
+        XCTAssertEqual(AppSection(argumentValue: "carry-forward"), .carryForward)
+        XCTAssertEqual(AppSection(argumentValue: "rules"), .carryForward)
+        XCTAssertEqual(AppSection(argumentValue: "search"), .search)
+        XCTAssertEqual(AppSection(argumentValue: "review_queue"), .review)
+        XCTAssertEqual(AppSection(argumentValue: "settings"), .settings)
+        XCTAssertNil(AppSection(argumentValue: "calendar"))
+    }
+
+    func testInitialTabArgumentAliasesMapToCurrentPrimaryTabs() {
+        XCTAssertEqual(AppTab(argumentValue: "timeline"), .log)
+        XCTAssertEqual(AppTab(argumentValue: "log"), .log)
+        XCTAssertEqual(AppTab(argumentValue: "things"), .things)
+        XCTAssertEqual(AppTab(argumentValue: "carry_forward"), .rules)
+        XCTAssertEqual(AppTab(argumentValue: "carry-forward"), .rules)
+        XCTAssertEqual(AppTab(argumentValue: "rules"), .rules)
+        XCTAssertNil(AppTab(argumentValue: "settings"))
+    }
+
     func testAppShellAvoidsOutOfScopePrimaryTabLabels() {
         let forbiddenLabels = [
             "Dashboard",

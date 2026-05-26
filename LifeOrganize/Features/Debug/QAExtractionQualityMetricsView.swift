@@ -33,6 +33,7 @@ struct QAExtractionQualityMetricsView: View {
                 Text("Internal proxy metrics from local records and deterministic fixtures. These are not ground-truth precision, recall, or user analytics.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                    .frame(maxWidth: LedgerAdaptiveLayout.Width.debugDetailMax, alignment: .leading)
             }
 
             if let errorText {
@@ -40,6 +41,7 @@ struct QAExtractionQualityMetricsView: View {
                     Text(errorText)
                         .font(.footnote)
                         .foregroundStyle(.red)
+                        .frame(maxWidth: LedgerAdaptiveLayout.Width.debugDetailMax, alignment: .leading)
                 }
             }
 

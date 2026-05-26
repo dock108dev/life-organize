@@ -339,7 +339,7 @@ final class TemporalAmbiguityMatrixTests: XCTestCase {
     }
 
     private func modelError(code: String, message: String, sourceText: String) -> String {
-        #"{"code":"\#(code)","message":"\#(message)","severity":"warning","sourceText":\#(jsonLiteral(sourceText))}"#
+        #"{"code":"\#(code)","message":"\#(message)","severity":"warning","sourceText":\#(DeterministicFixtureJSON.literal(sourceText))}"#
     }
 
     private static let matrixTimeZone = TimeZone(identifier: "America/New_York")!

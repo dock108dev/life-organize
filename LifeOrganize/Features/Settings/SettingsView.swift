@@ -8,6 +8,8 @@ struct SettingsView: View {
     @EnvironmentObject private var developerModeState: DeveloperModeState
 
     let deviceTokenStore: any DeviceTokenStore
+    let showsDoneButton: Bool
+    let embedsNavigationStack: Bool
     let onLocalDataCleared: () -> Void
 
     @State private var savedTokenDescription: String?
@@ -17,47 +19,64 @@ struct SettingsView: View {
     @State private var isShowingClearDataSheet = false
     @State private var clearDataFlow = SettingsClearDataFlow()
     @State private var clearDataConfirmationText = ""
-    @State private var exportShareItem: ExportShareItem?
+    @State private var settingsExportShareItem: ExportShareItem?
+    @State private var clearDataExportShareItem: ExportShareItem?
     @State private var isShowingExportFailure = false
+    @State private var activeDeveloperDestination: SettingsDeveloperDestination?
 
     init(
         deviceTokenStore: any DeviceTokenStore = KeychainDeviceTokenStore(),
+        showsDoneButton: Bool = true,
+        embedsNavigationStack: Bool = true,
         onLocalDataCleared: @escaping () -> Void = {}
     ) {
         self.deviceTokenStore = deviceTokenStore
+        self.showsDoneButton = showsDoneButton
+        self.embedsNavigationStack = embedsNavigationStack
         self.onLocalDataCleared = onLocalDataCleared
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    header
-                    feedbackNotice
-                    missingTokenNotice
-
-                    settingsDivider
-                    deviceTokenSection
-                    settingsDivider
-                    exportSection
-                    settingsDivider
-                    clearDataSection
-
-                    if Self.showsDeveloperDiagnostics(for: developerModeState.policy) {
-                        settingsDivider
-                        developerDiagnosticsSection
-                    }
-
-                    settingsDivider
-                    versionFooter
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 18)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        if embedsNavigationStack {
+            NavigationStack {
+                settingsContent
             }
-            .background(LedgerScreenBackground().ignoresSafeArea())
-            .navigationTitle("Settings")
-            .toolbar {
+        } else {
+            settingsContent
+        }
+    }
+
+    private var settingsContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                header
+                feedbackNotice
+                missingTokenNotice
+
+                settingsDivider
+                deviceTokenSection
+                settingsDivider
+                exportSection
+                settingsDivider
+                clearDataSection
+
+                if Self.showsDeveloperDiagnostics(for: developerModeState.policy) {
+                    settingsDivider
+                    developerDiagnosticsSection
+                }
+
+                settingsDivider
+                versionFooter
+            }
+            .frame(maxWidth: LedgerAdaptiveLayout.Width.formMax, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.horizontal, LedgerAdaptiveLayout.Gutter.regular)
+            .padding(.vertical, 18)
+        }
+        .background(LedgerScreenBackground().ignoresSafeArea())
+        .navigationTitle("Settings")
+        .toolbar {
+            if showsDoneButton {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         dismiss()
@@ -65,56 +84,61 @@ struct SettingsView: View {
                     .accessibilityIdentifier("settings-done-button")
                 }
             }
-            .task {
-                reloadSavedTokenState()
+        }
+        .task {
+            reloadSavedTokenState()
+        }
+        .navigationDestination(item: $activeDeveloperDestination) { destination in
+            developerDestinationView(for: destination)
+        }
+        .confirmationDialog(
+            "Reset service token?",
+            isPresented: $isShowingResetTokenConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Reset service token", role: .destructive) {
+                deleteDeviceToken()
             }
-            .confirmationDialog(
-                "Reset service token?",
-                isPresented: $isShowingResetTokenConfirmation,
-                titleVisibility: .visible
-            ) {
-                Button("Reset service token", role: .destructive) {
-                    deleteDeviceToken()
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("New entries will still be saved locally. The app will create a new token next time.")
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("New entries will still be saved locally. The app will create a new token next time.")
+        }
+        .confirmationDialog(
+            "Clear local data?",
+            isPresented: $isShowingClearDataConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Continue", role: .destructive) {
+                clearDataConfirmationText = ""
+                clearDataFlow = SettingsClearDataFlow()
+                clearDataExportShareItem = nil
+                isShowingClearDataSheet = true
             }
-            .confirmationDialog(
-                "Clear local data?",
-                isPresented: $isShowingClearDataConfirmation,
-                titleVisibility: .visible
-            ) {
-                Button("Continue", role: .destructive) {
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("\(SettingsTrustCopy.clearDeletes) \(SettingsTrustCopy.clearKeeps) This cannot be undone.")
+        }
+        .sheet(isPresented: $isShowingClearDataSheet) {
+            SettingsClearDataSheet(
+                flow: $clearDataFlow,
+                confirmationText: $clearDataConfirmationText,
+                exportShareItem: $clearDataExportShareItem,
+                onCancel: {
                     clearDataConfirmationText = ""
-                    clearDataFlow = SettingsClearDataFlow()
-                    isShowingClearDataSheet = true
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("\(SettingsTrustCopy.clearDeletes) \(SettingsTrustCopy.clearKeeps) This cannot be undone.")
-            }
-            .sheet(isPresented: $isShowingClearDataSheet) {
-                SettingsClearDataSheet(
-                    flow: $clearDataFlow,
-                    confirmationText: $clearDataConfirmationText,
-                    exportShareItem: $exportShareItem,
-                    onCancel: {
-                        clearDataConfirmationText = ""
-                        isShowingClearDataSheet = false
-                    },
-                    onExport: exportLocalJSONFromClearFlow,
-                    onClear: clearLocalData
-                )
-            }
-            .sheet(item: $exportShareItem) { item in
-                ShareSheet(activityItems: [item.url])
-            }
-            .alert("Export failed.", isPresented: $isShowingExportFailure) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(SettingsFeedback.exportFailed.message)
-            }
+                    clearDataExportShareItem = nil
+                    isShowingClearDataSheet = false
+                },
+                onExport: exportLocalJSONFromClearFlow,
+                onClear: clearLocalData
+            )
+        }
+        .sheet(item: $settingsExportShareItem) { item in
+            ShareSheet(activityItems: [item.url])
+        }
+        .alert("Export failed.", isPresented: $isShowingExportFailure) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(SettingsFeedback.exportFailed.message)
         }
     }
 
@@ -131,17 +155,10 @@ struct SettingsView: View {
 
     @ViewBuilder private var missingTokenNotice: some View {
         if savedTokenDescription == nil {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(LedgerEmptyStateContent.settingsNoDeviceToken.title)
-                    .font(.subheadline.weight(.semibold))
-
-                LedgerNoticeBanner(
-                    icon: "wifi.exclamationmark",
-                    message: LedgerEmptyStateContent.settingsNoDeviceToken.body,
-                    actionTitle: "Prepare Service",
-                    accessibilityIdentifier: "settings-no-device-token",
-                    action: prepareServiceToken
-                )
+            LedgerEmptyStateView(content: .settingsNoDeviceToken) {
+                Button("Prepare Service", action: prepareServiceToken)
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("settings-no-device-token")
             }
         }
     }
@@ -255,23 +272,26 @@ struct SettingsView: View {
                 .foregroundStyle(.secondary)
 
             VStack(alignment: .leading, spacing: 8) {
-                NavigationLink {
-                    ExtractionDebugListView(deviceTokenStore: deviceTokenStore)
+                Button {
+                    activeDeveloperDestination = .extractionAttempts
                 } label: {
                     Label("Extraction Attempts", systemImage: "list.bullet.rectangle")
                 }
+                .buttonStyle(.plain)
 
-                NavigationLink {
-                    ExtractionDebugListView(deviceTokenStore: deviceTokenStore, initialFilter: .failed)
+                Button {
+                    activeDeveloperDestination = .failedExtractions
                 } label: {
                     Label("Failed Extractions", systemImage: "exclamationmark.triangle")
                 }
+                .buttonStyle(.plain)
 
-                NavigationLink {
-                    InternalQALabView(deviceTokenStore: deviceTokenStore)
+                Button {
+                    activeDeveloperDestination = .internalQALab
                 } label: {
                     Label("Internal QA Lab", systemImage: "testtube.2")
                 }
+                .buttonStyle(.plain)
             }
 
             Button("Lock Developer Mode") {
@@ -307,12 +327,19 @@ struct SettingsView: View {
             VStack(spacing: 4) {
                 Text("LifeOrganize \(appVersionDescription)")
                     .font(.footnote)
+                    .contentShape(Rectangle())
+                    .accessibilityIdentifier("settings-version-footer")
+                    .onTapGesture {
+                        if AppRuntimeConfiguration.current.isAutomationRuntime {
+                            developerModeState.unlock()
+                        }
+                    }
+                    .onLongPressGesture {
+                        developerModeState.unlock()
+                    }
             }
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity)
-            .onLongPressGesture {
-                developerModeState.unlock()
-            }
         }
     }
 
@@ -374,6 +401,7 @@ extension SettingsView {
             sessionState.reloadAfterLocalDataClear()
             clearDataConfirmationText = ""
             clearDataFlow = SettingsClearDataFlow()
+            clearDataExportShareItem = nil
             isShowingClearDataSheet = false
             feedback = .localDataCleared
             onLocalDataCleared()
@@ -385,7 +413,7 @@ extension SettingsView {
     private func exportLocalJSON() {
         do {
             let url = try LocalJSONExportService(modelContext: modelContext).writeExportFile()
-            exportShareItem = ExportShareItem(url: url)
+            settingsExportShareItem = ExportShareItem(url: url)
             feedback = .exportReady
         } catch {
             feedback = .exportFailed
@@ -396,7 +424,7 @@ extension SettingsView {
     private func exportLocalJSONFromClearFlow() {
         do {
             let url = try LocalJSONExportService(modelContext: modelContext).writeExportFile()
-            exportShareItem = ExportShareItem(url: url)
+            clearDataExportShareItem = ExportShareItem(url: url)
             clearDataFlow.exportSucceeded()
             feedback = .exportReady
         } catch {
@@ -414,5 +442,27 @@ extension SettingsView {
 
     static func showsDeveloperDiagnostics(for policy: DebugAccessPolicy) -> Bool {
         policy.allowsExtractionDebugScreens
+    }
+}
+
+private enum SettingsDeveloperDestination: Identifiable {
+    case extractionAttempts
+    case failedExtractions
+    case internalQALab
+
+    var id: Self { self }
+}
+
+private extension SettingsView {
+    @ViewBuilder
+    func developerDestinationView(for destination: SettingsDeveloperDestination) -> some View {
+        switch destination {
+        case .extractionAttempts:
+            ExtractionDebugListView(deviceTokenStore: deviceTokenStore)
+        case .failedExtractions:
+            ExtractionDebugListView(deviceTokenStore: deviceTokenStore, initialFilter: .failed)
+        case .internalQALab:
+            InternalQALabView(deviceTokenStore: deviceTokenStore)
+        }
     }
 }

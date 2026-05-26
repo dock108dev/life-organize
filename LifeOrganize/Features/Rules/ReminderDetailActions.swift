@@ -21,6 +21,17 @@ enum RuleDetailSheet: Identifiable, Equatable {
 struct ReminderDateAction: Equatable {
     let title: String
     let sheet: RuleDetailSheet
+
+    var systemImage: String {
+        switch sheet {
+        case .reschedule:
+            "calendar.badge.clock"
+        case .endDate:
+            title == "Extend Window" ? "calendar.badge.plus" : "calendar"
+        case .edit:
+            "calendar"
+        }
+    }
 }
 
 struct ReminderLifecycleAction: Identifiable, Equatable {
@@ -29,6 +40,23 @@ struct ReminderLifecycleAction: Identifiable, Equatable {
     let dialogTitle: String
     let message: String
     let errorMessage: String
+
+    var systemImage: String {
+        switch title {
+        case "Mark Done":
+            "checkmark.circle"
+        case "Stop Carrying", "Cancel Window":
+            "xmark.circle"
+        case "Close Window":
+            "rectangle.badge.xmark"
+        case "Pause Pattern":
+            "pause.circle"
+        case "Let It Rest", "Let Window Rest", "Let Pattern Rest":
+            "moon"
+        default:
+            "xmark.circle"
+        }
+    }
 }
 
 enum ReminderDetailActionPolicy {
@@ -414,7 +442,7 @@ private struct ReminderEditSheetSurface<Content: View>: View {
                 content
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal)
+            .ledgerAdaptiveWidth(.sheet)
             .padding(.vertical, 18)
         }
         .background(Color(.systemBackground))

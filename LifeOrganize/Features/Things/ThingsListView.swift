@@ -9,11 +9,23 @@ struct ThingsListView: View {
     @Query(sort: \LedgerReviewItem.updatedAt, order: .reverse) private var reviewItems: [LedgerReviewItem]
     @State private var searchText = ""
     @State private var isAddingThing = false
+    @State private var activeThingRoute: ThingDetailRoute?
     @State private var reviewItemErrorMessage: String?
     @AppStorage("ledger.context.things.dismissed") private var isThingsContextDismissed = false
+    @Binding private var selectedThingID: UUID?
+    let presentsSelectionInPlace: Bool
+    let onVisibleThingIDsChange: ([UUID]) -> Void
     let onOpenLog: () -> Void
 
-    init(onOpenLog: @escaping () -> Void = {}) {
+    init(
+        selectedThingID: Binding<UUID?> = .constant(nil),
+        presentsSelectionInPlace: Bool = false,
+        onVisibleThingIDsChange: @escaping ([UUID]) -> Void = { _ in },
+        onOpenLog: @escaping () -> Void = {}
+    ) {
+        self._selectedThingID = selectedThingID
+        self.presentsSelectionInPlace = presentsSelectionInPlace
+        self.onVisibleThingIDsChange = onVisibleThingIDsChange
         self.onOpenLog = onOpenLog
     }
 
@@ -24,21 +36,14 @@ struct ThingsListView: View {
     static let localSearchScopes: Set<LocalSearchEntityKind> = [.thing]
 
     private var sortedThings: [Thing] {
-        things.sorted { lhs, rhs in
-            switch (lhs.lastEventAt, rhs.lastEventAt) {
-            case let (left?, right?) where left != right:
-                return left > right
-            case (_?, nil):
-                return true
-            case (nil, _?):
-                return false
-            default:
-                if lhs.updatedAt != rhs.updatedAt {
-                    return lhs.updatedAt > rhs.updatedAt
-                }
-                return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
-            }
+        ThingListOrdering.sorted(things)
+    }
+
+    private var visibleThingIDs: [UUID] {
+        if isSearching {
+            return searchResults.compactMap(\.thingDetailID)
         }
+        return sortedThings.map(\.id)
     }
 
     var body: some View {
@@ -69,22 +74,15 @@ struct ThingsListView: View {
                     }
 
                     ForEach(sortedThings) { thing in
-                        let reviewPresentation = reviewPresentation(for: thing)
-                        NavigationLink {
-                            ThingDetailView(thing: thing)
-                        } label: {
-                            ThingRow(
-                                thing: thing,
-                                reviewPresentation: reviewPresentation,
-                                relatedRules: relatedRules(for: thing),
-                                sourceMessages: sourceMessages(for: thing)
-                            )
-                        }
+                        thingRowLink(for: thing)
                         .accessibilityIdentifier("thing-row-\(thing.id.uuidString)")
                         .listRowInsets(EdgeInsets(top: 5, leading: 12, bottom: 5, trailing: 12))
                         .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .ledgerReviewItemContextMenu(reviewPresentation?.item, onError: { reviewItemErrorMessage = $0 })
+                        .listRowBackground(rowBackground(for: thing))
+                        .ledgerReviewItemContextMenu(
+                            reviewPresentation(for: thing)?.item,
+                            onError: { reviewItemErrorMessage = $0 }
+                        )
                     }
                 }
                 .listStyle(.plain)
@@ -106,11 +104,23 @@ struct ThingsListView: View {
                 ThingEditView(existingThing: nil) { thing in
                     modelContext.insert(thing)
                     try modelContext.save()
+                    selectedThingID = thing.id
                 }
             }
         }
         .navigationDestination(for: LocalSearchResult.self) { result in
             searchDestination(for: result)
+        }
+        .navigationDestination(item: $activeThingRoute) { route in
+            if let thing = things.first(where: { $0.id == route.id }) {
+                ThingDetailView(thing: thing)
+            } else {
+                MissingThingSelectionView()
+            }
+        }
+        .onAppear(perform: reportVisibleThingIDs)
+        .onChange(of: visibleThingIDs) { _, _ in
+            reportVisibleThingIDs()
         }
         .alert(
             "Couldn't Update Review Item",
@@ -141,7 +151,11 @@ struct ThingsListView: View {
 
     @ViewBuilder
     private var searchResultsView: some View {
-        LedgerSearchResultsList(results: searchResults, emptyContent: .noThingSearchResults)
+        LedgerSearchResultsList(
+            results: searchResults,
+            emptyContent: .noThingSearchResults,
+            onSelect: presentsSelectionInPlace ? { selectSearchResult($0) } : nil
+        )
     }
 
     private func searchDestination(for result: LocalSearchResult) -> some View {
@@ -174,6 +188,61 @@ struct ThingsListView: View {
     private func sourceMessages(for thing: Thing) -> [ChatMessage] {
         let sourceIDs = Set(thing.sourceMessageIDs)
         return messages.filter { sourceIDs.contains($0.id) }
+    }
+
+    @ViewBuilder
+    private func thingRowLink(for thing: Thing) -> some View {
+        let row = ThingRow(
+            thing: thing,
+            reviewPresentation: reviewPresentation(for: thing),
+            relatedRules: relatedRules(for: thing),
+            sourceMessages: sourceMessages(for: thing)
+        )
+
+        if presentsSelectionInPlace {
+            Button {
+                selectedThingID = thing.id
+            } label: {
+                row
+            }
+            .buttonStyle(.plain)
+        } else {
+            Button {
+                selectedThingID = thing.id
+                activeThingRoute = ThingDetailRoute(id: thing.id)
+            } label: {
+                row
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func rowBackground(for thing: Thing) -> Color {
+        presentsSelectionInPlace && selectedThingID == thing.id
+            ? LedgerPalette.accent.opacity(0.10)
+            : Color.clear
+    }
+
+    private func selectSearchResult(_ result: LocalSearchResult) {
+        guard let thingID = result.thingDetailID else { return }
+        selectedThingID = thingID
+    }
+
+    private func reportVisibleThingIDs() {
+        onVisibleThingIDsChange(visibleThingIDs)
+    }
+}
+
+private struct ThingDetailRoute: Identifiable, Hashable {
+    let id: UUID
+}
+
+private extension LocalSearchResult {
+    var thingDetailID: UUID? {
+        if case .thingDetail(let id) = navigationTarget {
+            return id
+        }
+        return nil
     }
 }
 

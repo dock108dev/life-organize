@@ -24,6 +24,7 @@ struct ChatMessageExtractionDebugView: View {
                         Text(message.text)
                             .font(.footnote)
                             .textSelection(.enabled)
+                            .frame(maxWidth: LedgerAdaptiveLayout.Width.debugDetailMax, alignment: .leading)
                     }
 
                     Section("Retry State") {
@@ -58,6 +59,7 @@ struct ChatMessageExtractionDebugView: View {
                                         .font(.system(.caption2, design: .monospaced))
                                         .foregroundStyle(.secondary)
                                 }
+                                .frame(maxWidth: LedgerAdaptiveLayout.Width.debugListMax, alignment: .leading)
                             }
                         }
                     }

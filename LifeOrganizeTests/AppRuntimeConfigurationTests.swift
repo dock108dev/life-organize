@@ -252,6 +252,7 @@ final class AppRuntimeConfigurationTests: XCTestCase {
 
         XCTAssertEqual(configuration.seedScenarioIDs, ["timeline_search"])
         XCTAssertEqual(configuration.initialTab, .log)
+        XCTAssertEqual(configuration.initialSection, .search)
         XCTAssertEqual(configuration.initialSheet, .search)
         XCTAssertEqual(configuration.screenshotSearchQuery, "oil")
         XCTAssertEqual(configuration.screenshotLocale?.identifier, "en_US")
@@ -260,6 +261,41 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         XCTAssertEqual(configuration.screenshotCalendar?.timeZone.identifier, "America/New_York")
         XCTAssertEqual(configuration.screenshotAppearance, .dark)
         XCTAssertNil(try configuration.deviceTokenStore().loadDeviceToken())
+    }
+
+    func testScreenshotStartsResolveToRootSectionsForAdaptiveShells() {
+        let cases: [(String, AppSection, AppInitialSheet?)] = [
+            ("timeline", .timeline, nil),
+            ("things", .things, nil),
+            ("carry-forward", .carryForward, nil),
+            ("search", .search, .search),
+            ("review", .review, .reviewQueue),
+            ("settings", .settings, .settings)
+        ]
+
+        for (start, expectedSection, expectedSheet) in cases {
+            let configuration = AppRuntimeConfiguration(arguments: [
+                "LifeOrganize",
+                "-screenshot-mode",
+                "-screenshot-start=\(start)"
+            ])
+
+            XCTAssertEqual(configuration.initialSection, expectedSection)
+            XCTAssertEqual(configuration.initialSheet, expectedSheet)
+        }
+    }
+
+    func testExplicitInitialTabCanStillCombineWithScreenshotUtilityStart() {
+        let configuration = AppRuntimeConfiguration(arguments: [
+            "LifeOrganize",
+            "-screenshot-mode",
+            "--initial-tab=things",
+            "-screenshot-start=search"
+        ])
+
+        XCTAssertEqual(configuration.initialTab, .things)
+        XCTAssertEqual(configuration.initialSection, .search)
+        XCTAssertEqual(configuration.initialSheet, .search)
     }
 
     func testScreenshotSeedCatalogCoversRequiredScenarioStates() {
@@ -299,6 +335,23 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         configuration.resetLaunchStateIfNeeded(defaults: defaults)
 
         XCTAssertFalse(defaults.bool(forKey: AppDefaultsKeys.developerModeUnlocked))
+    }
+
+    func testDeveloperModeUnlockArgumentIsAutomationOnly() {
+        let automationConfiguration = AppRuntimeConfiguration(arguments: [
+            "LifeOrganize",
+            "-ui-testing",
+            "-enable-developer-mode",
+            "-unlock-developer-mode"
+        ])
+        let productionConfiguration = AppRuntimeConfiguration(arguments: [
+            "LifeOrganize",
+            "-enable-developer-mode",
+            "-unlock-developer-mode"
+        ])
+
+        XCTAssertTrue(automationConfiguration.unlocksDeveloperMode)
+        XCTAssertFalse(productionConfiguration.unlocksDeveloperMode)
     }
 
     @MainActor

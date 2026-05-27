@@ -74,7 +74,8 @@ enum DateFormatting {
         let lowercased = text.lowercased()
         let temporalWords = [
             "today", "tonight", "tomorrow", "yesterday", "next", "last", "this",
-            "week", "weekend", "month", "year", "day", "due", "deadline", "until",
+            "week", "weeks", "weekend", "weekends", "month", "months", "year", "years",
+            "day", "days", "due", "deadline", "until", "ago", "later",
             "jan", "january", "feb", "february", "mar", "march", "apr", "april",
             "may", "jun", "june", "jul", "july", "aug", "august", "sep", "sept",
             "september", "oct", "october", "nov", "november", "dec", "december",

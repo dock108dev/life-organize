@@ -57,6 +57,10 @@ class VerifyScriptContractTests(unittest.TestCase):
         self.assertIn("IOS_SKIP_COVERAGE_GATE", text)
         self.assertIn("ios_static_layout_guard.py", text)
         self.assertLess(text.index("ios_static_layout_guard.py"), text.index("xcodebuild test"))
+        self.assertIn("xcodebuild_result_bundle_passed", text)
+        self.assertIn("xcresulttool get test-results summary", text)
+        self.assertIn("xcresulttool get build-results", text)
+        self.assertIn("xcodebuild exited", text)
         self.assertIn("ios_coverage_gate.py", text)
 
     def test_ios_static_layout_guard_contract(self):

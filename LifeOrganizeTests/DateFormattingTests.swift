@@ -42,4 +42,10 @@ final class DateFormattingTests: XCTestCase {
             "Dec 31, 2026-Jan 1, 2027"
         )
     }
+
+    func testTemporalCueDetectionCoversRelativePluralDurations() {
+        XCTAssertTrue(DateFormatting.containsExplicitTemporalCue("Replace air filters in 2 months"))
+        XCTAssertTrue(DateFormatting.containsExplicitTemporalCue("No buying domains for 30 days."))
+        XCTAssertFalse(DateFormatting.containsExplicitTemporalCue("Need to get hot knife"))
+    }
 }

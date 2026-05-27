@@ -23,7 +23,10 @@ final class ChatSendServiceTests: XCTestCase {
                                 occurredAt: isCorrection ? "2026-06-06" : "2026-05-30",
                                 rawText: text
                             )
-                        ]
+                        ],
+                        confidence: isCorrection
+                            ? #"{"overall":0.75,"requiresReview":true,"reasons":["possible_duplicate"]}"#
+                            : #"{"overall":0.95,"requiresReview":false,"reasons":[]}"#
                     )
                 )
             },
@@ -41,7 +44,11 @@ final class ChatSendServiceTests: XCTestCase {
         XCTAssertEqual(event.rawText, "Whoops next next weekend is Monaco")
         XCTAssertEqual(event.occurredAt, ExtractionService.parseDate("2026-06-06"))
         XCTAssertEqual(try context.fetch(FetchDescriptor<Thing>()).map(\.name), ["Monaco"])
-        XCTAssertFalse(try context.fetch(FetchDescriptor<LedgerReviewItem>()).contains { $0.kind == .duplicateThing })
+        let correctionMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first {
+            $0.text == "Whoops next next weekend is Monaco"
+        })
+        XCTAssertEqual(correctionMessage.extractionStatus, .succeeded)
+        XCTAssertTrue(try context.fetch(FetchDescriptor<LedgerReviewItem>()).isEmpty)
     }
 
     @MainActor

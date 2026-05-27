@@ -162,6 +162,7 @@ struct ChatSendService {
             let warningsRequiringReview = Self.warningsRequiringReview(envelope.warnings)
             let createdRecords = try createEntities(from: envelope, sourceMessage: message, attempt: attempt)
             let recallAnswer = try recallAnswer(from: envelope)
+            let resolvedCorrection = try updatedExistingRecord(in: attempt, sourceMessage: message)
             if !hasCreatedEntities(attempt), let recallAnswer {
                 message.extractionStatus = .notRequired
                 message.extractionError = nil
@@ -182,7 +183,7 @@ struct ChatSendService {
                     detail: warning.message,
                     normalizedJSON: ExtractionEnvelope.empty(warnings: envelope.warnings + [warning])
                 )
-            } else if warningsRequiringReview.isEmpty {
+            } else if warningsRequiringReview.isEmpty || resolvedCorrection {
                 message.extractionStatus = .succeeded
                 message.extractionError = nil
                 message.extractionErrorCode = nil

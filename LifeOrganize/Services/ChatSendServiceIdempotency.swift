@@ -70,6 +70,14 @@ extension ChatSendService {
             || !attempt.createdThingIDs.isEmpty
     }
 
+    func updatedExistingRecord(in attempt: ExtractionAttempt, sourceMessage: ChatMessage) throws -> Bool {
+        guard isCorrectionMessage(sourceMessage.text), !attempt.createdEventIDs.isEmpty else { return false }
+        let eventIDs = Set(attempt.createdEventIDs)
+        return try modelContext.fetch(FetchDescriptor<LedgerEvent>()).contains {
+            eventIDs.contains($0.id) && $0.sourceMessage?.id != sourceMessage.id
+        }
+    }
+
     @discardableResult
     func appendUnique(_ id: UUID, to ids: inout [UUID]) -> Bool {
         guard !ids.contains(id) else { return false }

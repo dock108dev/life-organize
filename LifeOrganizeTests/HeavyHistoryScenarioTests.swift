@@ -76,12 +76,12 @@ final class HeavyHistoryScenarioTests: XCTestCase {
 
         XCTAssertGreaterThanOrEqual(items.count, 500)
         XCTAssertEqual(items.count, 596)
-        XCTAssertEqual(sections.first?.group, .upcoming)
-        XCTAssertEqual(sections.first?.title, "Jul 4")
-        XCTAssertEqual(sections.last?.title, "Nov 23, 2025")
+        XCTAssertEqual(sections.first?.title, "Nov 23, 2025")
+        XCTAssertEqual(sections.last?.group, .upcoming)
+        XCTAssertEqual(sections.last?.title, "Jul 4")
         XCTAssertGreaterThanOrEqual(monthCount(in: sections, calendar: calendar), 7)
-        XCTAssertTrue(sections.adjacentPairs().allSatisfy { $0.0.day > $0.1.day })
-        XCTAssertTrue(items.adjacentPairs().allSatisfy { LedgerFeedItem.newestFirst($0.0, $0.1, calendar: calendar) })
+        XCTAssertTrue(sections.adjacentPairs().allSatisfy { $0.0.day < $0.1.day })
+        XCTAssertTrue(items.adjacentPairs().allSatisfy { LedgerFeedItem.chronological($0.0, $0.1, calendar: calendar) })
         XCTAssertTrue(items.adjacentPairs().contains { lhs, rhs in
             lhs.timelineDate == rhs.timelineDate && lhs.createdAt != rhs.createdAt
         })

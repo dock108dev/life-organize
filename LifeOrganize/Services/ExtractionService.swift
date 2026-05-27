@@ -65,12 +65,12 @@ enum ExtractionService {
         }
     }
 
-    static func parseDate(_ value: String) -> Date? {
+    static func parseDate(_ value: String, calendar: Calendar = .current) -> Date? {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let date = DateFormatting.parseDateOnly(trimmed) {
-            return date
+        if let date = DateFormatting.parseDateOnly(trimmed, calendar: calendar) {
+            return DateFormatting.normalizedDateOnly(date, calendar: calendar)
         }
-        if let date = parseYearMonth(trimmed) {
+        if let date = parseYearMonth(trimmed, calendar: calendar) {
             return date
         }
         return isoFormatter.date(from: trimmed)
@@ -329,7 +329,7 @@ enum ExtractionService {
         return DateFormatting.dateOnlyString(date, calendar: DateFormatting.utcGregorianCalendar, timeZone: DateFormatting.utcGregorianCalendar.timeZone)
     }
 
-    private static func parseYearMonth(_ value: String) -> Date? {
+    private static func parseYearMonth(_ value: String, calendar: Calendar) -> Date? {
         let parts = value.split(separator: "-")
         guard parts.count == 2,
               parts[0].count == 4,
@@ -339,7 +339,10 @@ enum ExtractionService {
               (1...12).contains(month) else {
             return nil
         }
-        return DateFormatting.utcGregorianCalendar.date(from: DateComponents(year: year, month: month, day: 1))
+        guard let date = calendar.date(from: DateComponents(year: year, month: month, day: 1)) else {
+            return nil
+        }
+        return DateFormatting.normalizedDateOnly(date, calendar: calendar)
     }
 
     private static let isoFormatter = ISO8601DateFormatter()

@@ -15,7 +15,65 @@ final class LedgerFeedProjectionTests: XCTestCase {
         XCTAssertEqual(grouping.group(for: try Self.date(2026, 6, 1, 12, calendar: calendar)), .upcoming)
     }
 
-    func testProjectionGroupsLedgerRecordsAndSortsNewestFirst() throws {
+    func testProjectionDisplaysLegacyUTCMidnightDateOnlyRecordsOnIntendedLocalDay() throws {
+        let calendar = Self.newYorkCalendar
+        let now = try Self.date(2026, 5, 26, 21, calendar: calendar)
+        let legacyHotKnife = LedgerRule(
+            title: "Get hot knife",
+            ruleType: .reminder,
+            rawText: "Get hot knife",
+            startsAt: try Self.utcDate(2026, 5, 26, 0),
+            createdAt: now
+        )
+        let legacyMonaco = LedgerEvent(
+            title: "Monaco next weekend",
+            occurredAt: try Self.utcDate(2026, 5, 30, 0),
+            rawText: "Monaco next weekend",
+            createdAt: now
+        )
+
+        let sections = LedgerFeedProjection(calendar: calendar, now: now).sections(
+            messages: [],
+            events: [legacyMonaco],
+            reminders: [legacyHotKnife],
+            notes: []
+        )
+
+        XCTAssertEqual(sections.map(\.title), ["Today", "May 30"])
+        XCTAssertEqual(sections.map(\.subtitle), ["Tue, May 26", "Upcoming · Saturday"])
+        XCTAssertEqual(sections.map(\.summary.timeRangeText), ["12:00 PM", "12:00 PM"])
+        XCTAssertEqual(sections[0].items.map(\.id), ["reminder-\(legacyHotKnife.id.uuidString)"])
+        XCTAssertEqual(sections[1].items.map(\.id), ["event-\(legacyMonaco.id.uuidString)"])
+    }
+
+    func testProjectionDisplaysUndatedLegacyReminderOnSourceMessageDay() throws {
+        let calendar = Self.newYorkCalendar
+        let now = try Self.date(2026, 5, 26, 21, calendar: calendar)
+        let sourceMessage = ChatMessage(role: .user, text: "Need to get hot knife", createdAt: now)
+        let staleReminder = LedgerRule(
+            title: "Get hot knife",
+            ruleType: .reminder,
+            rawText: sourceMessage.text,
+            startsAt: try Self.date(2026, 5, 25, 12, calendar: calendar),
+            createdAt: now,
+            sourceMessage: sourceMessage
+        )
+
+        let section = try XCTUnwrap(
+            LedgerFeedProjection(calendar: calendar, now: now).sections(
+                messages: [],
+                events: [],
+                reminders: [staleReminder],
+                notes: []
+            ).first
+        )
+
+        XCTAssertEqual(section.title, "Today")
+        XCTAssertEqual(section.subtitle, "Tue, May 26")
+        XCTAssertEqual(section.summary.timeRangeText, "12:00 PM")
+    }
+
+    func testProjectionGroupsLedgerRecordsWithTodayBetweenPastAndFuture() throws {
         let calendar = Self.newYorkCalendar
         let now = try Self.date(2026, 5, 21, 10, calendar: calendar)
         let createdEarly = try Self.date(2026, 5, 21, 8, calendar: calendar)
@@ -63,26 +121,28 @@ final class LedgerFeedProjectionTests: XCTestCase {
             notes: [note]
         )
 
-        XCTAssertEqual(sections.map(\.group), [.upcoming, .today, .yesterday, .thisWeek, .earlier])
-        XCTAssertEqual(sections.map(\.title), ["Jun 15", "Today", "Yesterday", "Monday", "May 10"])
+        XCTAssertEqual(sections.map(\.group), [.earlier, .thisWeek, .yesterday, .today, .upcoming])
+        XCTAssertEqual(sections.map(\.title), ["May 10", "Monday", "Yesterday", "Today", "Jun 15"])
         XCTAssertEqual(sections.map(\.subtitle), [
-            "Upcoming · Monday",
-            "Thu, May 21",
-            "Wed, May 20",
+            "Sunday",
             "May 18",
-            "Sunday"
+            "Wed, May 20",
+            "Thu, May 21",
+            "Upcoming · Monday"
         ])
         XCTAssertEqual(sections[0].items.map(\.id), [
+            "note-\(note.id.uuidString)"
+        ])
+        XCTAssertEqual(sections[1].items.map(\.id), ["event-\(thisWeekEvent.id.uuidString)"])
+        XCTAssertEqual(sections[2].items.map(\.id), ["event-\(yesterdayEvent.id.uuidString)"])
+        XCTAssertEqual(sections[3].items.map(\.id), [
+            LedgerFeedItem.messageID(for: olderMessage.id),
+            LedgerFeedItem.messageID(for: newerMessage.id),
+            "event-\(todayEvent.id.uuidString)",
+        ])
+        XCTAssertEqual(sections[4].items.map(\.id), [
             "reminder-\(reminder.id.uuidString)"
         ])
-        XCTAssertEqual(sections[1].items.map(\.id), [
-            "event-\(todayEvent.id.uuidString)",
-            LedgerFeedItem.messageID(for: newerMessage.id),
-            LedgerFeedItem.messageID(for: olderMessage.id)
-        ])
-        XCTAssertEqual(sections[2].items.map(\.id), ["event-\(yesterdayEvent.id.uuidString)"])
-        XCTAssertEqual(sections[3].items.map(\.id), ["event-\(thisWeekEvent.id.uuidString)"])
-        XCTAssertEqual(sections[4].items.map(\.id), ["note-\(note.id.uuidString)"])
     }
 
     func testFutureEventsAndRemindersUseUpcomingSection() throws {
@@ -118,20 +178,20 @@ final class LedgerFeedProjectionTests: XCTestCase {
         )
 
         XCTAssertEqual(sections.map(\.group), [.upcoming, .upcoming])
-        XCTAssertEqual(sections.map(\.title), ["Jun 20", "Jun 1"])
+        XCTAssertEqual(sections.map(\.title), ["Jun 1", "Jun 20"])
         XCTAssertEqual(sections[0].items.map(\.id), [
-            "reminder-\(futureReminder.id.uuidString)"
-        ])
-        XCTAssertEqual(sections[1].items.map(\.id), [
             "event-\(futureEvent.id.uuidString)"
         ])
+        XCTAssertEqual(sections[1].items.map(\.id), [
+            "reminder-\(futureReminder.id.uuidString)"
+        ])
         XCTAssertEqual(sections[0].summary.itemCountText, "1 item")
-        XCTAssertEqual(sections[0].summary.typeMixText, "1 reminder")
-        XCTAssertEqual(sections[1].summary.typeMixText, "1 event")
+        XCTAssertEqual(sections[0].summary.typeMixText, "1 event")
+        XCTAssertEqual(sections[1].summary.typeMixText, "1 reminder")
         XCTAssertFalse(sections.flatMap(\.items).containsReminder(distantReminder))
     }
 
-    func testBackfilledSameDayEventsSortByLedgerTimeBeforeCreationTime() throws {
+    func testBackfilledSameDayEventsSortChronologicallyByLedgerTimeBeforeCreationTime() throws {
         let calendar = Self.newYorkCalendar
         let now = try Self.date(2026, 5, 21, 22, calendar: calendar)
         let morningEvent = LedgerEvent(
@@ -155,8 +215,8 @@ final class LedgerFeedProjectionTests: XCTestCase {
         )
 
         XCTAssertEqual(items.map(\.id), [
-            "event-\(eveningEvent.id.uuidString)",
-            "event-\(morningEvent.id.uuidString)"
+            "event-\(morningEvent.id.uuidString)",
+            "event-\(eveningEvent.id.uuidString)"
         ])
     }
 
@@ -215,29 +275,21 @@ final class LedgerFeedProjectionTests: XCTestCase {
         )
         let olderNote = LedgerNote(text: "Storage unit code.", createdAt: try Self.date(2026, 5, 10, 17, calendar: calendar))
 
-        let section = try XCTUnwrap(
-            LedgerFeedProjection(calendar: calendar, now: now).sections(
-                messages: [],
-                events: [olderEvent],
-                reminders: [],
-                notes: [olderNote]
-            ).first
-        )
-
-        XCTAssertEqual(section.group, .earlier)
-        XCTAssertEqual(section.title, "May 10")
-        XCTAssertEqual(section.summary.timeRangeText, "5:00 PM")
-        XCTAssertEqual(section.summary.typeMixText, "1 note")
-
         let sections = LedgerFeedProjection(calendar: calendar, now: now).sections(
             messages: [],
             events: [olderEvent],
             reminders: [],
             notes: [olderNote]
         )
+        let section = try XCTUnwrap(sections.last)
 
-        XCTAssertEqual(sections.map(\.title), ["May 10", "May 1"])
-        XCTAssertEqual(sections.map(\.summary.typeMixText), ["1 note", "1 event"])
+        XCTAssertEqual(section.group, .earlier)
+        XCTAssertEqual(section.title, "May 10")
+        XCTAssertEqual(section.summary.timeRangeText, "5:00 PM")
+        XCTAssertEqual(section.summary.typeMixText, "1 note")
+
+        XCTAssertEqual(sections.map(\.title), ["May 1", "May 10"])
+        XCTAssertEqual(sections.map(\.summary.typeMixText), ["1 event", "1 note"])
     }
 
     func testDefaultTimelineVisibilityKeepsRecentDaysAndUpcomingOnly() throws {

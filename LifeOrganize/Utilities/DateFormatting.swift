@@ -32,6 +32,69 @@ enum DateFormatting {
         calendar.date(bySettingHour: 12, minute: 0, second: 0, of: date) ?? date
     }
 
+    static func normalizedLegacyUTCDateOnlyForDisplay(_ date: Date, calendar: Calendar = .current) -> Date {
+        let utcComponents = utcGregorianCalendar.dateComponents([.year, .month, .day, .hour, .minute, .second, .nanosecond], from: date)
+        guard utcComponents.hour == 0,
+              utcComponents.minute == 0,
+              utcComponents.second == 0,
+              utcComponents.nanosecond == 0,
+              let year = utcComponents.year,
+              let month = utcComponents.month,
+              let day = utcComponents.day else {
+            return date
+        }
+
+        var localComponents = DateComponents()
+        localComponents.calendar = calendar
+        localComponents.timeZone = calendar.timeZone
+        localComponents.year = year
+        localComponents.month = month
+        localComponents.day = day
+        localComponents.hour = 12
+        localComponents.minute = 0
+        localComponents.second = 0
+        return calendar.date(from: localComponents) ?? date
+    }
+
+    static func normalizedUndatedExtractionDateForDisplay(
+        _ date: Date,
+        sourceDate: Date,
+        contextText: String,
+        calendar: Calendar = .current
+    ) -> Date {
+        guard !containsExplicitTemporalCue(contextText),
+              isNormalizedDateOnly(date, calendar: calendar),
+              calendar.startOfDay(for: date) != calendar.startOfDay(for: sourceDate) else {
+            return date
+        }
+        return normalizedDateOnly(sourceDate, calendar: calendar)
+    }
+
+    static func containsExplicitTemporalCue(_ text: String) -> Bool {
+        let lowercased = text.lowercased()
+        let temporalWords = [
+            "today", "tonight", "tomorrow", "yesterday", "next", "last", "this",
+            "week", "weekend", "month", "year", "day", "due", "deadline", "until",
+            "jan", "january", "feb", "february", "mar", "march", "apr", "april",
+            "may", "jun", "june", "jul", "july", "aug", "august", "sep", "sept",
+            "september", "oct", "october", "nov", "november", "dec", "december",
+            "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+            "mon", "tue", "wed", "thu", "fri", "sat", "sun"
+        ]
+        if temporalWords.contains(where: { lowercased.range(of: "\\b\($0)\\b", options: .regularExpression) != nil }) {
+            return true
+        }
+        return lowercased.range(of: #"\b\d{1,2}([/-]\d{1,2}|:\d{2}| ?(am|pm))\b"#, options: .regularExpression) != nil
+    }
+
+    private static func isNormalizedDateOnly(_ date: Date, calendar: Calendar) -> Bool {
+        let components = calendar.dateComponents([.hour, .minute, .second, .nanosecond], from: date)
+        return components.hour == 12
+            && components.minute == 0
+            && components.second == 0
+            && components.nanosecond == 0
+    }
+
     static func dateOnlyString(
         _ date: Date,
         calendar: Calendar = .current,

@@ -208,7 +208,7 @@ private struct EventMetadataDraft: Identifiable {
         valueKind = entry.valueKind
         stringValue = entry.stringValue ?? ""
         numberValue = entry.numberValue
-        dateValue = entry.dateValue.flatMap(ExtractionService.parseDate) ?? DateFormatting.normalizedDateOnly(Date())
+        dateValue = entry.dateValue.flatMap { ExtractionService.parseDate($0) } ?? DateFormatting.normalizedDateOnly(Date())
         boolValue = entry.boolValue ?? false
         unit = entry.unit ?? ""
         sourceText = entry.sourceText ?? ""

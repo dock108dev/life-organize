@@ -85,9 +85,47 @@ extension ChatSendService {
                 rememberResolvedThing(thing, values: [thingName, extractedEvent.title])
             }
 
+            if let correctedEvent = try correctionTargetEvent(for: extractedEvent, thing: thing, sourceMessage: sourceMessage) {
+                let previousThing = correctedEvent.thing
+                correctedEvent.title = extractedEvent.title
+                correctedEvent.occurredAt = resolvedExtractionDate(
+                    extractedEvent.occurredAt,
+                    sourceMessage: sourceMessage,
+                    contextText: eventContextText
+                ) ?? correctedEvent.occurredAt
+                correctedEvent.rawText = extractedEvent.rawText?.nilIfEmpty ?? sourceMessage.text
+                correctedEvent.note = extractedEvent.note
+                correctedEvent.sourceClientID = extractedEvent.clientID
+                correctedEvent.sourceExtractionRunID = attempt.id
+                correctedEvent.eventType = LedgerEventType(rawValue: extractedEvent.eventType) ?? .other
+                correctedEvent.metadataEntries = metadataEntries(from: extractedEvent.metadata)
+                correctedEvent.updatedAt = dateProvider.now
+                if correctedEvent.thing == nil, let thing {
+                    try derivedFields.reassignEvent(correctedEvent, to: thing)
+                } else {
+                    try derivedFields.updateEvent(correctedEvent, previousThing: previousThing)
+                }
+                appendUnique(correctedEvent.id, to: &attempt.createdEventIDs)
+                createdRecords.events.append(correctedEvent)
+                siblingEntities.append((.event, correctedEvent.id))
+                try linkWriter.linkExtracted(message: sourceMessage, event: correctedEvent)
+                if let correctedThing = correctedEvent.thing {
+                    createdThingIDs.insert(correctedThing.id)
+                    correctedThing.updatedAt = dateProvider.now
+                    siblingEntities.append((.thing, correctedThing.id))
+                    try linkWriter.linkMessage(sourceMessage, mentions: correctedThing)
+                    try linkWriter.linkPrimary(event: correctedEvent, thing: correctedThing, sourceMessage: sourceMessage)
+                }
+                continue
+            }
+
             let event = LedgerEvent(
                 title: extractedEvent.title,
-                occurredAt: ExtractionService.parseDate(extractedEvent.occurredAt) ?? sourceMessage.createdAt,
+                occurredAt: resolvedExtractionDate(
+                    extractedEvent.occurredAt,
+                    sourceMessage: sourceMessage,
+                    contextText: eventContextText
+                ) ?? sourceMessage.createdAt,
                 rawText: extractedEvent.rawText?.nilIfEmpty ?? sourceMessage.text,
                 createdAt: dateProvider.now,
                 updatedAt: dateProvider.now,
@@ -159,8 +197,12 @@ extension ChatSendService {
                 ruleType: extractedRule.ruleType,
                 continuityBehavior: extractedRule.continuityBehavior,
                 rawText: sourceMessage.text,
-                startsAt: ExtractionService.parseDate(extractedRule.startsAt) ?? sourceMessage.createdAt,
-                expiresAt: extractedRule.expiresAt.flatMap(ExtractionService.parseDate),
+                startsAt: resolvedExtractionDate(
+                    extractedRule.startsAt,
+                    sourceMessage: sourceMessage,
+                    contextText: sourceMessage.text
+                ) ?? sourceMessage.createdAt,
+                expiresAt: extractedRule.expiresAt.flatMap { ExtractionService.parseDate($0) },
                 createdAt: dateProvider.now,
                 updatedAt: dateProvider.now,
                 sourceClientID: extractedRule.clientID,
@@ -298,5 +340,21 @@ extension ChatSendService {
         }
         return ([sourceMessage.text, event.title, event.rawText, event.note, event.eventType].compactMap(\.self) + metadataText)
             .joined(separator: " ")
+    }
+
+    private func resolvedExtractionDate(
+        _ value: String,
+        sourceMessage: ChatMessage,
+        contextText: String
+    ) -> Date? {
+        guard let parsedDate = ExtractionService.parseDate(value) else { return nil }
+        let calendar = Calendar.current
+        guard !DateFormatting.containsExplicitTemporalCue(contextText) else {
+            return parsedDate
+        }
+        guard calendar.startOfDay(for: parsedDate) != calendar.startOfDay(for: sourceMessage.createdAt) else {
+            return parsedDate
+        }
+        return DateFormatting.normalizedDateOnly(sourceMessage.createdAt, calendar: calendar)
     }
 }

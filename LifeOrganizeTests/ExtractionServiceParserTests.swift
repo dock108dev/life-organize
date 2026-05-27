@@ -2,6 +2,18 @@ import XCTest
 @testable import LifeOrganize
 
 final class ExtractionServiceParserTests: XCTestCase {
+    func testDateOnlyParsingUsesLocalCalendarNoonInsteadOfUTCMidnight() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "America/New_York"))
+
+        let date = try XCTUnwrap(ExtractionService.parseDate("2026-05-26", calendar: calendar))
+
+        XCTAssertEqual(calendar.component(.year, from: date), 2026)
+        XCTAssertEqual(calendar.component(.month, from: date), 5)
+        XCTAssertEqual(calendar.component(.day, from: date), 26)
+        XCTAssertEqual(calendar.component(.hour, from: date), 12)
+    }
+
     func testParserNormalizesUnsupportedEventTypeAndDropsMalformedMetadata() throws {
         let envelope = try ExtractionService.parse(
             rawResponseText: canonicalExtractionJSON(

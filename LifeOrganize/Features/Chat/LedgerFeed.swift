@@ -239,12 +239,28 @@ enum LedgerFeedItem: Identifiable {
         case .message(let message):
             return message.createdAt
         case .event(let event):
-            return event.occurredAt
+            let legacyNormalized = DateFormatting.normalizedLegacyUTCDateOnlyForDisplay(event.occurredAt)
+            guard let sourceMessage = event.sourceMessage else {
+                return legacyNormalized
+            }
+            return DateFormatting.normalizedUndatedExtractionDateForDisplay(
+                legacyNormalized,
+                sourceDate: sourceMessage.createdAt,
+                contextText: [event.rawText, event.title].compactMap { $0?.nilIfEmpty }.joined(separator: " ")
+            )
         case .reminder(let reminder):
             if let manuallyDeactivatedAt = reminder.manuallyDeactivatedAt {
                 return manuallyDeactivatedAt
             }
-            return reminder.startsAt
+            let legacyNormalized = DateFormatting.normalizedLegacyUTCDateOnlyForDisplay(reminder.startsAt)
+            guard let sourceMessage = reminder.sourceMessage else {
+                return legacyNormalized
+            }
+            return DateFormatting.normalizedUndatedExtractionDateForDisplay(
+                legacyNormalized,
+                sourceDate: sourceMessage.createdAt,
+                contextText: [reminder.rawText, reminder.title].compactMap { $0?.nilIfEmpty }.joined(separator: " ")
+            )
         case .note(let note):
             return note.createdAt
         }
@@ -340,6 +356,19 @@ enum LedgerFeedItem: Identifiable {
         }
         return lhs.id < rhs.id
     }
+
+    static func chronological(_ lhs: LedgerFeedItem, _ rhs: LedgerFeedItem, calendar: Calendar) -> Bool {
+        if lhs.timelineDate != rhs.timelineDate {
+            return lhs.timelineDate < rhs.timelineDate
+        }
+        if lhs.createdAt != rhs.createdAt {
+            return lhs.createdAt < rhs.createdAt
+        }
+        if lhs.kindRank != rhs.kindRank {
+            return lhs.kindRank < rhs.kindRank
+        }
+        return lhs.id < rhs.id
+    }
 }
 
 struct LedgerFeedProjection {
@@ -365,7 +394,7 @@ struct LedgerFeedProjection {
                 + reminders.filter(shouldIncludeReminder).map(LedgerFeedItem.reminder)
                 + notes.map(LedgerFeedItem.note)
         )
-        .sorted { LedgerFeedItem.newestFirst($0, $1, calendar: calendar) }
+        .sorted { LedgerFeedItem.chronological($0, $1, calendar: calendar) }
     }
 
     func sections(
@@ -379,7 +408,7 @@ struct LedgerFeedProjection {
             by: { calendar.startOfDay(for: $0.timelineDate) }
         )
 
-        return grouped.keys.sorted(by: >).compactMap { day in
+        return grouped.keys.sorted().compactMap { day in
             guard let items = grouped[day], !items.isEmpty else { return nil }
             return LedgerFeedSection(day: day, items: items, calendar: calendar, now: now)
         }

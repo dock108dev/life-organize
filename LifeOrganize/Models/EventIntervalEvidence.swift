@@ -97,7 +97,7 @@ enum LedgerEventMetadataValidation {
         case .number:
             entry.numberValue != nil
         case .date:
-            entry.dateValue.flatMap(ExtractionService.parseDate) != nil
+            entry.dateValue.flatMap { ExtractionService.parseDate($0) } != nil
         case .boolean:
             entry.boolValue != nil
         }

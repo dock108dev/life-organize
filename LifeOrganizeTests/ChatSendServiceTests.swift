@@ -4,6 +4,83 @@ import XCTest
 
 final class ChatSendServiceTests: XCTestCase {
     @MainActor
+    func testCorrectionMessageUpdatesRecentMatchingEventInsteadOfCreatingDuplicate() async throws {
+        let context = makeInMemoryModelContext()
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: InspectingExtractionClient { text, _ in
+                let isCorrection = text.lowercased().hasPrefix("whoops")
+                return ExtractionResponsePayload(
+                    rawResponseText: canonicalExtractionJSON(
+                        things: [
+                            canonicalThing("thing_1", name: "Monaco", category: "place")
+                        ],
+                        events: [
+                            canonicalEvent(
+                                "event_1",
+                                title: isCorrection ? "Monaco" : "Monaco next weekend",
+                                thingRef: "thing_1",
+                                occurredAt: isCorrection ? "2026-06-06" : "2026-05-30",
+                                rawText: text
+                            )
+                        ]
+                    )
+                )
+            },
+            dateProvider: TestDateProvider(now: fixedTestNow)
+        )
+
+        _ = try await service.send("Monaco next weekend")
+        _ = try await service.send("Whoops next next weekend is Monaco")
+
+        let events = try context.fetch(FetchDescriptor<LedgerEvent>())
+        let event = try XCTUnwrap(events.first)
+
+        XCTAssertEqual(events.count, 1)
+        XCTAssertEqual(event.title, "Monaco")
+        XCTAssertEqual(event.rawText, "Whoops next next weekend is Monaco")
+        XCTAssertEqual(event.occurredAt, ExtractionService.parseDate("2026-06-06"))
+        XCTAssertEqual(try context.fetch(FetchDescriptor<Thing>()).map(\.name), ["Monaco"])
+        XCTAssertFalse(try context.fetch(FetchDescriptor<LedgerReviewItem>()).contains { $0.kind == .duplicateThing })
+    }
+
+    @MainActor
+    func testUndatedReminderDefaultsToSourceMessageDayWhenExtractorReturnsStaleDate() async throws {
+        let context = makeInMemoryModelContext()
+        let calendar = Calendar.current
+        let sourceNow = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 5, day: 26, hour: 21, minute: 30)))
+        let staleDate = try XCTUnwrap(calendar.date(byAdding: .day, value: -1, to: sourceNow))
+        let staleDateString = DateFormatting.dateOnlyString(staleDate, calendar: calendar, timeZone: calendar.timeZone)
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: StaticMessageExtractionClient(
+                payload: ExtractionResponsePayload(
+                    rawResponseText: canonicalExtractionJSON(
+                        things: [
+                            canonicalThing("thing_1", name: "Hot Knife", category: "other")
+                        ],
+                        rules: [
+                            canonicalRule(
+                                "rule_1",
+                                title: "Get hot knife",
+                                thingRef: "thing_1",
+                                startsAt: staleDateString,
+                                expiresAt: nil
+                            )
+                        ]
+                    )
+                )
+            ),
+            dateProvider: TestDateProvider(now: sourceNow)
+        )
+
+        _ = try await service.send("Need to get hot knife")
+
+        let rule = try XCTUnwrap(try context.fetch(FetchDescriptor<LedgerRule>()).first)
+        XCTAssertEqual(rule.startsAt, DateFormatting.normalizedDateOnly(sourceNow, calendar: calendar))
+    }
+
+    @MainActor
     func testExtractedEventPersistsTypeSpanAndMetadata() async throws {
         let context = makeInMemoryModelContext()
         let service = ChatSendService(

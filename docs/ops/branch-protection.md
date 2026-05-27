@@ -25,11 +25,11 @@ The iOS checks build and test the app only. They must not sign, archive, upload,
 
 ## Visual Check Tiers
 
-`ios / screenshots` is the required pull request visual check. It runs the iPhone 17 Pro portrait light target and should remain the only required screenshot check during the initial iPad rollout.
+`ios / screenshots` is the required pull request visual check. It runs the iPhone 17 Pro portrait light target.
 
-`ios / screenshots / iPad portrait` is a non-required iOS CI job. Run it from manual workflow dispatch with `screenshot_profile=ipad_portrait`, or run it alongside the required target with `screenshot_profile=all_light`. Do not add this job to branch protection until the iPad portrait baselines are stable and the local adaptive screen validation matrix is green.
+`ios / screenshots / iPad portrait` is a non-required iOS CI job. The current workflow emits it only from manual workflow dispatch with `screenshot_profile=ipad_portrait` or `screenshot_profile=all_light`, so do not add it to pull request branch protection while that condition remains true.
 
-To promote iPad portrait screenshots, first confirm `Scripts/run-adaptive-screen-validation.sh compare` is green with the canonical iPad portrait baseline set committed. Then add `ios / screenshots / iPad portrait` to required checks for pull requests that touch iOS UI, screenshot baselines, screenshot scripts, assets, or localization. Keep iPad landscape screenshots, Dynamic Type smoke, and broader simulator matrix checks manual or nightly unless they are intentionally promoted in a later branch-protection update.
+Only promote `ios / screenshots / iPad portrait` to required checks after the workflow emits that job on pull requests and `Scripts/run-adaptive-screen-validation.sh compare` is green with the iPad portrait baselines committed. Keep iPad landscape screenshots, Dynamic Type smoke, and broader simulator matrix checks manual or nightly unless the workflow is changed to emit those checks on pull requests.
 
 ## Main And Deploy Checks
 

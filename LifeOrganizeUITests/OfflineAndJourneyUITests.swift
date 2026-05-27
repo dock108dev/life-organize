@@ -100,8 +100,11 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
         XCTAssertTrue(thingRow.waitForFastExistence(timeout: 10))
         thingRow.tap()
         XCTAssertTrue(app.descendants(matching: .any)["thing-detail"].waitForFastExistence(timeout: 5))
-        app.buttons["Edit"].tap()
-        XCTAssertTrue(app.navigationBars["Edit Thing"].waitForFastExistence(timeout: 5))
+        openEditSheet(
+            titled: "Edit Thing",
+            from: app.buttons["Edit"],
+            in: app
+        )
         app.buttons["Save"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["thing-detail"].waitForFastExistence(timeout: 5))
         app.navigationBars["Home Air Filters"].buttons["Things"].tap()
@@ -113,8 +116,11 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
         ruleRow.tap()
         XCTAssertTrue(app.descendants(matching: .any)["carry-forward-detail"].waitForFastExistence(timeout: 5))
         app.buttons["Reminder Actions"].tap()
-        app.buttons["Edit Reminder"].tap()
-        XCTAssertTrue(app.navigationBars["Edit Reminder"].waitForFastExistence(timeout: 5))
+        openEditSheet(
+            titled: "Edit Reminder",
+            from: app.buttons["Edit Reminder"],
+            in: app
+        )
         app.buttons["Save"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["carry-forward-detail"].waitForFastExistence(timeout: 5))
         app.buttons["Reminder Actions"].tap()
@@ -145,6 +151,17 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
             ],
             useInMemoryStore: true
         )
+    }
+
+    private func openEditSheet(titled title: String, from button: XCUIElement, in app: XCUIApplication) {
+        XCTAssertTrue(button.waitForFastExistence(timeout: 5))
+        button.tap()
+        if !app.navigationBars[title].waitForFastExistence(timeout: 5) {
+            app.activate()
+            XCTAssertTrue(button.waitForFastExistence(timeout: 5))
+            button.tap()
+        }
+        XCTAssertTrue(app.navigationBars[title].waitForFastExistence(timeout: 5))
     }
 
     private func assertNoProviderSecretsVisible(in app: XCUIApplication) {

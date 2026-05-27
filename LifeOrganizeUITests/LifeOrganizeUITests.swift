@@ -274,10 +274,14 @@ final class LifeOrganizeUITests: XCTestCase {
         )
         XCTAssertTrue(relaunchedApp.buttons["review-queue-dismiss-button"].waitForFastExistence(timeout: 5))
         relaunchedApp.navigationBars["Review"].buttons["Review"].tap()
-        relaunchedApp.buttons["review-queue-close-button"].tap()
+        let closeReviewButton = relaunchedApp.buttons["review-queue-close-button"]
+        XCTAssertTrue(closeReviewButton.waitForFastExistence(timeout: 5))
+        closeReviewButton.tap()
         XCTAssertTrue(relaunchedApp.navigationBars["Timeline"].waitForFastExistence(timeout: 5))
 
-        relaunchedApp.buttons["settings-entry"].tap()
+        let settingsButton = relaunchedApp.buttons["settings-entry"]
+        XCTAssertTrue(settingsButton.waitForFastExistence(timeout: 5))
+        settingsButton.tap()
         XCTAssertTrue(relaunchedApp.navigationBars["Settings"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(relaunchedApp.staticTexts["device-token-status"].waitForFastExistence(timeout: 5))
         relaunchedApp.buttons["settings-done-button"].tap()

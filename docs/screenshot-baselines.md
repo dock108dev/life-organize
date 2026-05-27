@@ -29,7 +29,7 @@ The maintained light-appearance matrix is:
 
 The static iOS layout guard checks that each maintained light-appearance matrix cell contains the full scenario set.
 
-Generated actual and diff artifacts stay under `BuildArtifacts/`, which is ignored by `.gitignore`. To intentionally accept a visual change, run:
+Generated actual and diff artifacts stay under `BuildArtifacts/`, which is ignored by `.gitignore`. The older `Tests/ScreenshotBaselines/iPhone_16/light/` directory is not part of the required static guard matrix or iOS CI screenshot jobs. To intentionally accept a visual change, run:
 
 ```sh
 Scripts/screenshots/run-screenshot-tests.sh update

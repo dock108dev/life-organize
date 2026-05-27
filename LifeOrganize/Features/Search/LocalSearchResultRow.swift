@@ -77,11 +77,11 @@ struct LocalSearchResultRowPresentation: Equatable {
             return DateFormatting.shortDate.string(from: result.date)
         }
         let calendar = Calendar.autoupdatingCurrent
-        let end = calendar.date(byAdding: .second, value: -1, to: range.endExclusive) ?? range.endExclusive
-        let format = calendar.component(.year, from: range.start) == calendar.component(.year, from: end) ? "MMM d" : "MMM d, yyyy"
-        let startText = DateFormatting.string(from: range.start, format: format, calendar: calendar, timeZone: calendar.timeZone)
-        let endText = DateFormatting.string(from: end, format: format, calendar: calendar, timeZone: calendar.timeZone)
-        return startText == endText ? startText : "\(startText)-\(endText)"
+        return DateFormatting.inclusiveDateRangeSummary(
+            start: range.start,
+            endExclusive: range.endExclusive,
+            calendar: calendar
+        )
     }
 }
 

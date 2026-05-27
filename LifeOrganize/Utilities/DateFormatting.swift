@@ -75,6 +75,11 @@ enum DateFormatting {
         return formatter.string(from: date)
     }
 
+    static func parseISODateTime(_ value: String) -> Date? {
+        isoDateTimeFormatter(formatOptions: [.withInternetDateTime]).date(from: value)
+            ?? isoDateTimeFormatter(formatOptions: [.withInternetDateTime, .withFractionalSeconds]).date(from: value)
+    }
+
     static func string(
         from date: Date,
         format: String,
@@ -89,6 +94,18 @@ enum DateFormatting {
         return formatter.string(from: date)
     }
 
+    static func inclusiveDateRangeSummary(
+        start: Date,
+        endExclusive: Date,
+        calendar: Calendar
+    ) -> String {
+        let end = calendar.date(byAdding: .second, value: -1, to: endExclusive) ?? endExclusive
+        let format = calendar.component(.year, from: start) == calendar.component(.year, from: end) ? "MMM d" : "MMM d, yyyy"
+        let startText = string(from: start, format: format, calendar: calendar, timeZone: calendar.timeZone)
+        let endText = string(from: end, format: format, calendar: calendar, timeZone: calendar.timeZone)
+        return startText == endText ? startText : "\(startText)-\(endText)"
+    }
+
     static func ledgerDateSummary(_ date: Date, calendar: Calendar = .current, now: Date = Date()) -> String {
         if calendar.isDateInToday(date) {
             return "Today"
@@ -100,5 +117,11 @@ enum DateFormatting {
             return string(from: date, format: "MMM d", calendar: calendar, timeZone: calendar.timeZone)
         }
         return shortDate.string(from: date)
+    }
+
+    private static func isoDateTimeFormatter(formatOptions: ISO8601DateFormatter.Options) -> ISO8601DateFormatter {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = formatOptions
+        return formatter
     }
 }

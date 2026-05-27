@@ -3,12 +3,14 @@ import SwiftUI
 
 struct UnifiedSearchView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Query(sort: \Thing.updatedAt, order: .reverse) private var things: [Thing]
     @Query(sort: \LedgerEvent.occurredAt, order: .reverse) private var events: [LedgerEvent]
     @Query(sort: \LedgerRule.createdAt, order: .reverse) private var rules: [LedgerRule]
     @Query(sort: \LedgerNote.createdAt, order: .reverse) private var notes: [LedgerNote]
     @Query(sort: \ChatMessage.createdAt, order: .reverse) private var messages: [ChatMessage]
     @State private var searchText: String
+    @State private var selectedRoute: LocalSearchSelectionRoute?
     let showsDoneButton: Bool
 
     init(initialSearchText: String = "", showsDoneButton: Bool = false) {
@@ -34,12 +36,20 @@ struct UnifiedSearchView: View {
         )
     }
 
+    private var currentRoutes: [LocalSearchSelectionRoute] {
+        searchResults.map(LocalSearchSelectionRoute.init)
+    }
+
+    private var usesRegularWorkspace: Bool {
+        horizontalSizeClass == .regular
+    }
+
     var body: some View {
         Group {
-            if isSearching {
-                searchResultsView
+            if usesRegularWorkspace {
+                regularSearchWorkspace
             } else {
-                searchLandingView
+                compactSearchContent
             }
         }
         .navigationTitle("Search")
@@ -51,6 +61,12 @@ struct UnifiedSearchView: View {
         )
         .navigationDestination(for: LocalSearchResult.self) { result in
             destination(for: result)
+        }
+        .onAppear {
+            repairSelection()
+        }
+        .onChange(of: currentRoutes) {
+            repairSelection()
         }
         .toolbar {
             if showsDoneButton {
@@ -68,8 +84,78 @@ struct UnifiedSearchView: View {
     }
 
     @ViewBuilder
+    private var compactSearchContent: some View {
+        if isSearching {
+            searchResultsView
+        } else {
+            searchLandingView
+        }
+    }
+
+    private var regularSearchWorkspace: some View {
+        HStack(spacing: 0) {
+            regularSearchListPane
+                // layout-guard: allow fixed-size reason="regular-width search list column bounds"
+                .frame(minWidth: 320, idealWidth: 380, maxWidth: 430)
+
+            Divider()
+
+            regularSearchDetailPane
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .background(LedgerScreenBackground().ignoresSafeArea())
+        .accessibilityIdentifier("search-workspace")
+    }
+
+    @ViewBuilder
+    private var regularSearchListPane: some View {
+        if isSearching {
+            LedgerSearchResultsList(
+                results: searchResults,
+                selectedResultID: selectedRoute?.id
+            ) { result in
+                selectedRoute = LocalSearchSelectionRoute(result: result)
+            }
+        } else {
+            searchLandingView
+        }
+    }
+
+    @ViewBuilder
+    private var regularSearchDetailPane: some View {
+        if let selectedRoute {
+            LocalSearchDestinationView(
+                target: selectedRoute.navigationTarget,
+                things: things,
+                events: events,
+                rules: rules,
+                notes: notes,
+                messages: messages,
+                missingRecordActionTitle: "Clear selection"
+            ) {
+                self.selectedRoute = nil
+            }
+            .id(selectedRoute.id)
+        } else {
+            LedgerNoSelectionPlaceholderView(
+                "Select a result",
+                systemImage: "sidebar.left",
+                description: "Choose an item from the search results."
+            )
+            .background(Color(.systemGroupedBackground))
+            .accessibilityIdentifier("search-no-selection")
+        }
+    }
+
+    @ViewBuilder
     private var searchResultsView: some View {
-        LedgerSearchResultsList(results: searchResults)
+        ZStack {
+            LedgerScreenBackground()
+                .ignoresSafeArea()
+
+            LedgerSearchResultsList(results: searchResults)
+                .ledgerAdaptiveWidth(.readable)
+        }
     }
 
     private func destination(for result: LocalSearchResult) -> some View {
@@ -81,6 +167,19 @@ struct UnifiedSearchView: View {
             notes: notes,
             messages: messages
         )
+    }
+
+    private func repairSelection() {
+        guard usesRegularWorkspace else {
+            selectedRoute = nil
+            return
+        }
+        guard let selectedRoute else { return }
+        if let refreshedRoute = currentRoutes.first(where: { $0.id == selectedRoute.id }) {
+            self.selectedRoute = refreshedRoute
+        } else {
+            self.selectedRoute = nil
+        }
     }
 
     private var searchLandingView: some View {
@@ -133,5 +232,15 @@ struct SearchLandingExample: Identifiable, Equatable {
 
     var accessibilityKey: String {
         SearchService.normalizeForLocalSearch(query).replacingOccurrences(of: " ", with: "-")
+    }
+}
+
+struct LocalSearchSelectionRoute: Hashable, Identifiable {
+    let id: LocalSearchResult.ID
+    let navigationTarget: LocalSearchNavigationTarget
+
+    init(result: LocalSearchResult) {
+        id = result.id
+        navigationTarget = result.navigationTarget
     }
 }

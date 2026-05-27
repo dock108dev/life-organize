@@ -158,6 +158,12 @@ final class AdaptiveShellUITests: XCTestCase {
         assertSidebarExists(in: searchApp)
         XCTAssertTrue(searchApp.navigationBars["Search"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(searchApp.searchFields.firstMatch.waitForFastExistence(timeout: 5))
+        XCTAssertTrue(searchApp.staticTexts["Select a result"].waitForFastExistence(timeout: 5))
+        let searchResult = searchApp.buttons.matching(identifierPrefix: "ledger-search-result-").firstMatch
+        XCTAssertTrue(searchResult.waitForFastExistence(timeout: 5))
+        searchResult.tap()
+        XCTAssertTrue(searchApp.searchFields.firstMatch.waitForFastExistence(timeout: 5))
+        XCTAssertTrue(searchApp.buttons.matching(identifierPrefix: "ledger-search-result-").firstMatch.exists)
         XCTAssertFalse(searchApp.buttons["search-done-button"].exists)
         XCTAssertFalse(searchApp.tabBars.firstMatch.exists)
         searchApp.terminate()

@@ -41,6 +41,7 @@ struct LedgerNoticeBanner: View {
 struct LedgerSearchResultsList: View {
     let results: [LocalSearchResult]
     var emptyContent: LedgerEmptyStateContent = .noSearchResults
+    var selectedResultID: LocalSearchResult.ID?
     var onSelect: ((LocalSearchResult) -> Void)?
 
     var body: some View {
@@ -53,7 +54,7 @@ struct LedgerSearchResultsList: View {
                 .accessibilityLabel("\(result.sourceKind.displayName): \(result.title)")
                 .listRowInsets(EdgeInsets(top: 5, leading: 12, bottom: 5, trailing: 12))
                 .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
+                .listRowBackground(selectedResultID == result.id ? LedgerPalette.accent.opacity(0.12) : Color.clear)
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)

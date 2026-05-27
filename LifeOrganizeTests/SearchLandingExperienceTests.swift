@@ -253,6 +253,34 @@ final class SearchLandingExperienceTests: XCTestCase {
         )
     }
 
+    func testSearchSelectionRouteStoresStableResultIdentityAndDestinationTarget() {
+        let recordID = UUID(uuidString: "00000000-0000-0000-0000-000000000514")!
+        let record = LocalSearchRecord(
+            id: recordID,
+            kind: .event,
+            title: "Renewed passport",
+            subtitle: nil,
+            body: "Renewed passport downtown.",
+            searchableFields: [],
+            createdAt: fixedTestNow,
+            occurredAt: fixedTestNow,
+            updatedAt: fixedTestNow,
+            linkedThingId: nil,
+            linkedThingName: nil,
+            isActiveRule: nil,
+            ruleBadge: nil,
+            ruleLane: nil,
+            timelineDateRange: nil,
+            navigationTarget: .eventDetail(recordID)
+        )
+        let result = LocalSearchResult(record: record, matchedFields: [.title], score: 1)
+
+        let route = LocalSearchSelectionRoute(result: result)
+
+        XCTAssertEqual(route.id, result.id)
+        XCTAssertEqual(route.navigationTarget, .eventDetail(recordID))
+    }
+
     func testNoteAndMessageSearchDestinationsRemainReachable() {
         let thing = Thing(name: "Water Filter", createdAt: fixedTestNow, updatedAt: fixedTestNow)
         let message = ChatMessage(role: .user, text: "Filter size is 16x20.", createdAt: fixedTestNow)

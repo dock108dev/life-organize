@@ -67,10 +67,7 @@ extension ScenarioFixtureValidator {
     }
 
     func parseTimestamp(_ text: String, field: String) throws -> Date {
-        if let date = Self.isoTimestampFormatter.date(from: text) {
-            return date
-        }
-        if let date = Self.fractionalIsoTimestampFormatter.date(from: text) {
+        if let date = DateFormatting.parseISODateTime(text) {
             return date
         }
         throw ScenarioFixtureError.invalidFixture("\(field) has invalid timestamp \(text).")
@@ -88,18 +85,6 @@ extension ScenarioFixtureValidator {
             throw ScenarioFixtureError.invalidFixture(message)
         }
     }
-
-    private static let isoTimestampFormatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime]
-        return formatter
-    }()
-
-    private static let fractionalIsoTimestampFormatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
 
     private static let dateOnlyFormatter: DateFormatter = {
         let formatter = DateFormatter()

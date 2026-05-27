@@ -8,6 +8,8 @@ struct LocalSearchDestinationView: View {
     let rules: [LedgerRule]
     let notes: [LedgerNote]
     let messages: [ChatMessage]
+    let missingRecordActionTitle: String
+    let missingRecordAction: (() -> Void)?
 
     init(
         result: LocalSearchResult,
@@ -15,7 +17,9 @@ struct LocalSearchDestinationView: View {
         events: [LedgerEvent],
         rules: [LedgerRule],
         notes: [LedgerNote],
-        messages: [ChatMessage]
+        messages: [ChatMessage],
+        missingRecordActionTitle: String = MissingSearchRecordPresentation.defaultActionTitle,
+        missingRecordAction: (() -> Void)? = nil
     ) {
         self.init(
             target: result.navigationTarget,
@@ -23,7 +27,9 @@ struct LocalSearchDestinationView: View {
             events: events,
             rules: rules,
             notes: notes,
-            messages: messages
+            messages: messages,
+            missingRecordActionTitle: missingRecordActionTitle,
+            missingRecordAction: missingRecordAction
         )
     }
 
@@ -33,7 +39,9 @@ struct LocalSearchDestinationView: View {
         events: [LedgerEvent],
         rules: [LedgerRule],
         notes: [LedgerNote],
-        messages: [ChatMessage]
+        messages: [ChatMessage],
+        missingRecordActionTitle: String = MissingSearchRecordPresentation.defaultActionTitle,
+        missingRecordAction: (() -> Void)? = nil
     ) {
         self.navigationTarget = target
         self.things = things
@@ -41,6 +49,8 @@ struct LocalSearchDestinationView: View {
         self.rules = rules
         self.notes = notes
         self.messages = messages
+        self.missingRecordActionTitle = missingRecordActionTitle
+        self.missingRecordAction = missingRecordAction
     }
 
     static func hasAvailableRecord(
@@ -73,35 +83,39 @@ struct LocalSearchDestinationView: View {
             if let thing = things.first(where: { $0.id == id }) {
                 ThingDetailView(thing: thing)
             } else {
-                MissingSearchRecordView()
+                missingRecordView
             }
         case .eventDetail(let id):
             if let event = events.first(where: { $0.id == id }) {
                 EventDetailView(event: event)
             } else {
-                MissingSearchRecordView()
+                missingRecordView
             }
         case .ruleDetail(let id):
             if let rule = rules.first(where: { $0.id == id }) {
                 RuleDetailView(rule: rule)
             } else {
-                MissingSearchRecordView()
+                missingRecordView
             }
         case .noteDetail(let id):
             if let note = notes.first(where: { $0.id == id }) {
                 NoteDetailView(note: note)
             } else {
-                MissingSearchRecordView()
+                missingRecordView
             }
         case .chatMessage(let id):
             if let message = messages.first(where: { $0.id == id }) {
                 ChatMessageContextView(message: message)
             } else {
-                MissingSearchRecordView()
+                missingRecordView
             }
         case .timelineSlice(let descriptor):
             TimelineSliceReplayView(descriptor: descriptor)
         }
+    }
+
+    private var missingRecordView: some View {
+        MissingSearchRecordView(actionTitle: missingRecordActionTitle, action: missingRecordAction)
     }
 }
 
@@ -109,6 +123,13 @@ struct MissingSearchRecordView: View {
     @Environment(\.dismiss) private var dismiss
 
     private let presentation = MissingSearchRecordPresentation()
+    private let actionTitle: String
+    private let action: (() -> Void)?
+
+    init(actionTitle: String = MissingSearchRecordPresentation.defaultActionTitle, action: (() -> Void)? = nil) {
+        self.actionTitle = actionTitle
+        self.action = action
+    }
 
     var body: some View {
         ContentUnavailableView {
@@ -116,8 +137,12 @@ struct MissingSearchRecordView: View {
         } description: {
             Text(presentation.description)
         } actions: {
-            Button(presentation.actionTitle) {
-                dismiss()
+            Button(actionTitle) {
+                if let action {
+                    action()
+                } else {
+                    dismiss()
+                }
             }
         }
         .ledgerAdaptiveWidth(.detail)
@@ -126,10 +151,12 @@ struct MissingSearchRecordView: View {
 }
 
 struct MissingSearchRecordPresentation: Equatable {
+    static let defaultActionTitle = "Back"
+
     let title = "Record unavailable"
     let systemImage = "exclamationmark.circle"
     let description = "This saved result may have changed."
-    let actionTitle = "Back"
+    let actionTitle = Self.defaultActionTitle
     let navigationTitle = "Unavailable"
 }
 

@@ -116,9 +116,14 @@ final class LedgerAdaptiveLayoutTests: XCTestCase {
         XCTAssertTrue(emptyStateSource.contains("LedgerAdaptiveLayout.EmptyState.horizontalPadding"))
         XCTAssertTrue(emptyStateSource.contains("LedgerAdaptiveLayout.EmptyState.verticalPadding"))
         XCTAssertTrue(emptyStateSource.contains("LedgerAdaptiveLayout.EmptyState.cornerRadius"))
-        XCTAssertFalse(searchSource.contains(".frame(maxWidth: 320)"))
+        let forbiddenFixedMaxWidth = ".frame(maxWidth: " + "320)"
+        XCTAssertFalse(searchSource.contains(forbiddenFixedMaxWidth))
         XCTAssertTrue(searchSource.contains("LedgerAdaptiveLayout.EmptyState.contentMaxWidth"))
         XCTAssertTrue(searchSource.contains("LedgerAdaptiveLayout.EmptyState.searchLandingMinHeight"))
+        XCTAssertTrue(searchSource.contains("LedgerSearchResultsList(results: searchResults)"))
+        XCTAssertGreaterThanOrEqual(searchSource.occurrences(of: ".ledgerAdaptiveWidth(.readable)"), 2)
+        XCTAssertTrue(searchSource.contains("LedgerNoSelectionPlaceholderView("))
+        XCTAssertTrue(searchSource.contains("\"Select a result\""))
         XCTAssertTrue(settingsSource.contains("LedgerEmptyStateView(content: .settingsNoDeviceToken)"))
         XCTAssertTrue(reviewSource.contains("LedgerEmptyStateView(content: origin == nil"))
         XCTAssertGreaterThanOrEqual(reviewSource.occurrences(of: "LedgerNoSelectionPlaceholderView("), 1)
@@ -147,6 +152,26 @@ final class LedgerAdaptiveLayoutTests: XCTestCase {
         XCTAssertTrue(timelineSource.contains("deviceTokenStore: deviceTokenStore"))
         XCTAssertTrue(timelineSource.contains("onAddKey: onAddKey"))
         XCTAssertTrue(timelineSource.contains("EventDetailView(event: event)"))
+    }
+
+    func testSearchRegularWorkspaceUsesSelectionRouteAndExistingDestinationResolver() throws {
+        let searchSource = try sourceFile("LifeOrganize/Features/Search/UnifiedSearchView.swift")
+        let destinationSource = try sourceFile("LifeOrganize/Features/Search/LocalSearchDestinationView.swift")
+        let sharedControlsSource = try sourceFile("LifeOrganize/Features/Shared/LedgerSharedControls.swift")
+
+        XCTAssertTrue(searchSource.contains("struct LocalSearchSelectionRoute: Hashable, Identifiable"))
+        XCTAssertTrue(searchSource.contains("@State private var selectedRoute: LocalSearchSelectionRoute?"))
+        XCTAssertTrue(searchSource.contains("private var currentRoutes: [LocalSearchSelectionRoute]"))
+        XCTAssertTrue(searchSource.contains("LocalSearchDestinationView("))
+        XCTAssertTrue(searchSource.contains("target: selectedRoute.navigationTarget"))
+        XCTAssertTrue(searchSource.contains("missingRecordActionTitle: \"Clear selection\""))
+        XCTAssertTrue(searchSource.contains("onChange(of: currentRoutes)"))
+        XCTAssertTrue(searchSource.contains("self.selectedRoute = nil"))
+        XCTAssertFalse(searchSource.contains("NavigationSplitView {"))
+        XCTAssertTrue(destinationSource.contains("missingRecordActionTitle: String"))
+        XCTAssertTrue(destinationSource.contains("MissingSearchRecordView(actionTitle: missingRecordActionTitle"))
+        XCTAssertTrue(sharedControlsSource.contains("selectedResultID: LocalSearchResult.ID?"))
+        XCTAssertTrue(sharedControlsSource.contains("onSelect(result)"))
     }
 
     private func sourceFile(_ relativePath: String) throws -> String {

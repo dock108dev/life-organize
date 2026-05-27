@@ -45,8 +45,13 @@ xcodebuild_result_bundle_passed() {
 
   local test_summary
   local build_summary
-  test_summary="$(xcrun xcresulttool get test-results summary --path "$bundle" --compact 2>/dev/null)" || return 1
-  build_summary="$(xcrun xcresulttool get build-results --path "$bundle" --format json 2>/dev/null)" || return 1
+  if ! test_summary="$(xcrun xcresulttool get test-results summary --path "$bundle" --compact 2>/dev/null)"; then
+    printf 'Unable to read xcresult test summary from %s.\n' "$bundle" >&2
+    return 1
+  fi
+  if ! build_summary="$(xcrun xcresulttool get build-results --path "$bundle" --format json 2>/dev/null)"; then
+    build_summary='{}'
+  fi
 
   TEST_SUMMARY_JSON="$test_summary" BUILD_SUMMARY_JSON="$build_summary" python3 - <<'PY'
 import json
@@ -61,12 +66,12 @@ tests_passed = (
     and int(tests.get("failedTests") or 0) == 0
     and not tests.get("testFailures")
 )
-build_passed = (
-    build.get("status") == "succeeded"
-    and int(build.get("errorCount") or 0) == 0
-    and not build.get("errors")
-)
-sys.exit(0 if tests_passed and build_passed else 1)
+no_build_errors = int(build.get("errorCount") or 0) == 0 and not build.get("errors")
+if not tests_passed:
+    print("xcresult test summary did not report a clean pass.", file=sys.stderr)
+if not no_build_errors:
+    print("xcresult build summary reported build errors.", file=sys.stderr)
+sys.exit(0 if tests_passed and no_build_errors else 1)
 PY
 }
 

@@ -60,6 +60,8 @@ class VerifyScriptContractTests(unittest.TestCase):
         self.assertIn("xcodebuild_result_bundle_passed", text)
         self.assertIn("xcresulttool get test-results summary", text)
         self.assertIn("xcresulttool get build-results", text)
+        self.assertIn("xcresult test summary did not report a clean pass", text)
+        self.assertIn("xcresult build summary reported build errors", text)
         self.assertIn("xcodebuild exited", text)
         self.assertIn("ios_coverage_gate.py", text)
 

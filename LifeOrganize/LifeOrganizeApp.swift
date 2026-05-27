@@ -4,6 +4,7 @@ import SwiftUI
 @main
 struct LifeOrganizeApp: App {
     private let runtime: AppRuntimeConfiguration
+    private let defaults: UserDefaults
     private let modelContainer: ModelContainer
     private let deviceTokenStore: any DeviceTokenStore
     @StateObject private var developerModeState: DeveloperModeState
@@ -12,6 +13,8 @@ struct LifeOrganizeApp: App {
         let runtime = AppRuntimeConfiguration.current
         self.runtime = runtime
         let defaults = runtime.userDefaults()
+        self.defaults = defaults
+        runtime.applyProcessEnvironmentOverrides()
         runtime.resetLaunchStateIfNeeded(defaults: defaults)
         if runtime.unlocksDeveloperMode {
             defaults.set(true, forKey: AppDefaultsKeys.developerModeUnlocked)
@@ -53,6 +56,7 @@ struct LifeOrganizeApp: App {
             .environment(\.locale, runtime.screenshotLocale ?? Locale.current)
             .environment(\.timeZone, runtime.screenshotTimeZone ?? TimeZone.current)
             .environment(\.calendar, runtime.screenshotCalendar ?? Calendar.current)
+            .defaultAppStorage(defaults)
             .preferredColorScheme(runtime.preferredColorScheme)
             .transaction { transaction in
                 if runtime.disablesAnimations {

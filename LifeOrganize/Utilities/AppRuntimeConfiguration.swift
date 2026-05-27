@@ -3,9 +3,15 @@ import SwiftUI
 
 enum AppDefaultsKeys {
     static let developerModeUnlocked = "DeveloperMode.isUnlocked"
+    static let timelineContextDismissed = "ledger.context.timeline.dismissed"
+    static let thingsContextDismissed = "ledger.context.things.dismissed"
+    static let rulesContextDismissed = "ledger.context.rules.dismissed"
 
     static let all = [
-        developerModeUnlocked
+        developerModeUnlocked,
+        timelineContextDismissed,
+        thingsContextDismissed,
+        rulesContextDismissed
     ]
 }
 
@@ -138,15 +144,24 @@ struct AppRuntimeConfiguration {
             Self.resetDirectory(at: locations.temporaryRoot)
             defaults.removePersistentDomain(forName: "LifeOrganize.Automation")
             Self.resetURLLoadingState()
-            return
+        } else {
+            if shouldResetStore {
+                Self.removeStore(at: Self.uiTestingStoreURL())
+            }
+            if shouldResetDeviceToken {
+                Self.resetAppDefaults(in: defaults)
+            }
         }
 
-        if shouldResetStore {
-            Self.removeStore(at: Self.uiTestingStoreURL())
+        if isScreenshotMode {
+            Self.prepareScreenshotDefaults(in: defaults)
         }
-        if shouldResetDeviceToken {
-            Self.resetAppDefaults(in: defaults)
-        }
+    }
+
+    func applyProcessEnvironmentOverrides() {
+        guard isScreenshotMode, let screenshotTimeZone else { return }
+
+        NSTimeZone.default = screenshotTimeZone
     }
 
     var dateProvider: any DateProvider {
@@ -348,6 +363,11 @@ struct AppRuntimeConfiguration {
         for key in AppDefaultsKeys.all {
             defaults.removeObject(forKey: key)
         }
+    }
+
+    private static func prepareScreenshotDefaults(in defaults: UserDefaults) {
+        defaults.set(true, forKey: AppDefaultsKeys.timelineContextDismissed)
+        defaults.set(true, forKey: AppDefaultsKeys.thingsContextDismissed)
     }
 
     private static func resetDirectory(at url: URL) {

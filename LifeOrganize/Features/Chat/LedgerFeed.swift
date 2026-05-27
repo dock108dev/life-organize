@@ -158,7 +158,10 @@ struct LedgerFeedSectionSummary: Equatable {
 
     init(items: [LedgerFeedItem], calendar: Calendar) {
         itemCountText = LedgerDisplayFormatting.count(items.count, singular: "item", plural: "items")
-        timeRangeText = TimelineSectionSummaryFormatting.timeRangeText(for: items.map(\.timelineDate), calendar: calendar)
+        timeRangeText = TimelineSectionSummaryFormatting.timeRangeText(
+            for: items.map { $0.timelineDate(calendar: calendar) },
+            calendar: calendar
+        )
         typeMixText = Self.typeMixText(for: items)
     }
 
@@ -235,31 +238,37 @@ enum LedgerFeedItem: Identifiable {
     }
 
     var timelineDate: Date {
+        timelineDate(calendar: .current)
+    }
+
+    func timelineDate(calendar: Calendar) -> Date {
         switch self {
         case .message(let message):
             return message.createdAt
         case .event(let event):
-            let legacyNormalized = DateFormatting.normalizedLegacyUTCDateOnlyForDisplay(event.occurredAt)
+            let legacyNormalized = DateFormatting.normalizedLegacyUTCDateOnlyForDisplay(event.occurredAt, calendar: calendar)
             guard let sourceMessage = event.sourceMessage else {
                 return legacyNormalized
             }
             return DateFormatting.normalizedUndatedExtractionDateForDisplay(
                 legacyNormalized,
                 sourceDate: sourceMessage.createdAt,
-                contextText: [event.rawText, event.title].compactMap { $0?.nilIfEmpty }.joined(separator: " ")
+                contextText: [event.rawText, event.title].compactMap { $0?.nilIfEmpty }.joined(separator: " "),
+                calendar: calendar
             )
         case .reminder(let reminder):
             if let manuallyDeactivatedAt = reminder.manuallyDeactivatedAt {
                 return manuallyDeactivatedAt
             }
-            let legacyNormalized = DateFormatting.normalizedLegacyUTCDateOnlyForDisplay(reminder.startsAt)
+            let legacyNormalized = DateFormatting.normalizedLegacyUTCDateOnlyForDisplay(reminder.startsAt, calendar: calendar)
             guard let sourceMessage = reminder.sourceMessage else {
                 return legacyNormalized
             }
             return DateFormatting.normalizedUndatedExtractionDateForDisplay(
                 legacyNormalized,
                 sourceDate: sourceMessage.createdAt,
-                contextText: [reminder.rawText, reminder.title].compactMap { $0?.nilIfEmpty }.joined(separator: " ")
+                contextText: [reminder.rawText, reminder.title].compactMap { $0?.nilIfEmpty }.joined(separator: " "),
+                calendar: calendar
             )
         case .note(let note):
             return note.createdAt
@@ -345,8 +354,10 @@ enum LedgerFeedItem: Identifiable {
     }
 
     static func newestFirst(_ lhs: LedgerFeedItem, _ rhs: LedgerFeedItem, calendar: Calendar) -> Bool {
-        if lhs.timelineDate != rhs.timelineDate {
-            return lhs.timelineDate > rhs.timelineDate
+        let lhsTimelineDate = lhs.timelineDate(calendar: calendar)
+        let rhsTimelineDate = rhs.timelineDate(calendar: calendar)
+        if lhsTimelineDate != rhsTimelineDate {
+            return lhsTimelineDate > rhsTimelineDate
         }
         if lhs.createdAt != rhs.createdAt {
             return lhs.createdAt > rhs.createdAt
@@ -358,8 +369,10 @@ enum LedgerFeedItem: Identifiable {
     }
 
     static func chronological(_ lhs: LedgerFeedItem, _ rhs: LedgerFeedItem, calendar: Calendar) -> Bool {
-        if lhs.timelineDate != rhs.timelineDate {
-            return lhs.timelineDate < rhs.timelineDate
+        let lhsTimelineDate = lhs.timelineDate(calendar: calendar)
+        let rhsTimelineDate = rhs.timelineDate(calendar: calendar)
+        if lhsTimelineDate != rhsTimelineDate {
+            return lhsTimelineDate < rhsTimelineDate
         }
         if lhs.createdAt != rhs.createdAt {
             return lhs.createdAt < rhs.createdAt
@@ -405,7 +418,7 @@ struct LedgerFeedProjection {
     ) -> [LedgerFeedSection] {
         let grouped = Dictionary(
             grouping: items(messages: messages, events: events, reminders: reminders, notes: notes),
-            by: { calendar.startOfDay(for: $0.timelineDate) }
+            by: { calendar.startOfDay(for: $0.timelineDate(calendar: calendar)) }
         )
 
         return grouped.keys.sorted().compactMap { day in

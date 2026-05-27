@@ -337,6 +337,36 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         XCTAssertFalse(defaults.bool(forKey: AppDefaultsKeys.developerModeUnlocked))
     }
 
+    func testScreenshotModeSeedsDismissedTimelineAndThingsContextPanelsInAutomationDefaults() {
+        let configuration = AppRuntimeConfiguration(arguments: [
+            "LifeOrganize",
+            "-screenshot-mode",
+            "-use-in-memory-store"
+        ])
+        let defaults = configuration.userDefaults()
+        defaults.removePersistentDomain(forName: "LifeOrganize.Automation")
+
+        configuration.resetLaunchStateIfNeeded(defaults: defaults)
+
+        XCTAssertTrue(defaults.bool(forKey: AppDefaultsKeys.timelineContextDismissed))
+        XCTAssertTrue(defaults.bool(forKey: AppDefaultsKeys.thingsContextDismissed))
+        XCTAssertFalse(defaults.bool(forKey: AppDefaultsKeys.rulesContextDismissed))
+    }
+
+    func testScreenshotModeAppliesTimeZoneOverrideForCurrentFormatters() {
+        let originalTimeZone = NSTimeZone.default
+        defer { NSTimeZone.default = originalTimeZone }
+        let configuration = AppRuntimeConfiguration(arguments: [
+            "LifeOrganize",
+            "-screenshot-mode",
+            "-screenshot-time-zone=America/New_York"
+        ])
+
+        configuration.applyProcessEnvironmentOverrides()
+
+        XCTAssertEqual(TimeZone.current.identifier, "America/New_York")
+    }
+
     func testDeveloperModeUnlockArgumentIsAutomationOnly() {
         let automationConfiguration = AppRuntimeConfiguration(arguments: [
             "LifeOrganize",

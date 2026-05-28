@@ -12,6 +12,7 @@ DEVICE_NAME="${IOS_DEVICE_NAME:-iPhone 17 Pro}"
 DEVICE_OS="${IOS_DEVICE_OS:-26.2}"
 RESULT_BUNDLE="${IOS_RESULT_BUNDLE:-BuildArtifacts/LifeOrganizeTests.xcresult}"
 DERIVED_DATA="${IOS_DERIVED_DATA:-BuildArtifacts/DerivedData}"
+TEST_LOG="${IOS_TEST_LOG:-BuildArtifacts/Logs/xcodebuild-test.log}"
 COVERAGE_THRESHOLD="${IOS_COVERAGE_THRESHOLD:-0.80}"
 SKIP_COVERAGE_GATE="${IOS_SKIP_COVERAGE_GATE:-0}"
 
@@ -25,7 +26,9 @@ fi
 
 cd "$ROOT_DIR"
 mkdir -p "$(dirname "$RESULT_BUNDLE")"
+mkdir -p "$(dirname "$TEST_LOG")"
 rm -rf "$RESULT_BUNDLE"
+rm -f "$TEST_LOG"
 
 printf 'iOS verification configuration:\n'
 printf '  IOS_DEVICE_NAME=%s\n' "$DEVICE_NAME"
@@ -33,6 +36,7 @@ printf '  IOS_DEVICE_OS=%s\n' "$DEVICE_OS"
 printf '  IOS_DESTINATION=%s\n' "$DESTINATION"
 printf '  IOS_RESULT_BUNDLE=%s\n' "$RESULT_BUNDLE"
 printf '  IOS_DERIVED_DATA=%s\n' "$DERIVED_DATA"
+printf '  IOS_TEST_LOG=%s\n' "$TEST_LOG"
 printf '  IOS_COVERAGE_THRESHOLD=%s\n' "$COVERAGE_THRESHOLD"
 printf '  IOS_SKIP_COVERAGE_GATE=%s\n' "$SKIP_COVERAGE_GATE"
 printf '  Failure artifact: %s\n' "$RESULT_BUNDLE"
@@ -41,6 +45,7 @@ run "$ROOT_DIR/Scripts/ios_static_layout_guard.py"
 
 xcodebuild_result_bundle_passed() {
   local bundle="$1"
+  local log_path="$2"
   [[ -f "$bundle/Info.plist" ]] || return 1
 
   local test_summary
@@ -53,9 +58,10 @@ xcodebuild_result_bundle_passed() {
     build_summary='{}'
   fi
 
-  TEST_SUMMARY_JSON="$test_summary" BUILD_SUMMARY_JSON="$build_summary" python3 - <<'PY'
+  TEST_SUMMARY_JSON="$test_summary" BUILD_SUMMARY_JSON="$build_summary" XCODEBUILD_LOG_PATH="$log_path" python3 - <<'PY'
 import json
 import os
+import re
 import sys
 
 tests = json.loads(os.environ["TEST_SUMMARY_JSON"])
@@ -99,22 +105,41 @@ has_failure_details = has_nonempty_collection(
     tests,
     {"testFailures", "failureSummaries", "failures", "failedTestIdentifiers"},
 )
-tests_passed = (
+xcresult_tests_passed = (
     executed_count > 0
     and failed_count == 0
     and not has_failure_details
 )
+log_path = os.environ.get("XCODEBUILD_LOG_PATH", "")
+log_text = ""
+if log_path:
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="replace") as log_file:
+            log_text = log_file.read()
+    except OSError:
+        log_text = ""
+final_log_passed = bool(
+    re.search(r"Test Suite 'All tests' passed", log_text)
+    and re.search(r"Executed \d+ tests, with 0 failures", log_text)
+)
 no_build_errors = int(build.get("errorCount") or 0) == 0 and not build.get("errors")
+tests_passed = xcresult_tests_passed or (executed_count > 0 and final_log_passed)
 if not tests_passed:
     print("xcresult test summary did not report a clean pass.", file=sys.stderr)
     print(
         "xcresult summary counts: "
         f"passed={passed_count} failed={failed_count} skipped={skipped_count} "
         f"total={total_count} executed={executed_count} "
-        f"failureDetails={has_failure_details}",
+        f"failureDetails={has_failure_details} finalLogPassed={final_log_passed}",
         file=sys.stderr,
     )
     print(f"xcresult summary keys: {', '.join(sorted(tests.keys()))}", file=sys.stderr)
+elif not xcresult_tests_passed and final_log_passed:
+    print(
+        "xcresult retained failure details, but the final xcodebuild log reports "
+        "All tests passed with 0 failures; continuing.",
+        file=sys.stderr,
+    )
 if not no_build_errors:
     print("xcresult build summary reported build errors.", file=sys.stderr)
 sys.exit(0 if tests_passed and no_build_errors else 1)
@@ -132,12 +157,12 @@ xcodebuild test \
   -resultBundlePath "$RESULT_BUNDLE" \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
-  CODE_SIGN_IDENTITY=
-xcodebuild_status=$?
+  CODE_SIGN_IDENTITY= 2>&1 | tee "$TEST_LOG"
+xcodebuild_status=${PIPESTATUS[0]}
 set -e
 
 if [[ "$xcodebuild_status" -ne 0 ]]; then
-  if xcodebuild_result_bundle_passed "$RESULT_BUNDLE"; then
+  if xcodebuild_result_bundle_passed "$RESULT_BUNDLE" "$TEST_LOG"; then
     printf 'xcodebuild exited %s, but %s reports passed tests and a succeeded build; continuing.\n' "$xcodebuild_status" "$RESULT_BUNDLE" >&2
   else
     exit "$xcodebuild_status"

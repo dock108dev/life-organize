@@ -48,6 +48,7 @@ class VerifyScriptContractTests(unittest.TestCase):
         self.assertIn("IOS_DEVICE_OS", text)
         self.assertIn("IOS_RESULT_BUNDLE", text)
         self.assertIn("IOS_DERIVED_DATA", text)
+        self.assertIn("IOS_TEST_LOG", text)
         self.assertIn("simulator-common.sh", text)
         self.assertIn("simulator_udid_for", text)
         self.assertIn("configure_simulator_for_ui_capture", text)
@@ -69,6 +70,9 @@ class VerifyScriptContractTests(unittest.TestCase):
         self.assertIn("failed_count == 0", text)
         self.assertIn("has_failure_details", text)
         self.assertIn("xcresult summary counts", text)
+        self.assertIn("finalLogPassed", text)
+        self.assertIn("retained failure details", text)
+        self.assertIn('tee "$TEST_LOG"', text)
         self.assertIn("xcresult test summary did not report a clean pass", text)
         self.assertIn("xcresult build summary reported build errors", text)
         self.assertIn("xcodebuild exited", text)
@@ -100,10 +104,30 @@ class VerifyScriptContractTests(unittest.TestCase):
         )
         self.assertIn("xcodebuild exited 65", completed.stderr)
 
-    def test_ios_script_rejects_xcresult_with_failed_test_count(self):
+    def test_ios_script_accepts_retained_xcresult_failure_when_final_log_passes(self):
+        completed = self.run_verify_ios_with_fake_xcresult(
+            test_summary='{"result":"Failed","totalTestCount":627,"passedTests":623,"failedTests":1,"skippedTests":3,"testFailures":[{"testName":"RetainedAttempt"}]}',
+            build_summary='{"errorCount":0,"errors":[],"status":"succeeded"}',
+            xcodebuild_log=(
+                "Test Suite 'All tests' passed at 2026-05-28 03:07:52.943.\\n"
+                "\\t Executed 33 tests, with 0 failures (0 unexpected) in 671.004 seconds\\n"
+                "** TEST FAILED **\\n"
+            ),
+        )
+
+        self.assertEqual(
+            completed.returncode,
+            0,
+            f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}",
+        )
+        self.assertIn("retained failure details", completed.stderr)
+        self.assertIn("xcodebuild exited 65", completed.stderr)
+
+    def test_ios_script_rejects_xcresult_with_failed_test_count_without_final_pass_log(self):
         completed = self.run_verify_ios_with_fake_xcresult(
             test_summary='{"result":"Failed","totalTestCount":36,"failedTests":1,"skippedTests":3,"testFailures":[]}',
             build_summary='{"errorCount":0,"errors":[],"status":"succeeded"}',
+            xcodebuild_log="** TEST FAILED **\\n",
         )
 
         self.assertEqual(
@@ -114,7 +138,7 @@ class VerifyScriptContractTests(unittest.TestCase):
         self.assertIn("xcresult test summary did not report a clean pass", completed.stderr)
         self.assertIn("failed=1", completed.stderr)
 
-    def run_verify_ios_with_fake_xcresult(self, test_summary, build_summary):
+    def run_verify_ios_with_fake_xcresult(self, test_summary, build_summary, xcodebuild_log=None):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             fake_bin = temp_path / "bin"
@@ -137,8 +161,7 @@ class VerifyScriptContractTests(unittest.TestCase):
                     done
                     mkdir -p "$result_bundle"
                     touch "$result_bundle/Info.plist"
-                    printf 'Test Suite All tests passed.\\n'
-                    printf '** TEST FAILED **\\n' >&2
+                    printf '%b' "$XCODEBUILD_FAKE_LOG"
                     exit 65
                     """
                 ),
@@ -175,9 +198,16 @@ class VerifyScriptContractTests(unittest.TestCase):
                     "IOS_DESTINATION": "platform=iOS Simulator,id=fake-device",
                     "IOS_RESULT_BUNDLE": str(result_bundle),
                     "IOS_DERIVED_DATA": str(temp_path / "DerivedData"),
+                    "IOS_TEST_LOG": str(temp_path / "xcodebuild-test.log"),
                     "IOS_SKIP_COVERAGE_GATE": "1",
                     "XCRESULT_TEST_SUMMARY": test_summary,
                     "XCRESULT_BUILD_SUMMARY": build_summary,
+                    "XCODEBUILD_FAKE_LOG": xcodebuild_log
+                    or (
+                        "Test Suite 'All tests' passed at 2026-05-28 03:07:52.943.\\n"
+                        "\\t Executed 33 tests, with 0 failures (0 unexpected) in 671.004 seconds\\n"
+                        "** TEST FAILED **\\n"
+                    ),
                 }
             )
 

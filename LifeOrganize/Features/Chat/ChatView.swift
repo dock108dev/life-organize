@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ChatView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.calendar) private var calendar
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @EnvironmentObject private var sessionState: AppSessionState
     @Query(sort: \ChatMessage.createdAt, order: .reverse) private var messages: [ChatMessage]
@@ -30,7 +31,7 @@ struct ChatView: View {
     }
 
     private var feedSections: [LedgerFeedSection] {
-        LedgerFeedProjection().sections(
+        LedgerFeedProjection(calendar: calendar, now: runtimeNow).sections(
             messages: messages,
             events: events,
             reminders: reminders,
@@ -64,6 +65,10 @@ struct ChatView: View {
 
     private var isDraftEmpty: Bool {
         viewModel.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var runtimeNow: Date {
+        AppRuntimeConfiguration.current.dateProvider.now
     }
 
     private var showsComposerSuggestions: Bool {
@@ -213,7 +218,7 @@ struct ChatView: View {
     }
 
     private func isDefaultTimelineSection(_ section: LedgerFeedSection) -> Bool {
-        TimelineDefaultVisibility().isVisibleByDefault(section)
+        TimelineDefaultVisibility(calendar: calendar, now: runtimeNow).isVisibleByDefault(section)
     }
 
     private enum ScrollAnchor {

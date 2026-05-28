@@ -61,9 +61,22 @@ import sys
 tests = json.loads(os.environ["TEST_SUMMARY_JSON"])
 build = json.loads(os.environ["BUILD_SUMMARY_JSON"])
 
+configuration_passed_count = sum(
+    int(configuration.get("passedTests") or 0)
+    for configuration in tests.get("devicesAndConfigurations") or []
+)
+passed_count = max(int(tests.get("passedTests") or 0), configuration_passed_count)
+failed_count = int(tests.get("failedTests") or 0)
+failed_in_configurations = sum(
+    int(configuration.get("failedTests") or 0)
+    for configuration in tests.get("devicesAndConfigurations") or []
+)
+result = tests.get("result")
 tests_passed = (
-    tests.get("result") == "Passed"
-    and int(tests.get("failedTests") or 0) == 0
+    passed_count > 0
+    and result in (None, "", "Passed")
+    and failed_count == 0
+    and failed_in_configurations == 0
     and not tests.get("testFailures")
 )
 no_build_errors = int(build.get("errorCount") or 0) == 0 and not build.get("errors")

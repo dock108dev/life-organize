@@ -103,7 +103,7 @@ extension LifeOrganizeScenarioUITests {
     }
 
     func testHeavyTimelineScreenshot() throws {
-        let app = launchScreenshotApp(seed: "heavy", start: "timeline", fixedNow: "2026-05-21T12:00:00-04:00")
+        let app = launchScreenshotApp(seed: "heavy", start: "timeline", fixedNow: "2026-05-26T12:00:00-04:00")
         waitUntilReady(in: app)
         XCTAssertTrue(app.navigationBars["Timeline"].waitForFastExistence(timeout: 10))
         let feed = app.descendants(matching: .any)["timeline-feed"]
@@ -122,7 +122,7 @@ extension LifeOrganizeScenarioUITests {
         seed: String,
         start: String,
         searchQuery: String? = nil,
-        fixedNow: String = "2027-01-15T08:00:00-05:00",
+        fixedNow: String = "2026-05-27T08:00:00-04:00",
         // layout-guard: allow UIDevice reason="screenshot matrix rotation only"
         orientation: UIDeviceOrientation = screenshotOrientationFromEnvironment()
     ) -> XCUIApplication {

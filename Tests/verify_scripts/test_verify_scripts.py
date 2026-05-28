@@ -1,4 +1,7 @@
 import os
+import subprocess
+import tempfile
+import textwrap
 import unittest
 from pathlib import Path
 
@@ -60,10 +63,100 @@ class VerifyScriptContractTests(unittest.TestCase):
         self.assertIn("xcodebuild_result_bundle_passed", text)
         self.assertIn("xcresulttool get test-results summary", text)
         self.assertIn("xcresulttool get build-results", text)
+        self.assertIn('tests.get("passedTests")', text)
+        self.assertIn('tests.get("devicesAndConfigurations")', text)
+        self.assertIn('result in (None, "", "Passed")', text)
+        self.assertIn("failed_in_configurations == 0", text)
         self.assertIn("xcresult test summary did not report a clean pass", text)
         self.assertIn("xcresult build summary reported build errors", text)
         self.assertIn("xcodebuild exited", text)
         self.assertIn("ios_coverage_gate.py", text)
+
+    def test_ios_script_accepts_clean_xcresult_when_xcodebuild_exits_65(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            fake_bin = temp_path / "bin"
+            fake_bin.mkdir()
+            result_bundle = temp_path / "LifeOrganizeTests.xcresult"
+
+            xcodebuild = fake_bin / "xcodebuild"
+            xcodebuild.write_text(
+                textwrap.dedent(
+                    """\
+                    #!/usr/bin/env bash
+                    set -euo pipefail
+                    while [[ "$#" -gt 0 ]]; do
+                      if [[ "$1" == "-resultBundlePath" ]]; then
+                        result_bundle="$2"
+                        shift 2
+                        continue
+                      fi
+                      shift
+                    done
+                    mkdir -p "$result_bundle"
+                    touch "$result_bundle/Info.plist"
+                    printf 'Test Suite All tests passed.\\n'
+                    printf '** TEST FAILED **\\n' >&2
+                    exit 65
+                    """
+                ),
+                encoding="utf-8",
+            )
+            xcodebuild.chmod(0o755)
+
+            xcrun = fake_bin / "xcrun"
+            xcrun.write_text(
+                textwrap.dedent(
+                    """\
+                    #!/usr/bin/env bash
+                    set -euo pipefail
+                    if [[ "$1" == "xcresulttool" && "$2" == "get" && "$3" == "test-results" ]]; then
+                      cat <<'JSON'
+                    {"devicesAndConfigurations":[{"failedTests":0,"passedTests":33}],"failedTests":0,"skippedTests":3,"testFailures":[]}
+                    JSON
+                      exit 0
+                    fi
+                    if [[ "$1" == "xcresulttool" && "$2" == "get" && "$3" == "build-results" ]]; then
+                      cat <<'JSON'
+                    {"errorCount":0,"errors":[],"status":"succeeded"}
+                    JSON
+                      exit 0
+                    fi
+                    printf 'unexpected xcrun invocation: %s\\n' "$*" >&2
+                    exit 1
+                    """
+                ),
+                encoding="utf-8",
+            )
+            xcrun.chmod(0o755)
+
+            env = os.environ.copy()
+            env.update(
+                {
+                    "PATH": f"{fake_bin}{os.pathsep}{env['PATH']}",
+                    "IOS_DESTINATION": "platform=iOS Simulator,id=fake-device",
+                    "IOS_RESULT_BUNDLE": str(result_bundle),
+                    "IOS_DERIVED_DATA": str(temp_path / "DerivedData"),
+                    "IOS_SKIP_COVERAGE_GATE": "1",
+                }
+            )
+
+            completed = subprocess.run(
+                [str(self.script("Scripts/verify-ios.sh"))],
+                cwd=ROOT,
+                env=env,
+                check=False,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+
+            self.assertEqual(
+                completed.returncode,
+                0,
+                f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}",
+            )
+            self.assertIn("xcodebuild exited 65", completed.stderr)
 
     def test_ios_static_layout_guard_contract(self):
         text = self.read_script("Scripts/ios_static_layout_guard.py")

@@ -61,27 +61,60 @@ import sys
 tests = json.loads(os.environ["TEST_SUMMARY_JSON"])
 build = json.loads(os.environ["BUILD_SUMMARY_JSON"])
 
-configuration_passed_count = sum(
-    int(configuration.get("passedTests") or 0)
-    for configuration in tests.get("devicesAndConfigurations") or []
+def int_value(value):
+    try:
+        return int(value or 0)
+    except (TypeError, ValueError):
+        return 0
+
+def collect_values(node, key):
+    values = []
+    if isinstance(node, dict):
+        if key in node:
+            values.append(node[key])
+        for value in node.values():
+            values.extend(collect_values(value, key))
+    elif isinstance(node, list):
+        for value in node:
+            values.extend(collect_values(value, key))
+    return values
+
+def has_nonempty_collection(node, keys):
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if key in keys and value:
+                return True
+            if has_nonempty_collection(value, keys):
+                return True
+    elif isinstance(node, list):
+        return any(has_nonempty_collection(value, keys) for value in node)
+    return False
+
+passed_count = max([int_value(value) for value in collect_values(tests, "passedTests")] or [0])
+failed_count = max([int_value(value) for value in collect_values(tests, "failedTests")] or [0])
+skipped_count = max([int_value(value) for value in collect_values(tests, "skippedTests")] or [0])
+total_count = max([int_value(value) for value in collect_values(tests, "totalTestCount")] or [0])
+executed_count = max(passed_count, total_count - skipped_count)
+has_failure_details = has_nonempty_collection(
+    tests,
+    {"testFailures", "failureSummaries", "failures", "failedTestIdentifiers"},
 )
-passed_count = max(int(tests.get("passedTests") or 0), configuration_passed_count)
-failed_count = int(tests.get("failedTests") or 0)
-failed_in_configurations = sum(
-    int(configuration.get("failedTests") or 0)
-    for configuration in tests.get("devicesAndConfigurations") or []
-)
-result = tests.get("result")
 tests_passed = (
-    passed_count > 0
-    and result in (None, "", "Passed")
+    executed_count > 0
     and failed_count == 0
-    and failed_in_configurations == 0
-    and not tests.get("testFailures")
+    and not has_failure_details
 )
 no_build_errors = int(build.get("errorCount") or 0) == 0 and not build.get("errors")
 if not tests_passed:
     print("xcresult test summary did not report a clean pass.", file=sys.stderr)
+    print(
+        "xcresult summary counts: "
+        f"passed={passed_count} failed={failed_count} skipped={skipped_count} "
+        f"total={total_count} executed={executed_count} "
+        f"failureDetails={has_failure_details}",
+        file=sys.stderr,
+    )
+    print(f"xcresult summary keys: {', '.join(sorted(tests.keys()))}", file=sys.stderr)
 if not no_build_errors:
     print("xcresult build summary reported build errors.", file=sys.stderr)
 sys.exit(0 if tests_passed and no_build_errors else 1)

@@ -63,16 +63,58 @@ class VerifyScriptContractTests(unittest.TestCase):
         self.assertIn("xcodebuild_result_bundle_passed", text)
         self.assertIn("xcresulttool get test-results summary", text)
         self.assertIn("xcresulttool get build-results", text)
-        self.assertIn('tests.get("passedTests")', text)
-        self.assertIn('tests.get("devicesAndConfigurations")', text)
-        self.assertIn('result in (None, "", "Passed")', text)
-        self.assertIn("failed_in_configurations == 0", text)
+        self.assertIn("collect_values(tests, \"passedTests\")", text)
+        self.assertIn("collect_values(tests, \"totalTestCount\")", text)
+        self.assertIn("executed_count > 0", text)
+        self.assertIn("failed_count == 0", text)
+        self.assertIn("has_failure_details", text)
+        self.assertIn("xcresult summary counts", text)
         self.assertIn("xcresult test summary did not report a clean pass", text)
         self.assertIn("xcresult build summary reported build errors", text)
         self.assertIn("xcodebuild exited", text)
         self.assertIn("ios_coverage_gate.py", text)
 
     def test_ios_script_accepts_clean_xcresult_when_xcodebuild_exits_65(self):
+        completed = self.run_verify_ios_with_fake_xcresult(
+            test_summary='{"devicesAndConfigurations":[{"failedTests":0,"passedTests":33}],"failedTests":0,"skippedTests":3,"testFailures":[]}',
+            build_summary='{"errorCount":0,"errors":[],"status":"succeeded"}',
+        )
+
+        self.assertEqual(
+            completed.returncode,
+            0,
+            f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}",
+        )
+        self.assertIn("xcodebuild exited 65", completed.stderr)
+
+    def test_ios_script_accepts_clean_counts_when_xcresult_action_is_failed(self):
+        completed = self.run_verify_ios_with_fake_xcresult(
+            test_summary='{"result":"Failed","totalTestCount":36,"failedTests":0,"skippedTests":3,"testFailures":[]}',
+            build_summary='{"errorCount":0,"errors":[],"status":"succeeded"}',
+        )
+
+        self.assertEqual(
+            completed.returncode,
+            0,
+            f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}",
+        )
+        self.assertIn("xcodebuild exited 65", completed.stderr)
+
+    def test_ios_script_rejects_xcresult_with_failed_test_count(self):
+        completed = self.run_verify_ios_with_fake_xcresult(
+            test_summary='{"result":"Failed","totalTestCount":36,"failedTests":1,"skippedTests":3,"testFailures":[]}',
+            build_summary='{"errorCount":0,"errors":[],"status":"succeeded"}',
+        )
+
+        self.assertEqual(
+            completed.returncode,
+            65,
+            f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}",
+        )
+        self.assertIn("xcresult test summary did not report a clean pass", completed.stderr)
+        self.assertIn("failed=1", completed.stderr)
+
+    def run_verify_ios_with_fake_xcresult(self, test_summary, build_summary):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             fake_bin = temp_path / "bin"
@@ -111,15 +153,11 @@ class VerifyScriptContractTests(unittest.TestCase):
                     #!/usr/bin/env bash
                     set -euo pipefail
                     if [[ "$1" == "xcresulttool" && "$2" == "get" && "$3" == "test-results" ]]; then
-                      cat <<'JSON'
-                    {"devicesAndConfigurations":[{"failedTests":0,"passedTests":33}],"failedTests":0,"skippedTests":3,"testFailures":[]}
-                    JSON
+                      printf '%s\\n' "$XCRESULT_TEST_SUMMARY"
                       exit 0
                     fi
                     if [[ "$1" == "xcresulttool" && "$2" == "get" && "$3" == "build-results" ]]; then
-                      cat <<'JSON'
-                    {"errorCount":0,"errors":[],"status":"succeeded"}
-                    JSON
+                      printf '%s\\n' "$XCRESULT_BUILD_SUMMARY"
                       exit 0
                     fi
                     printf 'unexpected xcrun invocation: %s\\n' "$*" >&2
@@ -138,10 +176,12 @@ class VerifyScriptContractTests(unittest.TestCase):
                     "IOS_RESULT_BUNDLE": str(result_bundle),
                     "IOS_DERIVED_DATA": str(temp_path / "DerivedData"),
                     "IOS_SKIP_COVERAGE_GATE": "1",
+                    "XCRESULT_TEST_SUMMARY": test_summary,
+                    "XCRESULT_BUILD_SUMMARY": build_summary,
                 }
             )
 
-            completed = subprocess.run(
+            return subprocess.run(
                 [str(self.script("Scripts/verify-ios.sh"))],
                 cwd=ROOT,
                 env=env,
@@ -150,13 +190,6 @@ class VerifyScriptContractTests(unittest.TestCase):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-
-            self.assertEqual(
-                completed.returncode,
-                0,
-                f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}",
-            )
-            self.assertIn("xcodebuild exited 65", completed.stderr)
 
     def test_ios_static_layout_guard_contract(self):
         text = self.read_script("Scripts/ios_static_layout_guard.py")

@@ -66,6 +66,13 @@ struct ChatSendService {
             guard canWriteResults(for: dataGeneration) else {
                 return nil
             }
+            LocalDiagnosticEventStore().record(
+                severity: .warning,
+                category: "extraction",
+                operation: "send_extraction",
+                error: error,
+                affectedRecordID: message.id
+            )
             try fail(message: message, attempt: attempt, error: error)
         }
         return message
@@ -131,6 +138,14 @@ struct ChatSendService {
             guard canWriteResults(for: dataGeneration) else {
                 return message
             }
+            LocalDiagnosticEventStore().record(
+                severity: .warning,
+                category: "web_request",
+                operation: "send_web_request",
+                error: error,
+                affectedRecordID: message.id,
+                metadata: ["mode": String(describing: mode)]
+            )
             if let attempt {
                 try fail(message: message, attempt: attempt, error: error)
             } else {

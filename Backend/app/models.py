@@ -24,6 +24,8 @@ class DeviceClient(Base):
         nullable=False,
     )
     request_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="active", nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class AIRequestLog(Base):

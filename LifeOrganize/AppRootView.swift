@@ -279,12 +279,10 @@ struct AppRootView: View {
         guard !(runtime.isAutomationRuntime && runtime.shouldSkipLaunchMaintenance) else {
             return
         }
-        do {
-            try ExtractionRecoveryMaintenanceService(modelContext: modelContext).repairInterruptedEntries()
-            try DerivedFieldMaintenanceService(modelContext: modelContext).repairAll()
-            try LedgerReviewItemGenerationService(modelContext: modelContext).refresh()
+        let failures = LaunchMaintenanceService(modelContext: modelContext).repair()
+        if failures.isEmpty {
             maintenanceErrorMessage = nil
-        } catch {
+        } else {
             maintenanceErrorMessage = "Some cached ledger fields could not be refreshed."
         }
     }

@@ -57,6 +57,26 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         }
     }
 
+    func testNonLoopbackHTTPAIServiceBaseURLFallsBackToProductionOutsideAutomation() {
+        let configuration = AppRuntimeConfiguration(arguments: [
+            "LifeOrganize",
+            "-ai-service-base-url=http://staging.example.invalid"
+        ])
+
+        XCTAssertEqual(configuration.aiServiceBaseURL, AppRuntimeConfiguration.defaultAIServiceBaseURL)
+    }
+
+    func testAutomationCanUseNonLoopbackHTTPAIServiceBaseURL() throws {
+        let overrideURL = try XCTUnwrap(URL(string: "http://staging.example.invalid"))
+        let configuration = AppRuntimeConfiguration(arguments: [
+            "LifeOrganize",
+            "-ui-testing",
+            "-ai-service-base-url=\(overrideURL.absoluteString)"
+        ])
+
+        XCTAssertEqual(configuration.aiServiceBaseURL, overrideURL)
+    }
+
     func testExplicitAIServiceBaseURLOverrideWinsInAutomationRuntime() throws {
         let overrideURL = try XCTUnwrap(URL(string: "http://127.0.0.1:8787"))
         let configuration = AppRuntimeConfiguration(arguments: [
@@ -90,6 +110,35 @@ final class AppRuntimeConfigurationTests: XCTestCase {
                 "Expected invalid override to fall back to production for arguments: \(arguments)"
             )
         }
+    }
+
+    func testInvalidRuntimeArgumentsAreVisibleAsConfigurationWarnings() {
+        let configuration = AppRuntimeConfiguration(arguments: [
+            "LifeOrganize",
+            "-ui-testing",
+            "-ai-service-base-url=ftp://127.0.0.1:8787",
+            "-fixed-now=not-a-date",
+            "-screenshot-seed=missing",
+            "-screenshot-time-zone=Not/AZone",
+            "-screenshot-calendar=martian",
+            "-screenshot-appearance=sepia",
+            "-screenshot-start=elsewhere",
+            "-simulate-ai-service-error=unknown"
+        ])
+
+        XCTAssertEqual(
+            Set(configuration.configurationWarnings),
+            [
+                "ai_service_base_url_ignored",
+                "fixed_now_ignored",
+                "screenshot_seed_ignored",
+                "screenshot_time_zone_ignored",
+                "screenshot_calendar_ignored",
+                "screenshot_appearance_ignored",
+                "screenshot_start_ignored",
+                "simulated_ai_service_error_ignored"
+            ]
+        )
     }
 
     @MainActor

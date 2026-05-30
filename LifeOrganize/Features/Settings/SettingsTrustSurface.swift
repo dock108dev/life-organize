@@ -46,6 +46,7 @@ struct SettingsSafetyRowContent: Equatable {
 
 enum SettingsFeedback: Equatable {
     case deviceTokenSaved
+    case deviceTokenSavedRetryDeferred
     case deviceTokenReplaced
     case deviceTokenRemoved
     case exportReady
@@ -59,7 +60,12 @@ enum SettingsFeedback: Equatable {
 
     var isError: Bool {
         switch self {
-        case .deviceTokenSaved, .deviceTokenReplaced, .deviceTokenRemoved, .exportReady, .localDataCleared:
+        case .deviceTokenSaved,
+             .deviceTokenSavedRetryDeferred,
+             .deviceTokenReplaced,
+             .deviceTokenRemoved,
+             .exportReady,
+             .localDataCleared:
             false
         case .deviceTokenReadFailed,
              .deviceTokenEmpty,
@@ -79,6 +85,8 @@ enum SettingsFeedback: Equatable {
         switch self {
         case .deviceTokenSaved:
             "Service token is ready. New entries can connect across your timeline."
+        case .deviceTokenSavedRetryDeferred:
+            "Service token is ready. Some saved entries will retry later."
         case .deviceTokenReplaced:
             "Service token refreshed. Future timeline connections will use the new token."
         case .deviceTokenRemoved:

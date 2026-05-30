@@ -32,6 +32,7 @@ class Settings(BaseSettings):
         default=3600,
         alias="DEVICE_RATE_LIMIT_WINDOW_SECONDS",
     )
+    auto_enroll_device_tokens: bool = Field(default=True, alias="AUTO_ENROLL_DEVICE_TOKENS")
 
     @model_validator(mode="after")
     def validate_runtime_settings(self) -> Settings:

@@ -9,8 +9,12 @@ from fastapi import Header, HTTPException, Request, status
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.admin_events import admin_events
 from app.config import settings
 from app.models import AIRequestLog, DeviceClient
+
+ACTIVE_DEVICE_STATUS = "active"
+REVOKED_DEVICE_STATUS = "revoked"
 
 
 def hash_device_token(token: str) -> str:
@@ -24,6 +28,13 @@ async def require_device_token(
 ) -> str:
     token = (x_lifeorganize_device_token or "").strip()
     if len(token) < 16:
+        admin_events.emit(
+            "warning",
+            "security",
+            "Device token rejected",
+            reason="missing_or_short",
+            path=request.scope.get("path", "unknown"),
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"code": "missing_device_token", "detail": "Missing device token."},
@@ -41,6 +52,12 @@ def validate_admin_key(provided: str | None) -> None:
     expected = settings.admin_api_key
     if not expected:
         if settings.environment in {"production", "staging"}:
+            admin_events.emit(
+                "error",
+                "security",
+                "Admin auth misconfigured",
+                environment=settings.environment,
+            )
             raise HTTPException(
                 status_code=500,
                 detail={
@@ -50,6 +67,12 @@ def validate_admin_key(provided: str | None) -> None:
             )
         return
     if not provided or not secrets.compare_digest(provided, expected):
+        admin_events.emit(
+            "warning",
+            "security",
+            "Admin key rejected",
+            reason="missing" if not provided else "invalid",
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"code": "invalid_admin_key", "detail": "Invalid admin key."},
@@ -61,13 +84,43 @@ async def record_device_seen(session: AsyncSession, token_hash: str) -> None:
         select(DeviceClient).where(DeviceClient.token_hash == token_hash)
     )
     if existing is None:
+        if not settings.auto_enroll_device_tokens:
+            admin_events.emit(
+                "warning",
+                "security",
+                "Unknown device token rejected",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={"code": "unknown_device_token", "detail": "Unknown device token."},
+            )
         session.add(DeviceClient(token_hash=token_hash, request_count=1))
+    elif existing.status != ACTIVE_DEVICE_STATUS:
+        admin_events.emit(
+            "warning",
+            "security",
+            "Inactive device token rejected",
+            status=existing.status,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"code": "revoked_device_token", "detail": "Device token is not active."},
+        )
     else:
         await session.execute(
             update(DeviceClient)
             .where(DeviceClient.token_hash == token_hash)
             .values(last_seen_at=func.now(), request_count=DeviceClient.request_count + 1)
         )
+
+
+async def revoke_device_token(session: AsyncSession, token_hash: str) -> bool:
+    result = await session.execute(
+        update(DeviceClient)
+        .where(DeviceClient.token_hash == token_hash)
+        .values(status=REVOKED_DEVICE_STATUS, revoked_at=func.now())
+    )
+    return bool(result.rowcount)
 
 
 async def enforce_device_rate_limit(session: AsyncSession, token_hash: str, endpoint: str) -> None:
@@ -82,6 +135,14 @@ async def enforce_device_rate_limit(session: AsyncSession, token_hash: str, endp
         )
     )
     if (count or 0) >= settings.device_rate_limit_requests:
+        admin_events.emit(
+            "warning",
+            "security",
+            "Device rate limit exceeded",
+            endpoint=endpoint,
+            window_seconds=settings.device_rate_limit_window_seconds,
+            limit=settings.device_rate_limit_requests,
+        )
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail={"code": "rate_limited", "detail": "Rate limit exceeded."},

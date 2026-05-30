@@ -348,6 +348,12 @@ extension SettingsView {
         do {
             savedTokenDescription = try deviceTokenStore.loadDeviceToken().map(maskedTokenDescription)
         } catch {
+            LocalDiagnosticEventStore().record(
+                severity: .error,
+                category: "settings",
+                operation: "load_device_token",
+                error: error
+            )
             savedTokenDescription = nil
             feedback = .deviceTokenReadFailed
         }
@@ -360,6 +366,12 @@ extension SettingsView {
             reloadSavedTokenState()
             feedback = .deviceTokenReplaced
         } catch {
+            LocalDiagnosticEventStore().record(
+                severity: .error,
+                category: "settings",
+                operation: "delete_device_token",
+                error: error
+            )
             feedback = .deviceTokenRemoveFailed
         }
     }
@@ -378,9 +390,27 @@ extension SettingsView {
             )
             try retryService.markPendingTokenMessagesRetryable()
             Task {
-                try? await retryService.retryRecentPendingMessages()
+                do {
+                    try await retryService.retryRecentPendingMessages()
+                } catch {
+                    LocalDiagnosticEventStore().record(
+                        severity: .warning,
+                        category: "settings",
+                        operation: "retry_recent_pending_messages",
+                        error: error
+                    )
+                    await MainActor.run {
+                        feedback = .deviceTokenSavedRetryDeferred
+                    }
+                }
             }
         } catch {
+            LocalDiagnosticEventStore().record(
+                severity: .error,
+                category: "settings",
+                operation: "prepare_service_token",
+                error: error
+            )
             feedback = .deviceTokenSaveFailed
         }
     }
@@ -397,6 +427,12 @@ extension SettingsView {
             feedback = .localDataCleared
             onLocalDataCleared()
         } catch {
+            LocalDiagnosticEventStore().record(
+                severity: .error,
+                category: "settings",
+                operation: "clear_local_data",
+                error: error
+            )
             feedback = .clearDataFailed
         }
     }
@@ -407,6 +443,12 @@ extension SettingsView {
             settingsExportShareItem = ExportShareItem(url: url)
             feedback = .exportReady
         } catch {
+            LocalDiagnosticEventStore().record(
+                severity: .error,
+                category: "settings",
+                operation: "export_local_json",
+                error: error
+            )
             feedback = .exportFailed
             isShowingExportFailure = true
         }
@@ -419,6 +461,12 @@ extension SettingsView {
             clearDataFlow.exportSucceeded()
             feedback = .exportReady
         } catch {
+            LocalDiagnosticEventStore().record(
+                severity: .error,
+                category: "settings",
+                operation: "export_local_json_clear_flow",
+                error: error
+            )
             clearDataFlow.exportFailed()
         }
     }

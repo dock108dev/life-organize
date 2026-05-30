@@ -38,15 +38,23 @@ async def _collect_asgi_response(
     path: str,
     headers: Iterable[tuple[bytes, bytes]] = (),
     body: bytes = b"",
+    body_chunks: list[bytes] | None = None,
 ) -> tuple[int, dict[str, str], bytes]:
     messages: list[dict[str, Any]] = []
     receive_calls = 0
+    chunks = body_chunks if body_chunks is not None else [body]
 
     async def receive() -> dict[str, Any]:
         nonlocal receive_calls
+        if receive_calls < len(chunks):
+            chunk = chunks[receive_calls]
+            receive_calls += 1
+            return {
+                "type": "http.request",
+                "body": chunk,
+                "more_body": receive_calls < len(chunks),
+            }
         receive_calls += 1
-        if receive_calls == 1:
-            return {"type": "http.request", "body": body, "more_body": False}
         return {"type": "http.disconnect"}
 
     async def send(message: dict[str, Any]) -> None:
@@ -153,33 +161,50 @@ def test_request_size_limit_rejects_oversized_declared_content_length(
         assert name not in response.headers
 
 
-async def test_request_size_limit_allows_missing_content_length(monkeypatch) -> None:
+async def test_request_size_limit_rejects_oversized_missing_content_length(monkeypatch) -> None:
     monkeypatch.setattr(settings, "max_request_bytes", 4)
 
     status, headers, body = await _collect_asgi_response(
-        method="GET",
+        method="POST",
         path="/healthz",
         body=b"12345",
     )
 
-    assert status == 200
-    assert body == b'{"ok":true}'
-    assert headers["x-frame-options"] == "DENY"
+    assert status == 413
+    assert body == b'{"code":"request_too_large","detail":"Request body is too large."}'
+    for name in SECURITY_HEADERS:
+        assert name not in headers
 
 
-async def test_request_size_limit_allows_invalid_content_length(monkeypatch) -> None:
+async def test_request_size_limit_rejects_oversized_invalid_content_length(monkeypatch) -> None:
     monkeypatch.setattr(settings, "max_request_bytes", 4)
 
     status, headers, body = await _collect_asgi_response(
-        method="GET",
+        method="POST",
         path="/healthz",
         headers=[(b"content-length", b"invalid")],
         body=b"12345",
     )
 
-    assert status == 200
-    assert body == b'{"ok":true}'
-    assert headers["x-frame-options"] == "DENY"
+    assert status == 413
+    assert body == b'{"code":"request_too_large","detail":"Request body is too large."}'
+    for name in SECURITY_HEADERS:
+        assert name not in headers
+
+
+async def test_request_size_limit_rejects_oversized_chunked_body(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "max_request_bytes", 4)
+
+    status, headers, body = await _collect_asgi_response(
+        method="POST",
+        path="/healthz",
+        body_chunks=[b"12", b"345"],
+    )
+
+    assert status == 413
+    assert body == b'{"code":"request_too_large","detail":"Request body is too large."}'
+    for name in SECURITY_HEADERS:
+        assert name not in headers
 
 
 async def test_request_size_limit_rejects_oversized_options(monkeypatch) -> None:

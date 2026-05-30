@@ -4,7 +4,7 @@ Production deployment covers only the FastAPI backend and Postgres. iOS GitHub A
 
 The backend deployment flow is:
 
-1. `Backend CI/CD` runs backend tests, Ruff, and Python compilation.
+1. `Backend CI/CD` runs backend tests, Ruff, dependency audit, committed-secret scanning, and Python compilation.
 2. Backend coverage, Docker Compose smoke, and Python 3.11 compatibility checks run before image publishing.
 3. On `main` pushes for backend paths, or manual dispatch with `full_deploy=true`, it builds and pushes `ghcr.io/dock108dev/life-organize-api:<short-sha>` and `latest`.
 4. The deploy job SSHes to the server, resets the checkout in `DEPLOY_PATH` to the target branch, updates the `life.dock108.dev` Caddy site block when needed, pulls the image, runs Alembic migrations, starts Compose, waits for `lifeorganize-api` to become healthy, verifies the running image, and smokes `https://life.dock108.dev/healthz`.
@@ -39,11 +39,13 @@ OPENAI_API_KEY=<provider-key>
 OPENAI_MODEL=gpt-5.5
 LIFE_ORGANIZE_ADMIN_API_KEY=<admin-key>
 DEVICE_TOKEN_SIGNING_SECRET=<long-random-secret>
+AUTO_ENROLL_DEVICE_TOKENS=true
 DEVICE_RATE_LIMIT_REQUESTS=60
 DEVICE_RATE_LIMIT_WINDOW_SECONDS=3600
 ```
 
 The Compose file uses the internal database URL automatically, so `DATABASE_URL` is optional for Docker deploys.
+Keep `AUTO_ENROLL_DEVICE_TOKENS=true` while existing clients are being enrolled. Set it to `false` only after expected device token hashes exist in `device_clients`; unknown tokens will then be rejected.
 
 ## Caddy
 

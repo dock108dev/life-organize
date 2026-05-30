@@ -67,7 +67,10 @@ class AdminEventBus:
         )
         self._events.append(event)
         for subscriber in tuple(self._subscribers):
-            subscriber.put_nowait(event)
+            try:
+                subscriber.put_nowait(event)
+            except asyncio.QueueFull:
+                self._subscribers.discard(subscriber)
         return event
 
     def recent(self, limit: int = 200) -> list[AdminEvent]:

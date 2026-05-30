@@ -16,6 +16,7 @@ Admin and operations surfaces are:
 - `POST /api/admin/logs/session`
 - `POST /api/admin/logs/mark`
 - `POST /api/admin/logs/clear`
+- `POST /api/admin/logs/logout`
 - `GET /admin/logs`, the HTML log panel shell that connects to the authenticated admin API routes.
 
 ## Local Run
@@ -35,6 +36,7 @@ DATABASE_URL=postgresql+asyncpg://lifeorganize:lifeorganize@localhost:5433/lifeo
 DEVICE_TOKEN_SIGNING_SECRET=dev-secret \
 OPENAI_API_KEY=sk-... \
 LIFE_ORGANIZE_ADMIN_API_KEY=dev-admin \
+AUTO_ENROLL_DEVICE_TOKENS=true \
 .venv/bin/python -m uvicorn main:app --reload --port 8787
 ```
 
@@ -58,13 +60,14 @@ Open the local backend log/control panel at:
 http://127.0.0.1:8787/admin/logs
 ```
 
-Use `LIFE_ORGANIZE_ADMIN_API_KEY` to open an admin session from the log panel. The panel connects to the authenticated admin API routes with the `x-admin-api-key` header, then uses the admin session cookie for subsequent log reads and streaming. The page streams request and OpenAI gateway events, including status, latency, model, and OpenAI request IDs. The logged event metadata includes request text length, not raw user text, API keys, device tokens, provider request JSON, or raw model response bodies.
+Use `LIFE_ORGANIZE_ADMIN_API_KEY` to open an admin session from the log panel. The panel connects to the authenticated admin API routes with the `x-admin-api-key` header, then uses the admin session cookie for subsequent log reads and streaming. The admin key stays in the current page session and is not persisted to browser storage. The page streams request, OpenAI gateway, and security events, including status, latency, model, OpenAI request IDs, and sanitized auth/rate-limit decisions. The logged event metadata includes request text length, not raw user text, API keys, device tokens, provider request JSON, or raw model response bodies.
 
 ## Production
 
 - Store the OpenAI key only in backend environment/secrets.
 - `OPENAI_MODEL` defaults to `gpt-5.5` in `Backend/app/config.py` and `Backend/infra/docker-compose.yml`.
 - Set `DEVICE_TOKEN_SIGNING_SECRET` to a stable private value.
+- Keep `AUTO_ENROLL_DEVICE_TOKENS=true` during compatibility rollout. Set it to `false` only after known active device tokens have been enrolled; unknown tokens will then receive `unknown_device_token`.
 - Set `LIFE_ORGANIZE_ADMIN_API_KEY` to a stable private value for admin routes and the log panel.
 - Run Alembic migrations before replacing the API container. The GitHub deploy workflow and manual runbook use the Compose `migrate` service; the API entrypoint also honors `RUN_MIGRATIONS=true` when that path is used.
 - Route `life.dock108.dev` to the API container through the Caddy example in `Backend/infra/`.

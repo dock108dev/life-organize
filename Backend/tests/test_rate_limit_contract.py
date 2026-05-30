@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 import app.auth as auth
+from app.admin_events import admin_events
 from app.config import settings
 from app.models import AIRequestLog
 from app.services.openai_gateway import GatewayResult
@@ -76,6 +77,13 @@ def test_rate_limited_response_includes_retry_after_and_skips_gateway_log(
     assert gateway.web_requests is not None
     assert len(gateway.web_requests) == 1
     assert sqlite_route_session.count(AIRequestLog) == 1
+    security_events = [event for event in admin_events.recent(50) if event.category == "security"]
+    assert security_events[-1].message == "Device rate limit exceeded"
+    assert security_events[-1].details == {
+        "endpoint": "/api/v1/web-requests",
+        "window_seconds": 37,
+        "limit": 1,
+    }
 
 
 def test_rate_limit_keeps_separate_endpoint_quotas(

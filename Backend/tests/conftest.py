@@ -29,6 +29,7 @@ _TEST_ENVIRONMENT = {
     "MAX_REQUEST_BYTES": "16384",
     "DEVICE_RATE_LIMIT_REQUESTS": "60",
     "DEVICE_RATE_LIMIT_WINDOW_SECONDS": "3600",
+    "AUTO_ENROLL_DEVICE_TOKENS": "true",
 }
 _PREVIOUS_ENVIRONMENT = {key: os.environ.get(key) for key in _TEST_ENVIRONMENT}
 os.environ.update(_TEST_ENVIRONMENT)
@@ -151,6 +152,7 @@ def isolated_backend_state(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
         "max_request_bytes": 16_384,
         "device_rate_limit_requests": 60,
         "device_rate_limit_window_seconds": 3600,
+        "auto_enroll_device_tokens": True,
     }
     for name, value in app_settings.items():
         monkeypatch.setattr(settings, name, value)

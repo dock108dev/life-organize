@@ -89,6 +89,7 @@ def test_production_settings_require_secrets_and_remote_database() -> None:
     development_settings = Settings(_env_file=None)
 
     assert production_settings.environment == "production"
+    assert production_settings.auto_enroll_device_tokens is True
     assert development_settings.environment == "development"
     assert development_settings.openai_api_key is None
     assert "localhost" in development_settings.database_url

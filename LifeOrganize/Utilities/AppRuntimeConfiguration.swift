@@ -38,6 +38,7 @@ struct AppRuntimeConfiguration {
     var screenshotAppearance: ScreenshotAppearance?
     var disablesAnimations: Bool
     var aiServiceBaseURL: URL
+    var configurationWarnings: [String]
     private var shouldResetFreshInstallState: Bool
     private var usesInMemoryAutomationStore: Bool
     var fixedNow: Date?
@@ -70,13 +71,26 @@ struct AppRuntimeConfiguration {
         screenshotCalendar = Self.screenshotCalendar(from: arguments, timeZone: screenshotTimeZone, locale: screenshotLocale)
         screenshotAppearance = Self.screenshotAppearance(from: arguments)
         disablesAnimations = arguments.contains("-disable-animations") || screenshotMode
-        aiServiceBaseURL = Self.aiServiceBaseURL(from: arguments)
+        aiServiceBaseURL = Self.aiServiceBaseURL(from: arguments, isAutomationRuntime: automationRuntime)
         seedScenarioIDs = Self.seedScenarioIDs(from: arguments, screenshotSeed: screenshotSeed, isScreenshotMode: screenshotMode)
         let start = Self.screenshotStart(from: arguments)
         initialTab = Self.initialTab(from: arguments, screenshotStart: start)
         initialSection = start.map(AppSection.init)
         initialSheet = Self.initialSheet(from: arguments)
         fixedNow = Self.fixedDate(from: arguments) ?? (screenshotMode ? Self.defaultScreenshotNow : nil)
+        configurationWarnings = Self.configurationWarnings(
+            from: arguments,
+            isAutomationRuntime: automationRuntime,
+            aiServiceBaseURL: aiServiceBaseURL,
+            fixedNow: fixedNow,
+            screenshotSeed: screenshotSeed,
+            screenshotLocale: screenshotLocale,
+            screenshotTimeZone: screenshotTimeZone,
+            screenshotCalendar: screenshotCalendar,
+            screenshotAppearance: screenshotAppearance,
+            screenshotStart: start,
+            simulatedAIServiceError: simulatedAIServiceError
+        )
     }
 
     var isAutomationRuntime: Bool {
@@ -271,14 +285,24 @@ struct AppRuntimeConfiguration {
         argumentValue(from: arguments, prefixes: ["-screenshot-start="]).flatMap(ScreenshotStart.init(argumentValue:))
     }
 
-    private static func aiServiceBaseURL(from arguments: [String]) -> URL {
+    private static func aiServiceBaseURL(from arguments: [String], isAutomationRuntime: Bool) -> URL {
         guard let value = argumentValue(from: arguments, prefixes: ["-ai-service-base-url=", "--ai-service-base-url="]),
               let url = URL(string: value),
-              let scheme = url.scheme,
-              ["http", "https"].contains(scheme.lowercased()) else {
+              let scheme = url.scheme?.lowercased() else {
             return defaultAIServiceBaseURL
         }
-        return url
+        if scheme == "https" {
+            return url
+        }
+        if scheme == "http", isAutomationRuntime || isLoopbackHost(url.host) {
+            return url
+        }
+        return defaultAIServiceBaseURL
+    }
+
+    private static func isLoopbackHost(_ host: String?) -> Bool {
+        guard let host = host?.lowercased() else { return false }
+        return host == "localhost" || host == "127.0.0.1" || host == "::1"
     }
 
     private static func screenshotLocale(from arguments: [String]) -> Locale? {
@@ -334,6 +358,60 @@ struct AppRuntimeConfiguration {
         let prefix = prefixes.first { rawValue.hasPrefix($0) } ?? ""
         let value = String(rawValue.dropFirst(prefix.count))
         return value.isEmpty ? nil : value
+    }
+
+    private static func containsArgument(from arguments: [String], prefixes: [String]) -> Bool {
+        arguments.contains { argument in
+            prefixes.contains { argument.hasPrefix($0) }
+        }
+    }
+
+    private static func configurationWarnings(
+        from arguments: [String],
+        isAutomationRuntime: Bool,
+        aiServiceBaseURL: URL,
+        fixedNow: Date?,
+        screenshotSeed: ScreenshotSeed?,
+        screenshotLocale: Locale?,
+        screenshotTimeZone: TimeZone?,
+        screenshotCalendar: Calendar?,
+        screenshotAppearance: ScreenshotAppearance?,
+        screenshotStart: ScreenshotStart?,
+        simulatedAIServiceError: AppError?
+    ) -> [String] {
+        var warnings: [String] = []
+        if containsArgument(from: arguments, prefixes: ["-ai-service-base-url=", "--ai-service-base-url="]),
+           aiServiceBaseURL == defaultAIServiceBaseURL,
+           argumentValue(from: arguments, prefixes: ["-ai-service-base-url=", "--ai-service-base-url="]) != defaultAIServiceBaseURL.absoluteString {
+            warnings.append("ai_service_base_url_ignored")
+        }
+        if containsArgument(from: arguments, prefixes: ["-fixed-now="]), fixedNow == nil {
+            warnings.append("fixed_now_ignored")
+        }
+        if containsArgument(from: arguments, prefixes: ["-screenshot-seed="]), screenshotSeed == nil {
+            warnings.append("screenshot_seed_ignored")
+        }
+        if containsArgument(from: arguments, prefixes: ["-screenshot-locale="]), screenshotLocale == nil {
+            warnings.append("screenshot_locale_ignored")
+        }
+        if containsArgument(from: arguments, prefixes: ["-screenshot-time-zone="]), screenshotTimeZone == nil {
+            warnings.append("screenshot_time_zone_ignored")
+        }
+        if containsArgument(from: arguments, prefixes: ["-screenshot-calendar="]), screenshotCalendar == nil {
+            warnings.append("screenshot_calendar_ignored")
+        }
+        if containsArgument(from: arguments, prefixes: ["-screenshot-appearance="]), screenshotAppearance == nil {
+            warnings.append("screenshot_appearance_ignored")
+        }
+        if containsArgument(from: arguments, prefixes: ["-screenshot-start="]), screenshotStart == nil {
+            warnings.append("screenshot_start_ignored")
+        }
+        if isAutomationRuntime,
+           containsArgument(from: arguments, prefixes: ["-simulate-ai-service-error="]),
+           simulatedAIServiceError == nil {
+            warnings.append("simulated_ai_service_error_ignored")
+        }
+        return warnings
     }
 
     private static func uiTestingStoreURL() -> URL {

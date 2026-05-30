@@ -12,6 +12,7 @@ Require only checks that run on pull requests for the protected branch. Do not r
 | --- | --- | --- | --- |
 | `backend / tests` | `Backend CI/CD` | `test-backend` | Backend pytest suite with Postgres-enabled integration tests. |
 | `backend / lint` | `Backend CI/CD` | `lint-ruff` | Ruff lint gate for backend app, tests, and deploy helpers. |
+| `backend / security audit` | `Backend CI/CD` | `security-audit` | Python dependency advisory audit and committed-secret scan. |
 | `backend / compile` | `Backend CI/CD` | `compile` | Python bytecode compilation after backend test and lint gates. |
 | `backend / coverage >= 80` | `Backend CI/CD` | `coverage` | Backend pytest coverage gate. |
 | `backend / docker build` | `Backend CI/CD` | `docker-build` | Backend Docker Compose smoke before image publish. |

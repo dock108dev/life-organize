@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from collections.abc import AsyncIterator
 from typing import Any
@@ -61,6 +62,19 @@ def test_admin_event_bus_retains_fixed_buffer_without_resetting_ids() -> None:
         bus.emit("info", "admin", f"event-{index}")
 
     assert [event.id for event in bus.recent(500)] == [3, 4, 5]
+
+
+def test_admin_event_bus_drops_backpressured_subscriber_without_raising() -> None:
+    bus = AdminEventBus()
+    subscriber: asyncio.Queue = asyncio.Queue(maxsize=1)
+    subscriber.put_nowait(bus.emit("info", "admin", "fills subscriber"))
+    bus._subscribers.add(subscriber)
+
+    event = bus.emit("warning", "security", "request path should keep running")
+
+    assert event.message == "request path should keep running"
+    assert bus.recent(1) == [event]
+    assert subscriber not in bus._subscribers
 
 
 def test_admin_log_routes_use_header_and_session_auth(client, admin_headers: dict[str, str]) -> None:

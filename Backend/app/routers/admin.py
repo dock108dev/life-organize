@@ -24,6 +24,8 @@ class AdminSession:
     expires_at: datetime
 
 
+# Admin log sessions are intentionally process-local. The production Compose
+# service runs one API process, so shared session storage is not required today.
 _admin_sessions: dict[str, AdminSession] = {}
 
 

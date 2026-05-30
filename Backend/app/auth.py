@@ -14,7 +14,6 @@ from app.config import settings
 from app.models import AIRequestLog, DeviceClient
 
 ACTIVE_DEVICE_STATUS = "active"
-REVOKED_DEVICE_STATUS = "revoked"
 
 
 def hash_device_token(token: str) -> str:
@@ -79,7 +78,7 @@ def validate_admin_key(provided: str | None) -> None:
         )
 
 
-async def record_device_seen(session: AsyncSession, token_hash: str) -> None:
+async def enforce_active_device_token(session: AsyncSession, token_hash: str) -> None:
     existing = await session.scalar(
         select(DeviceClient).where(DeviceClient.token_hash == token_hash)
     )
@@ -110,15 +109,6 @@ async def record_device_seen(session: AsyncSession, token_hash: str) -> None:
             .where(DeviceClient.token_hash == token_hash)
             .values(last_seen_at=func.now(), request_count=DeviceClient.request_count + 1)
         )
-
-
-async def revoke_device_token(session: AsyncSession, token_hash: str) -> bool:
-    result = await session.execute(
-        update(DeviceClient)
-        .where(DeviceClient.token_hash == token_hash)
-        .values(status=REVOKED_DEVICE_STATUS, revoked_at=func.now())
-    )
-    return bool(result.rowcount)
 
 
 async def enforce_device_rate_limit(session: AsyncSession, token_hash: str, endpoint: str) -> None:

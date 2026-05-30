@@ -31,6 +31,8 @@ class RequestSizeLimitMiddleware:
             await self.app(scope, receive, send)
             return
 
+        # Valid write requests are buffered only up to MAX_REQUEST_BYTES before
+        # replay. The current API accepts small JSON bodies, not file uploads.
         messages: list[dict] = []
         received_bytes = 0
         while True:

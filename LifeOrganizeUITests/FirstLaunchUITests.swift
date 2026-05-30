@@ -6,7 +6,7 @@ final class LifeOrganizeScenarioUITests: XCTestCase {
     }
 
     func testFirstLaunchFreshInstallScenarioCoversEmptyTimelineAndFirstEntry() throws {
-        let app = launchUITestApp(extraArguments: ["--reset-db"], useInMemoryStore: true)
+        let app = launchUITestApp(extraArguments: ["-reset-store"], useInMemoryStore: true)
 
         XCTAssertTrue(app.navigationBars["Timeline"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.tabBars.buttons["Timeline"].isSelected)
@@ -112,7 +112,7 @@ final class LifeOrganizeScenarioUITests: XCTestCase {
     }
 
     func testTimelineComposerStaysReadableDuringFocusedDraftEntry() throws {
-        let app = launchUITestApp(extraArguments: ["--reset-db"], useInMemoryStore: true)
+        let app = launchUITestApp(extraArguments: ["-reset-store"], useInMemoryStore: true)
 
         XCTAssertTrue(app.navigationBars["Timeline"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Save note"].exists)
@@ -132,5 +132,28 @@ final class LifeOrganizeScenarioUITests: XCTestCase {
         if app.keyboards.firstMatch.exists {
             XCTAssertLessThanOrEqual(input.frame.maxY, app.keyboards.firstMatch.frame.minY + 2)
         }
+    }
+
+    func testFocusedTimelineComposerCanDismissKeyboardBeforeTabNavigation() throws {
+        let app = launchUITestApp(extraArguments: ["-reset-store"], useInMemoryStore: true)
+
+        XCTAssertTrue(app.navigationBars["Timeline"].waitForFastExistence(timeout: 5))
+        let input = app.textFields["chat-input"]
+        XCTAssertTrue(input.waitForFastExistence(timeout: 5))
+
+        input.tap()
+        input.typeText("Draft before changing tabs")
+
+        guard app.keyboards.firstMatch.waitForFastExistence(timeout: 2) else {
+            throw XCTSkip("Software keyboard is not visible on this simulator.")
+        }
+
+        let dismissButton = app.buttons["timeline-keyboard-dismiss-button"]
+        XCTAssertTrue(dismissButton.waitForFastExistence(timeout: 5))
+        dismissButton.tap()
+        XCTAssertFalse(app.keyboards.firstMatch.waitForFastExistence(timeout: 2))
+
+        tapTab("Things", in: app)
+        XCTAssertTrue(app.navigationBars["Things"].waitForFastExistence(timeout: 5))
     }
 }

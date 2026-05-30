@@ -4,8 +4,8 @@ extension LifeOrganizeScenarioUITests {
     func testDeterministicLaunchAliasesReachFirstRun() throws {
         let app = launchScreenshotApp(
             extraArguments: [
-                "--reset-db",
-                "--seed-scenario=first-run-empty"
+                "-reset-store",
+                "-seed-scenario=first-run-empty"
             ]
         )
 

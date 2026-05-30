@@ -24,8 +24,8 @@ final class DynamicTypeSmokeUITests: XCTestCase {
     private func runCoreSurfaceSmoke(at size: DynamicTypeSmokeSize) {
         let app = launchUITestApp(
             extraArguments: size.launchArguments + [
-                "--reset-db",
-                "--seed-scenario=ambiguous_dog_grooming",
+                "-reset-store",
+                "-seed-scenario=ambiguous_dog_grooming",
                 "-fixed-now=2026-05-20T08:00:00-04:00"
             ],
             resetDeviceToken: true,

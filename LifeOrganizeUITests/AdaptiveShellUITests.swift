@@ -12,8 +12,8 @@ final class AdaptiveShellUITests: XCTestCase {
         XCUIDevice.shared.orientation = .landscapeLeft
 
         let emptyApp = launchAdaptiveApp(arguments: [
-            "--reset-db",
-            "--seed-scenario=first-run-empty",
+            "-reset-store",
+            "-seed-scenario=first-run-empty",
             "-skip-launch-maintenance"
         ])
 
@@ -28,8 +28,8 @@ final class AdaptiveShellUITests: XCTestCase {
         emptyApp.terminate()
 
         let operationalApp = launchAdaptiveApp(arguments: [
-            "--reset-db",
-            "--seed-scenario=operational_home",
+            "-reset-store",
+            "-seed-scenario=operational_home",
             "-fixed-now=2026-07-05T08:00:00-04:00"
         ])
 
@@ -66,8 +66,8 @@ final class AdaptiveShellUITests: XCTestCase {
         operationalApp.terminate()
 
         let reviewApp = launchAdaptiveApp(arguments: [
-            "--reset-db",
-            "--seed-scenario=ambiguous_dog_grooming",
+            "-reset-store",
+            "-seed-scenario=ambiguous_dog_grooming",
             "-fixed-now=2026-05-20T08:00:00-04:00"
         ])
 
@@ -85,8 +85,8 @@ final class AdaptiveShellUITests: XCTestCase {
         XCUIDevice.shared.orientation = .portrait
 
         let app = launchAdaptiveApp(arguments: [
-            "--reset-db",
-            "--seed-scenario=first-run-empty"
+            "-reset-store",
+            "-seed-scenario=first-run-empty"
         ])
 
         XCTAssertTrue(app.navigationBars["Timeline"].waitForFastExistence(timeout: 5))
@@ -114,8 +114,8 @@ final class AdaptiveShellUITests: XCTestCase {
         app.terminate()
 
         let reviewApp = launchAdaptiveApp(arguments: [
-            "--reset-db",
-            "--seed-scenario=ambiguous_dog_grooming",
+            "-reset-store",
+            "-seed-scenario=ambiguous_dog_grooming",
             "-fixed-now=2026-05-20T08:00:00-04:00"
         ])
 
@@ -136,8 +136,8 @@ final class AdaptiveShellUITests: XCTestCase {
         XCUIDevice.shared.orientation = .portrait
 
         let app = launchAdaptiveApp(arguments: [
-            "--reset-db",
-            "--seed-scenario=operational_home",
+            "-reset-store",
+            "-seed-scenario=operational_home",
             "-fixed-now=2026-07-05T08:00:00-04:00"
         ])
 

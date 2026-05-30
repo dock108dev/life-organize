@@ -8,7 +8,7 @@ extension LifeOrganizeScenarioUITests {
             extraArguments: [
                 "-skip-launch-maintenance",
                 "-fixed-now=2026-05-21T12:00:00-04:00",
-                "--seed-scenario=heavy_history"
+                "-seed-scenario=heavy_history"
             ],
             resetStore: true,
             resetDeviceToken: true,

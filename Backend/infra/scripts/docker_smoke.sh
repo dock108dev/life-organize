@@ -15,6 +15,7 @@ export BACKEND_SMOKE_URL="${BACKEND_SMOKE_URL:-http://127.0.0.1:${API_PORT}/heal
 export OPENAI_API_KEY="${OPENAI_API_KEY:-}"
 export LIFE_ORGANIZE_ADMIN_API_KEY="${LIFE_ORGANIZE_ADMIN_API_KEY:-}"
 export DEVICE_TOKEN_SIGNING_SECRET="${DEVICE_TOKEN_SIGNING_SECRET:-development-device-token-secret}"
+EXPECTED_ALEMBIC_REVISION="20260530_000002"
 
 run() {
   printf '\n==> %s\n' "$*"
@@ -46,7 +47,7 @@ run docker compose --profile dev run --rm migrate
 
 version="$(run_capture docker compose --profile dev exec -T postgres \
   psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc "select version_num from alembic_version;")"
-test "$version" = "20260522_000001"
+test "$version" = "$EXPECTED_ALEMBIC_REVISION"
 
 tables="$(run_capture docker compose --profile dev exec -T postgres \
   psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc \

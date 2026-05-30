@@ -62,10 +62,10 @@ Run from `Backend/`:
 
 ```sh
 cd Backend
-DATABASE_URL=postgresql+asyncpg://lifeorganize:lifeorganize@localhost:5433/lifeorganize \
-DEVICE_TOKEN_SIGNING_SECRET=dev-secret \
-OPENAI_API_KEY=sk-... \
-LIFE_ORGANIZE_ADMIN_API_KEY=dev-admin \
+export DATABASE_URL=postgresql+asyncpg://lifeorganize:lifeorganize@localhost:5433/lifeorganize
+export DEVICE_TOKEN_SIGNING_SECRET=<dev-signing-secret>
+export OPENAI_API_KEY=<provider-key>
+export LIFE_ORGANIZE_ADMIN_API_KEY=<dev-admin-key>
 .venv/bin/python -m uvicorn main:app --reload --port 8787
 ```
 
@@ -78,8 +78,8 @@ Backend device-token auto-enrollment is not supported. The backend accepts only 
 For local manual testing with Docker, choose a raw token with at least 16 characters, compute the hash with the same signing secret used by the backend, then insert it:
 
 ```sh
-DEVICE_TOKEN_SIGNING_SECRET=development-device-token-secret \
-DEVICE_TOKEN=local-device-token-0001 \
+export DEVICE_TOKEN_SIGNING_SECRET=<dev-signing-secret>
+export DEVICE_TOKEN=local-device-token-0001
 python3 - <<'PY'
 import hashlib
 import hmac

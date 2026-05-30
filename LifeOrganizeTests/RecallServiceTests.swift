@@ -42,7 +42,7 @@ final class RecallServiceTests: XCTestCase {
         )
         XCTAssertEqual(
             RecallService(now: now).answer(query: "monitor", things: [domains], rules: [rule], notes: [note]).answer,
-            "No saved records found."
+            "No saved entries found."
         )
     }
 
@@ -104,7 +104,7 @@ final class RecallServiceTests: XCTestCase {
             chatMessages: []
         ).answer
 
-        XCTAssertEqual(answer, #"No saved records found for "attic vents"."#)
+        XCTAssertEqual(answer, #"No saved entries found for "attic vents"."#)
     }
 
     @MainActor
@@ -149,7 +149,7 @@ final class RecallServiceTests: XCTestCase {
             for: ChatIntentClassification(intent: .localSearch, targetText: "attic vents")
         )
 
-        XCTAssertEqual(answer, #"No saved records found for "attic vents"."#)
+        XCTAssertEqual(answer, #"No saved entries found for "attic vents"."#)
     }
 
     @MainActor

@@ -9,6 +9,7 @@ struct LocalSearchResultRowPresentation: Equatable {
     let rulePillText: String?
     let rulePillTone: LedgerTone?
     let badges: [LedgerBadgePresentation]
+    let accessibilityLabel: String
     let dateText: String
 
     init(result: LocalSearchResult) {
@@ -22,15 +23,30 @@ struct LocalSearchResultRowPresentation: Equatable {
                 priority: badge.priority
             )
         }
+        let rowSecondaryLines = Self.secondaryLines(for: result)
+        let candidateBadges = [kindBadge, ruleBadge].compactMap(\.self)
+        let visibleBadges = LedgerBadgePresentation.primaryBadges(from: candidateBadges)
+        let hiddenBadges = LedgerBadgePresentation.hiddenBadges(from: candidateBadges, visibleBadges: visibleBadges)
+        let rowDateText = Self.dateText(for: result)
+
         primaryText = result.title
-        secondaryLines = Self.secondaryLines(for: result)
+        secondaryLines = rowSecondaryLines
         footerText = result.productContextText
         kindPillText = kindBadge.label
         kindPillTone = kindBadge.tone
         rulePillText = result.ruleBadge
         rulePillTone = ruleBadge?.tone
-        badges = LedgerBadgePresentation.visibleBadges(from: [kindBadge, ruleBadge].compactMap(\.self), maxCount: 2)
-        dateText = Self.dateText(for: result)
+        badges = visibleBadges
+        accessibilityLabel = (
+            [result.title]
+                + visibleBadges.map(\.label)
+                + hiddenBadges.map(\.label)
+                + rowSecondaryLines.map(\.text)
+                + [result.productContextText].compactMap(\.self)
+        )
+            .compactMap(\.nilIfEmpty)
+            .joined(separator: ". ")
+        dateText = rowDateText
     }
 
     private static func secondaryLines(for result: LocalSearchResult) -> [LedgerRowLine] {
@@ -56,20 +72,16 @@ struct LocalSearchResultRowPresentation: Equatable {
     }
 
     private static func isDuplicate(_ text: String, ofAny values: [String]) -> Bool {
-        let normalizedText = normalizedForRowComparison(text)
+        let normalizedText = SearchService.normalizeForLocalSearch(text)
         guard !normalizedText.isEmpty else { return true }
-        return values.contains { normalizedForRowComparison($0) == normalizedText }
+        return values.contains { SearchService.normalizeForLocalSearch($0) == normalizedText }
     }
 
     private static func bodyRepeatsTitle(_ body: String, title: String) -> Bool {
-        let normalizedBody = normalizedForRowComparison(body)
-        let normalizedTitle = normalizedForRowComparison(title)
+        let normalizedBody = SearchService.normalizeForLocalSearch(body)
+        let normalizedTitle = SearchService.normalizeForLocalSearch(title)
         guard !normalizedBody.isEmpty, !normalizedTitle.isEmpty else { return true }
         return normalizedBody == normalizedTitle || normalizedBody.hasPrefix("\(normalizedTitle) ")
-    }
-
-    private static func normalizedForRowComparison(_ text: String) -> String {
-        SearchService.normalizeForLocalSearch(text)
     }
 
     private static func dateText(for result: LocalSearchResult) -> String {
@@ -87,6 +99,7 @@ struct LocalSearchResultRowPresentation: Equatable {
 
 struct LocalSearchResultRow: View {
     let result: LocalSearchResult
+    var isSelected = false
 
     private var presentation: LocalSearchResultRowPresentation {
         LocalSearchResultRowPresentation(result: result)
@@ -99,11 +112,14 @@ struct LocalSearchResultRow: View {
             primary: presentation.primaryText,
             secondary: presentation.secondaryLines,
             footer: presentation.footerText,
-            density: LedgerSurfaceDensity.searchResultRow.rowDensity
+            density: LedgerSurfaceDensity.searchResultRow.rowDensity,
+            emphasis: isSelected ? .active : .normal
         ) {
             ForEach(presentation.badges) { badge in
                 LedgerBadgePill(badge: badge, size: .small)
             }
         }
+        .accessibilityLabel(presentation.accessibilityLabel)
+        .accessibilityValue(isSelected ? "Selected" : "")
     }
 }

@@ -24,12 +24,42 @@ final class CarryForwardListDetailContractTests: XCTestCase {
         )
     }
 
+    func testSelectionRepairClearsHiddenReminderWhenNoRowsAreVisible() {
+        XCTAssertNil(
+            RuleSelectionRepair.repairedSelection(
+                selectedID: UUID(),
+                currentVisibleIDs: []
+            )
+        )
+    }
+
     func testSelectionRepairLeavesEmptySelectionEmpty() {
+        XCTAssertNil(
+            RuleSelectionRepair.repairedSelection(
+                selectedID: nil,
+                currentVisibleIDs: []
+            )
+        )
+    }
+
+    func testSelectionRepairUsesPlaceholderWhenRowsBecomeVisibleWithoutSelection() {
         XCTAssertNil(
             RuleSelectionRepair.repairedSelection(
                 selectedID: nil,
                 currentVisibleIDs: [UUID()]
             )
+        )
+    }
+
+    func testSelectionRepairKeepsSelectedPausedReminderWhenVisibilityIncludesIt() {
+        let selectedPaused = UUID()
+
+        XCTAssertEqual(
+            RuleSelectionRepair.repairedSelection(
+                selectedID: selectedPaused,
+                currentVisibleIDs: [selectedPaused]
+            ),
+            selectedPaused
         )
     }
 

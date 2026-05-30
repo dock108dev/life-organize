@@ -30,8 +30,8 @@ struct ReconciliationPanelView<Destination: View>: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 8))
+        .padding(LedgerSurfaceContract.contentPadding)
+        .ledgerSurface(tint: prominence.surfaceTint)
         .accessibilityIdentifier(prominence.accessibilityIdentifier)
     }
 
@@ -62,9 +62,9 @@ enum ReconciliationPanelProminence {
     var summaryFont: Font {
         switch self {
         case .source, .suggestion:
-            return .subheadline
+            return LedgerVisualSystem.Typography.metadataValue
         case .evidence:
-            return .caption
+            return LedgerVisualSystem.Typography.sectionFooter
         }
     }
 
@@ -92,6 +92,17 @@ enum ReconciliationPanelProminence {
             return 3
         case .evidence:
             return 2
+        }
+    }
+
+    var surfaceTint: LedgerTone? {
+        switch self {
+        case .source:
+            return .info
+        case .suggestion:
+            return .attention
+        case .evidence:
+            return nil
         }
     }
 

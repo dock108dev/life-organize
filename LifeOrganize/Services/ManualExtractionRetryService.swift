@@ -103,7 +103,7 @@ enum ManualExtractionRetryBlockedReason: Equatable {
         case .notRequired:
             return "This entry is already saved as local text."
         case .createdRecordsExist:
-            return "This entry already created saved records. Review or edit those records instead."
+            return "This entry already created saved items. Review or edit those items instead."
         }
     }
 }

@@ -28,6 +28,91 @@ final class LedgerCopyRestraintTests: XCTestCase {
         XCTAssertThrowsError(try requirePrimaryCopy(diagnosticText))
     }
 
+    func testReviewTimelineSettingsAndAssistantCopyHideInternalStatusTerms() throws {
+        let message = ChatMessage(
+            role: .user,
+            text: "Book Bogey haircut in a week or two.",
+            extractionStatus: .partiallySucceeded,
+            extractionError: "schema_validation_failed",
+            extractionErrorCode: .partialValidationFailed
+        )
+        let item = LedgerReviewItem(
+            dedupeKey: "copy-restraint-\(UUID().uuidString)",
+            kind: .extractionReview,
+            title: "Entry needs review",
+            detail: "This entry created 2 saved items. Open them to check or edit.",
+            actionTitle: "Open",
+            targetType: .chatMessage,
+            targetID: message.id,
+            confidence: 0.72,
+            evidence: [
+                LedgerReviewItemEvidence(
+                    sourceType: .chatMessage,
+                    sourceID: message.id,
+                    summary: message.text,
+                    detail: ExtractionErrorCode.partialValidationFailed.rawValue
+                ),
+                LedgerReviewItemEvidence(
+                    sourceType: .thing,
+                    sourceID: UUID(),
+                    summary: "Bogey",
+                    detail: "source: Bogey; source key: bogey; model confidence: 88%"
+                )
+            ]
+        )
+        let entry = LedgerReviewQueueEntry(
+            itemID: item.id,
+            title: item.title,
+            detail: item.detail,
+            correctionClass: .quickReview,
+            primaryActionTitle: "Open",
+            blockedMessage: nil,
+            createdRecords: [
+                LedgerReviewCreatedRecord(targetType: .thing, targetID: UUID(), title: "Bogey", subtitle: "Thing"),
+                LedgerReviewCreatedRecord(targetType: .rule, targetID: UUID(), title: "Bogey haircut", subtitle: "Reminder")
+            ],
+            origin: LedgerReviewOrigin(targetType: .chatMessage, targetID: message.id, label: "Bogey haircut")
+        )
+        let reviewPresentation = LedgerReviewReconciliationPresentationBuilder().presentation(
+            for: item,
+            entry: entry,
+            messages: [message],
+            things: [],
+            events: [],
+            rules: [],
+            notes: []
+        )
+        let queuePresentation = LedgerReviewQueueRowPresentation(item: item, entry: entry, now: fixedTestNow)
+        let timelineText = ExtractionStatus.allCases.map { status in
+            LedgerFeedRowContent(item: .message(ChatMessage(role: .user, text: "Timeline entry", extractionStatus: status)))
+        }
+        .flatMap(Self.feedText)
+        let assistantText = [
+            ChatResponseFormatter().rawOnlyFailure(),
+            ChatResponseFormatter().extractionFailed(),
+            ChatResponseFormatter().unsupportedBoundary()
+        ]
+        let composerText = try chatComposerText()
+        let settingsText = settingsTrustText()
+
+        let visibleText = (
+            reconciliationText(reviewPresentation)
+                + queueText(queuePresentation)
+                + timelineText
+                + assistantText
+                + composerText
+                + settingsText
+        ).joined(separator: " ")
+
+        XCTAssertNoNormalUICopyLeaks(visibleText)
+        XCTAssertTrue(visibleText.contains("Needs review"))
+        XCTAssertTrue(visibleText.contains("Needs Confirmation"))
+        XCTAssertTrue(visibleText.contains("Saved items") || visibleText.contains("saved items"))
+        XCTAssertTrue(visibleText.contains("Thing"))
+        XCTAssertTrue(visibleText.contains("Reminder"))
+        XCTAssertTrue(visibleText.contains("Open"))
+    }
+
     private func primarySurfaceText() throws -> [String] {
         let now = fixedTestNow
         let thing = Thing(name: "Furnace", category: .maintenance)
@@ -74,6 +159,7 @@ final class LedgerCopyRestraintTests: XCTestCase {
 
         let thingPreviewText = preview.continuityLines.flatMap { [$0.label, $0.value, $0.detail].compactMap(\.self) }
             + preview.footerItems
+            + [preview.listSummaryLine.text, preview.savedItemSummaryLine?.text].compactMap(\.self)
         let detailText = [
             detail.statusSummary.label,
             detail.statusSummary.value,
@@ -131,6 +217,23 @@ final class LedgerCopyRestraintTests: XCTestCase {
         ]
     }
 
+    private func chatComposerText() throws -> [String] {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let source = try String(
+            contentsOf: root.appendingPathComponent("LifeOrganize/Features/Chat/ChatInputBar.swift"),
+            encoding: .utf8
+        )
+        let expectedCopy = [
+            "Add anything or ask what’s due",
+            "Saved. Organizing details",
+            "Add to Timeline"
+        ]
+        for copy in expectedCopy {
+            XCTAssertTrue(source.contains(copy), "Missing composer copy: \(copy)")
+        }
+        return expectedCopy
+    }
+
     private static func feedText(_ content: LedgerFeedRowContent) -> [String] {
         [
             content.timestampText,
@@ -140,6 +243,37 @@ final class LedgerCopyRestraintTests: XCTestCase {
             content.detailText,
             content.linkedThingText
         ].compactMap(\.self)
+    }
+
+    private func reconciliationText(_ presentation: LedgerReviewReconciliationPresentation) -> [String] {
+        var values = [presentation.title]
+        values.append(contentsOf: panelText(presentation.source))
+        values.append(contentsOf: panelText(presentation.suggestion))
+        if let evidence = presentation.evidence {
+            values.append(contentsOf: panelText(evidence))
+        }
+        values.append(contentsOf: presentation.actions.all.flatMap { [$0.title, $0.detail].compactMap(\.self) })
+        if let saveAsNoteBody = presentation.saveAsNoteBody {
+            values.append(saveAsNoteBody)
+        }
+        return values
+    }
+
+    private func panelText(_ panel: LedgerReviewReconciliationPanel) -> [String] {
+        [panel.title, panel.summary].compactMap(\.self)
+            + panel.rows.flatMap { [$0.title, $0.detail].compactMap(\.self) }
+    }
+
+    private func queueText(_ presentation: LedgerReviewQueueRowPresentation) -> [String] {
+        [
+            presentation.question,
+            presentation.sourceHint,
+            presentation.suggestedHint,
+            presentation.urgencyText,
+            presentation.nextActionTitle,
+            presentation.hiddenBadgeAccessibilityText,
+            presentation.accessibilityLabel
+        ].compactMap(\.self) + presentation.badges.map(\.label)
     }
 
     private func searchResult() -> LocalSearchResult {
@@ -187,6 +321,10 @@ final class LedgerCopyRestraintTests: XCTestCase {
             "raw response",
             "normalizedJSONText",
             "requestJSON",
+            ExtractionErrorCode.partialValidationFailed.rawValue,
+            ExtractionStatus.partiallySucceeded.rawValue,
+            ExtractionStatus.failedNeedsReview.rawValue,
+            ExtractionStatus.needsReview.rawValue,
             "API key",
             "Authorization",
             "Bearer"
@@ -194,6 +332,32 @@ final class LedgerCopyRestraintTests: XCTestCase {
         let lowercased = text.lowercased()
         let offenders = bannedTerms.filter { lowercased.contains($0.lowercased()) }
         XCTAssertEqual(offenders, [], file: file, line: line)
+    }
+
+    private func XCTAssertNoNormalUICopyLeaks(
+        _ text: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertNoImplementationLanguage(text, file: file, line: line)
+        let lowercased = text.localizedLowercase
+        let rawValues = ExtractionStatus.allCases.map(\.rawValue) + ExtractionErrorCode.allCases.map(\.rawValue)
+        let forbiddenPhrases = rawValues + [
+            "blocked next step",
+            "next step blocked",
+            "source:",
+            "evidence",
+            "validation",
+            "extraction",
+            "record",
+            "records"
+        ]
+        let phraseOffenders = forbiddenPhrases.filter { lowercased.contains($0.localizedLowercase) }
+        let failedAsStatus = lowercased
+            .components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .contains("failed")
+        XCTAssertEqual(phraseOffenders, [], file: file, line: line)
+        XCTAssertFalse(failedAsStatus, file: file, line: line)
     }
 
     private func requirePrimaryCopy(_ text: String) throws {

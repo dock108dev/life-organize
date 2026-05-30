@@ -50,7 +50,7 @@ final class ThingNormalizationCandidateTests: XCTestCase {
         XCTAssertTrue(reviewItems.contains { item in
             item.kind == .normalizationCandidate
                 && item.detail.contains("NWS may match Nimbus Web Services")
-                && item.detail.contains("No records have been merged")
+                && item.detail.contains("No items have been merged")
         })
     }
 

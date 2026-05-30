@@ -11,13 +11,13 @@ enum SettingsTrustCopy {
     """
     static let exportTitle = "Local data copy"
     static let exportBody = "Export saved entries, links, and local history for backup or review."
-    static let clearTitle = "Reset this device"
-    static let clearBody = "Clear local records for a fresh start. Your service token stays in Keychain."
+    static let clearTitle = "Clear local data"
+    static let clearBody = "Remove saved entries and related timeline history from this device. Your service token stays in Keychain."
     static let clearDeletes = """
-    Deletes timeline history, Things, events, reminders, notes, links, review items, and continuity records.
+    Deletes saved entries, Things, reminders, notes, links, review tasks, and timeline history from this device.
     """
-    static let clearKeeps = "Keeps the service token."
-    static let clearPhrase = "DELETE MY LEDGER"
+    static let clearKeeps = "Keeps the service token so new entries can still connect later."
+    static let clearPhrase = "CLEAR MY DATA"
 }
 
 struct SettingsSafetyRowContent: Equatable {
@@ -28,7 +28,7 @@ struct SettingsSafetyRowContent: Equatable {
     let tone: LedgerTone
 
     static let clearsLocalRecords = SettingsSafetyRowContent(
-        title: "Clears local records",
+        title: "Clears local entries",
         detail: SettingsTrustCopy.clearDeletes,
         pillText: "Clears",
         symbolName: "minus.circle",
@@ -86,7 +86,7 @@ enum SettingsFeedback: Equatable {
         case .exportReady:
             "Export ready. Choose where to save or share the local data copy."
         case .localDataCleared:
-            "Local record cleared from this device. Your service token stayed in place."
+            "Local entries cleared from this device. Your service token stayed in place."
         case .deviceTokenReadFailed:
             "Could not read the service token. Reopen Settings and try again."
         case .deviceTokenEmpty:
@@ -98,7 +98,7 @@ enum SettingsFeedback: Equatable {
         case .exportFailed:
             "Could not create the export. Your local data was not changed. Try again."
         case .clearDataFailed:
-            "Could not clear local data. Some records may still be saved. Try again."
+            "Could not clear local data. Some entries may still be saved. Try again."
         }
     }
 }

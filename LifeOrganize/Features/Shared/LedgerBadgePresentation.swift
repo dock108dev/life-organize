@@ -111,7 +111,7 @@ enum LedgerBadgeSemantic: String, Equatable {
         case .statusReviewed:
             return "Reviewed"
         case .statusFailed:
-            return "Failed"
+            return "Needs review"
         case .statusDismissed:
             return "Dismissed"
         case .statusSnoozed:
@@ -202,6 +202,25 @@ struct LedgerBadgePresentation: Equatable, Identifiable {
             }
             .prefix(maxCount)
             .map(\.self)
+    }
+
+    static func primaryBadges(from badges: [LedgerBadgePresentation]) -> [LedgerBadgePresentation] {
+        visibleBadges(from: deduplicatedBadges(badges), maxCount: 1)
+    }
+
+    static func hiddenBadges(
+        from badges: [LedgerBadgePresentation],
+        visibleBadges: [LedgerBadgePresentation]
+    ) -> [LedgerBadgePresentation] {
+        let visibleIDs = Set(visibleBadges.map(\.id))
+        return deduplicatedBadges(badges).filter { !visibleIDs.contains($0.id) }
+    }
+
+    private static func deduplicatedBadges(_ badges: [LedgerBadgePresentation]) -> [LedgerBadgePresentation] {
+        var seen = Set<String>()
+        return badges.filter { badge in
+            seen.insert("\(badge.semantic.rawValue)-\(badge.label)").inserted
+        }
     }
 }
 

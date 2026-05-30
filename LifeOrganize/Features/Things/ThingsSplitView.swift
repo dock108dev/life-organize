@@ -6,7 +6,13 @@ struct ThingsSplitView: View {
     @State private var selectedThingID: UUID?
     @State private var visibleThingIDs: [UUID] = []
     @State private var lastVisibleThingIDs: [UUID] = []
+    private let isAddingThingPresentation: Binding<Bool>?
     let onOpenLog: () -> Void
+
+    init(isAddingThing: Binding<Bool>? = nil, onOpenLog: @escaping () -> Void = {}) {
+        self.isAddingThingPresentation = isAddingThing
+        self.onOpenLog = onOpenLog
+    }
 
     private var sortedThings: [Thing] {
         ThingListOrdering.sorted(things)
@@ -20,18 +26,23 @@ struct ThingsSplitView: View {
     var body: some View {
         HStack(spacing: 0) {
             ThingsListView(
+                isAddingThing: isAddingThingPresentation,
                 selectedThingID: $selectedThingID,
                 presentsSelectionInPlace: true,
                 onVisibleThingIDsChange: updateVisibleThingIDs,
                 onOpenLog: onOpenLog
             )
             // layout-guard: allow fixed-size reason="regular-width list column bounds"
-            .frame(minWidth: 300, idealWidth: 340, maxWidth: 390)
+            .frame(
+                minWidth: LedgerAdaptiveLayout.Workspace.listColumnMin,
+                idealWidth: LedgerAdaptiveLayout.Workspace.listColumnIdeal,
+                maxWidth: LedgerAdaptiveLayout.Workspace.listColumnMax
+            )
 
-            Divider()
+            LedgerWorkspaceSplitDivider()
 
             selectedDetail
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ledgerWorkspaceDetailPane("things-detail")
         }
         .background(LedgerScreenBackground().ignoresSafeArea())
         .onAppear {
@@ -46,6 +57,8 @@ struct ThingsSplitView: View {
     private var selectedDetail: some View {
         if let selectedThing {
             ThingDetailView(thing: selectedThing)
+        } else if sortedThings.isEmpty {
+            ThingsEmptyDetailView()
         } else {
             ThingsNoSelectionView()
         }
@@ -111,9 +124,25 @@ enum ThingSelectionRepair {
 
 struct ThingsNoSelectionView: View {
     var body: some View {
-        LedgerNoSelectionPlaceholderView("Select a Thing", systemImage: "tray")
+        LedgerNoSelectionPlaceholderView(
+            "Select a thing",
+            systemImage: "tray",
+            description: "The summary pane will show that thing's history, reminders, and notes."
+        )
             .background(LedgerScreenBackground().ignoresSafeArea())
             .accessibilityIdentifier("things-no-selection")
+    }
+}
+
+struct ThingsEmptyDetailView: View {
+    var body: some View {
+        LedgerNoSelectionPlaceholderView(
+            "No things yet",
+            systemImage: "tray",
+            description: "Open Timeline or add a thing from the list pane."
+        )
+            .background(LedgerScreenBackground().ignoresSafeArea())
+            .accessibilityIdentifier("things-no-content")
     }
 }
 

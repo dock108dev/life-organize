@@ -65,13 +65,16 @@ struct LedgerSearchResultsList: View {
 
     @ViewBuilder
     private func searchResultRow(_ result: LocalSearchResult) -> some View {
+        let isSelected = selectedResultID == result.id
+
         if let onSelect {
             Button {
                 onSelect(result)
             } label: {
-                LocalSearchResultRow(result: result)
+                LocalSearchResultRow(result: result, isSelected: isSelected)
             }
             .buttonStyle(.plain)
+            .accessibilityValue(isSelected ? "Selected" : "")
         } else {
             NavigationLink(value: result) {
                 LocalSearchResultRow(result: result)
@@ -92,8 +95,11 @@ struct LedgerToolbarIconButton: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .symbolRenderingMode(.hierarchical)
-                .font(.system(size: 17, weight: .semibold))
-                .frame(width: 36, height: 36)
+                .font(LedgerIconContext.toolbar.font)
+                .frame(
+                    width: LedgerSurfaceContract.toolbarIconFrame,
+                    height: LedgerSurfaceContract.toolbarIconFrame
+                )
                 .background(isActive ? LedgerTone.attention.background : LedgerPalette.surface.opacity(0.0), in: Circle())
                 .overlay {
                     Circle()

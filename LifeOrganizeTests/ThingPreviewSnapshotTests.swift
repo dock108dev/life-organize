@@ -70,6 +70,8 @@ final class ThingPreviewSnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.upcomingReminderRelativeDueText, "in 24 days")
         XCTAssertEqual(snapshot.upcomingReminderKind, .starts)
         XCTAssertEqual(snapshot.latestNoteSnippet, "Insurance renewed with annual premium.")
+        XCTAssertEqual(snapshot.listSummaryLine.text, "Reminder in 24 days")
+        XCTAssertEqual(snapshot.savedItemSummaryLine?.text, "3 saved items")
         XCTAssertEqual(snapshot.continuityLines.map(\.label), ["Last event", "Upcoming", "Recent note"])
         XCTAssertEqual(snapshot.continuityLines.map(\.value), [
             "Oil change",
@@ -113,8 +115,10 @@ final class ThingPreviewSnapshotTests: XCTestCase {
 
         let emptySnapshot = ThingPreviewSnapshot(thing: Thing(name: "Storage Unit"), now: now, calendar: utcCalendar)
         XCTAssertFalse(emptySnapshot.hasPreviewContent)
+        XCTAssertEqual(emptySnapshot.listSummaryLine.text, "No saved items yet")
+        XCTAssertNil(emptySnapshot.savedItemSummaryLine)
         XCTAssertEqual(emptySnapshot.continuityLines.first?.label, "History")
-        XCTAssertEqual(emptySnapshot.continuityLines.first?.value, "No records yet")
+        XCTAssertEqual(emptySnapshot.continuityLines.first?.value, "No entries yet")
         XCTAssertEqual(emptySnapshot.footerItems, [])
     }
 
@@ -154,7 +158,7 @@ final class ThingPreviewSnapshotTests: XCTestCase {
 
         XCTAssertEqual(snapshot.aliasSummary, "daily driver")
         XCTAssertEqual(snapshot.continuityLines.map(\.label), ["History"])
-        XCTAssertEqual(snapshot.continuityLines.map(\.value), ["No records yet"])
+        XCTAssertEqual(snapshot.continuityLines.map(\.value), ["No entries yet"])
         XCTAssertFalse(snapshot.hasPreviewContent)
         XCTAssertEqual(snapshot.footerItems, [])
     }

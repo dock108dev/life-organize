@@ -7,6 +7,8 @@ enum LedgerVisualSystem {
         static let rowAccessoryGap: CGFloat = 10
         static let rowBadgeGap: CGFloat = 5
         static let section: CGFloat = 10
+        static let surfaceStack: CGFloat = 12
+        static let iconTextGap: CGFloat = 8
         static let noticeContentGap: CGFloat = 8
         static let noticeActionGap: CGFloat = 6
     }
@@ -40,10 +42,17 @@ enum LedgerVisualSystem {
         static let pillStandard: Font = .caption
         static let noticeMessage: Font = .caption
         static let noticeAction: Font = .caption.weight(.medium)
+        static let sectionBody: Font = .footnote
+        static let sectionFooter: Font = .caption
+        static let disclosureSummary: Font = .caption2
+        static let metricLabel: Font = .caption2.weight(.semibold)
+        static let metricPrimaryValue: Font = .headline.weight(.semibold)
+        static let metricSecondaryValue: Font = .body.weight(.medium)
     }
+
 }
 
-enum LedgerTone: Equatable {
+enum LedgerTone: Equatable, CaseIterable {
     case neutral
     case link
     case success
@@ -53,46 +62,33 @@ enum LedgerTone: Equatable {
     case note
     case danger
 
-    var foreground: Color {
+    var semanticColorRole: LedgerSemanticColorRole {
         switch self {
         case .neutral:
-            return .secondary
+            return .neutral
         case .link:
-            return LedgerPalette.accent
+            return .interactive
         case .success:
-            return LedgerPalette.green
+            return .success
         case .attention:
-            return LedgerPalette.amber
+            return .attention
         case .info:
-            return LedgerPalette.teal
+            return .temporal
         case .muted:
-            return .secondary
+            return .muted
         case .note:
-            return LedgerPalette.plum
+            return .annotation
         case .danger:
-            return LedgerPalette.coral
+            return .critical
         }
     }
 
+    var foreground: Color {
+        semanticColorRole.foreground
+    }
+
     var background: Color {
-        switch self {
-        case .neutral:
-            return .secondary.opacity(0.08)
-        case .link:
-            return .blue.opacity(0.08)
-        case .success:
-            return .green.opacity(0.08)
-        case .attention:
-            return .orange.opacity(0.10)
-        case .info:
-            return .teal.opacity(0.09)
-        case .muted:
-            return Color(.quaternarySystemFill)
-        case .note:
-            return .purple.opacity(0.08)
-        case .danger:
-            return .red.opacity(0.10)
-        }
+        semanticColorRole.background
     }
 }
 
@@ -214,7 +210,7 @@ enum LedgerSurfaceDensity {
     }
 }
 
-enum LedgerRowEmphasis {
+enum LedgerRowEmphasis: Equatable {
     case normal
     case active
     case inactive
@@ -235,6 +231,17 @@ enum LedgerRowEmphasis {
             return nil
         case .inactive:
             return .muted
+        case .attention:
+            return .attention
+        }
+    }
+
+    var accentTone: LedgerTone? {
+        switch self {
+        case .normal, .inactive:
+            return nil
+        case .active:
+            return .link
         case .attention:
             return .attention
         }
@@ -325,12 +332,15 @@ struct LedgerRow<Badges: View, Accessory: View>: View {
         .padding(.vertical, density.verticalPadding)
         .padding(.horizontal, LedgerVisualSystem.Padding.rowHorizontal)
         .background {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            RoundedRectangle(cornerRadius: LedgerSurfaceContract.rowCornerRadius, style: .continuous)
                 .fill(rowBackground)
         }
         .overlay {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            RoundedRectangle(cornerRadius: LedgerSurfaceContract.rowCornerRadius, style: .continuous)
                 .stroke(rowBorder, lineWidth: 0.75)
+        }
+        .overlay(alignment: .leading) {
+            rowAccentRail
         }
         .accessibilityElement(children: .combine)
     }
@@ -359,8 +369,10 @@ struct LedgerRow<Badges: View, Accessory: View>: View {
 
     private var rowBackground: Color {
         switch emphasis {
-        case .active, .attention:
-            return LedgerTone.attention.background.opacity(0.72)
+        case .active:
+            return LedgerPalette.surfaceStrong.opacity(0.58)
+        case .attention:
+            return LedgerPalette.surfaceStrong.opacity(0.60)
         case .inactive:
             return LedgerPalette.surface.opacity(0.44)
         case .normal:
@@ -370,12 +382,24 @@ struct LedgerRow<Badges: View, Accessory: View>: View {
 
     private var rowBorder: Color {
         switch emphasis {
-        case .active, .attention:
-            return LedgerTone.attention.foreground.opacity(0.18)
+        case .active:
+            return LedgerTone.link.foreground.opacity(0.14)
+        case .attention:
+            return LedgerTone.attention.foreground.opacity(0.22)
         case .inactive:
             return LedgerPalette.hairline.opacity(0.7)
         case .normal:
             return LedgerPalette.hairline
+        }
+    }
+
+    @ViewBuilder
+    private var rowAccentRail: some View {
+        if let accentTone = emphasis.accentTone {
+            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                .fill(accentTone.foreground.opacity(emphasis == .attention ? 0.72 : 0.48))
+                .frame(width: 3)
+                .padding(.vertical, 6)
         }
     }
 }
@@ -398,6 +422,7 @@ extension LedgerRow where Badges == EmptyView, Accessory == EmptyView {
             accessory: { EmptyView() }
         )
     }
+
 }
 
 extension LedgerRow where Accessory == EmptyView {
@@ -419,6 +444,7 @@ extension LedgerRow where Accessory == EmptyView {
             accessory: { EmptyView() }
         )
     }
+
 }
 
 struct LedgerSectionHeader: View {

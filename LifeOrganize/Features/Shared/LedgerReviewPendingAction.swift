@@ -37,13 +37,13 @@ enum LedgerReviewPendingAction: Identifiable, Equatable {
     var dialogTitle: String {
         switch self {
         case .retry:
-            "Retry Entry?"
+            "Try Again?"
         case .markReviewed:
             "Mark Reviewed?"
         case .dismiss:
-            "Dismiss Review Item?"
+            "Dismiss?"
         case .snooze:
-            "Snooze Review Item?"
+            "Snooze?"
         case .mergeThings(_, let targetName):
             "Merge Into \(targetName)?"
         case .reassignRecords(_, let targetName):
@@ -81,23 +81,23 @@ enum LedgerReviewPendingAction: Identifiable, Equatable {
     var message: String {
         switch self {
         case .retry:
-            "This retries extraction for the saved local entry. No ledger records are changed until retry succeeds."
+            "This tries again from the original entry. Saved items stay as they are unless the retry succeeds."
         case .markReviewed:
-            "This closes the review item. No ledger records are changed."
+            "This closes the review after you decide no more follow-up is needed."
         case .dismiss:
-            "This hides the review item for the same saved evidence. No ledger records are changed."
+            "This removes it from Review. Choose Dismiss only when you do not need to see it again."
         case .snooze:
-            "This moves the review item out of the current flow until tomorrow. No ledger records are changed."
+            "This hides it until tomorrow so you can decide later. Saved items stay as they are."
         case .mergeThings(_, let targetName):
-            "This moves linked records to \(targetName), keeps aliases and source links, then closes the review item."
+            "This keeps \(targetName), moves related items there, then closes the review."
         case .reassignRecords(_, let targetName):
-            "This moves the listed records to \(targetName), refreshes links, then closes the review item."
+            "This moves the listed items to \(targetName), refreshes links, then closes the review."
         case .adjustReminderTiming:
-            "This updates the saved reminder date through the reminder lifecycle service, then closes the review item."
+            "This updates the reminder date, then closes the review."
         case .applyReminderLifecycle:
-            "This moves the saved reminder out of the current lane, then closes the review item."
+            "This updates the reminder status, then closes the review."
         case .saveAsNote:
-            "This saves the review context as a note, then closes the review item."
+            "This saves the original entry as a note, then closes the review."
         }
     }
 

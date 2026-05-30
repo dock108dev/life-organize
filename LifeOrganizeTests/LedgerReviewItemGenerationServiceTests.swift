@@ -112,7 +112,7 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
             .normalizationCandidate
         ])))
         XCTAssertTrue(items.first { $0.kind == .intervalReminder && $0.title.contains("Air filter") }?.detail.contains("90 days") == true)
-        XCTAssertTrue(items.first { $0.kind == .intervalReminder && $0.title.contains("Dog food") }?.detail.contains("Saved records") == true)
+        XCTAssertTrue(items.first { $0.kind == .intervalReminder && $0.title.contains("Dog food") }?.detail.contains("Saved items") == true)
         XCTAssertTrue(items.first { $0.kind == .intervalReminder && $0.title.contains("Oil change") }?.detail.contains("5,000 miles") == true)
         XCTAssertTrue(items.allSatisfy { !$0.title.localizedCaseInsensitiveContains("stress") })
         XCTAssertTrue(items.allSatisfy { !$0.detail.localizedCaseInsensitiveContains("productivity") })
@@ -171,6 +171,45 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
         let item = try XCTUnwrap(try service(context).refresh().first { $0.kind == .extractionReview })
 
         XCTAssertEqual(item.targetID, message.id)
+    }
+
+    func testPartialValidationReviewKeepsDiagnosticsAndUsesUserFacingEvidence() throws {
+        let context = makeInMemoryModelContext()
+        let message = ChatMessage(
+            role: .user,
+            text: "Changed oil today but mileage needs a check.",
+            extractionStatus: .partiallySucceeded,
+            extractionError: "schema_validation_failed",
+            extractionErrorCode: .partialValidationFailed
+        )
+        let envelope = ExtractionEnvelope.empty(
+            warnings: [ExtractionWarning(code: "requires_review", message: "possible_duplicate")]
+        )
+        let attempt = ExtractionAttempt(
+            status: .partiallySucceeded,
+            normalizedJSONText: try envelope.jsonString(),
+            errorCode: .partialValidationFailed,
+            errorMessage: "schema_validation_failed",
+            createdEventIDs: [UUID()],
+            sourceMessage: message
+        )
+
+        context.insert(message)
+        context.insert(attempt)
+        try context.save()
+
+        let item = try XCTUnwrap(try service(context).refresh().first { $0.kind == .extractionReview })
+        let evidenceText = item.evidence.compactMap(\.detail).joined(separator: " ")
+
+        XCTAssertEqual(item.targetID, message.id)
+        XCTAssertTrue(evidenceText.contains("Needs review"))
+        XCTAssertFalse(evidenceText.contains(ExtractionErrorCode.partialValidationFailed.rawValue))
+        XCTAssertFalse(evidenceText.contains(ExtractionStatus.partiallySucceeded.rawValue))
+        XCTAssertEqual(message.extractionStatusRawValue, ExtractionStatus.partiallySucceeded.rawValue)
+        XCTAssertEqual(message.extractionErrorCodeRawValue, ExtractionErrorCode.partialValidationFailed.rawValue)
+        XCTAssertEqual(attempt.statusRawValue, ExtractionAttemptStatus.partiallySucceeded.rawValue)
+        XCTAssertEqual(attempt.errorCodeRawValue, ExtractionErrorCode.partialValidationFailed.rawValue)
+        XCTAssertEqual(attempt.errorMessage, "schema_validation_failed")
     }
 
     func testDedupePreventsRepeatedPromptAfterDismissal() throws {
@@ -254,13 +293,16 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
         XCTAssertTrue(item.detail.contains("\"in a week or two\""))
         XCTAssertTrue(item.detail.contains("May 27 to June 3, 2026"))
         XCTAssertTrue(item.detail.contains("no exact reminder date was saved"))
-        XCTAssertTrue(item.evidence.contains { $0.sourceType == .chatMessage && $0.sourceID == message.id && $0.summary == input })
+        XCTAssertTrue(item.evidence.contains {
+            $0.sourceType == .chatMessage && $0.sourceID == message.id && $0.summary == input && $0.detail == "Needs review"
+        })
         XCTAssertTrue(item.evidence.contains { $0.summary == "Suggested reminder: Haircut for Bogey" })
         XCTAssertTrue(item.evidence.contains { $0.sourceType == .thing && $0.sourceID == thing.id })
+        XCTAssertEqual(message.extractionErrorCodeRawValue, ExtractionErrorCode.partialValidationFailed.rawValue)
         XCTAssertEqual(entry.correctionClass, .quickReview)
         XCTAssertEqual(entry.primaryActionTitle, "Choose Date")
         XCTAssertEqual(entry.createdRecords.map(\.title), ["Bogey"])
-        XCTAssertTrue(entry.blockedMessage?.contains("created saved records") == true)
+        XCTAssertTrue(entry.blockedMessage?.contains("created saved items") == true)
         XCTAssertTrue(entry.isActionBlocked)
         XCTAssertEqual(try context.fetch(FetchDescriptor<Thing>()).map(\.id), originalThingIDs)
         XCTAssertEqual(try context.fetch(FetchDescriptor<LedgerRule>()).map(\.id), originalRuleIDs)
@@ -323,7 +365,7 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
 
         let item = try XCTUnwrap(try service(context).refresh().first { $0.kind == .duplicateThing })
 
-        XCTAssertTrue(item.detail.contains("normalized name or alias"))
+        XCTAssertTrue(item.detail.contains("saved name or alias"))
         XCTAssertEqual(Set(item.evidence.map(\.summary)), ["Storage renewal", "Boxwell"])
     }
 

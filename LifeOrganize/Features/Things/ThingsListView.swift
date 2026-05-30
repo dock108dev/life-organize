@@ -8,21 +8,24 @@ struct ThingsListView: View {
     @Query(sort: \ChatMessage.createdAt, order: .reverse) private var messages: [ChatMessage]
     @Query(sort: \LedgerReviewItem.updatedAt, order: .reverse) private var reviewItems: [LedgerReviewItem]
     @State private var searchText = ""
-    @State private var isAddingThing = false
+    @State private var localIsAddingThing = false
     @State private var activeThingRoute: ThingDetailRoute?
     @State private var reviewItemErrorMessage: String?
     @AppStorage("ledger.context.things.dismissed") private var isThingsContextDismissed = false
+    private let isAddingThingPresentation: Binding<Bool>?
     @Binding private var selectedThingID: UUID?
     let presentsSelectionInPlace: Bool
     let onVisibleThingIDsChange: ([UUID]) -> Void
     let onOpenLog: () -> Void
 
     init(
+        isAddingThing: Binding<Bool>? = nil,
         selectedThingID: Binding<UUID?> = .constant(nil),
         presentsSelectionInPlace: Bool = false,
         onVisibleThingIDsChange: @escaping ([UUID]) -> Void = { _ in },
         onOpenLog: @escaping () -> Void = {}
     ) {
+        self.isAddingThingPresentation = isAddingThing
         self._selectedThingID = selectedThingID
         self.presentsSelectionInPlace = presentsSelectionInPlace
         self.onVisibleThingIDsChange = onVisibleThingIDsChange
@@ -31,6 +34,10 @@ struct ThingsListView: View {
 
     private var isSearching: Bool {
         !SearchService.normalizeForLocalSearch(searchText).isEmpty
+    }
+
+    private var isAddingThing: Binding<Bool> {
+        isAddingThingPresentation ?? $localIsAddingThing
     }
 
     static let localSearchScopes: Set<LocalSearchEntityKind> = [.thing]
@@ -46,25 +53,31 @@ struct ThingsListView: View {
         return sortedThings.map(\.id)
     }
 
+    private var shouldShowThingsContext: Bool {
+        !isThingsContextDismissed && sortedThings.count <= 3
+    }
+
     var body: some View {
         Group {
             if isSearching {
                 searchResultsView
             } else if things.isEmpty {
-                LedgerEmptyStateView(content: .things) {
-                    HStack(spacing: 12) {
-                        Button("Open Timeline", action: onOpenLog)
-                            .buttonStyle(.borderedProminent)
+                LedgerCenteredEmptyState {
+                    LedgerEmptyStateView(content: .things) {
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: 12) {
+                                emptyStateActions
+                            }
 
-                        Button("Add Thing") {
-                            isAddingThing = true
+                            VStack(spacing: 10) {
+                                emptyStateActions
+                            }
                         }
-                        .buttonStyle(.bordered)
                     }
                 }
             } else {
                 List {
-                    if !isThingsContextDismissed {
+                    if shouldShowThingsContext {
                         LedgerContextPanel(content: .things) {
                             isThingsContextDismissed = true
                         }
@@ -91,15 +104,12 @@ struct ThingsListView: View {
                 .accessibilityIdentifier("things-list")
             }
         }
-        .searchable(text: $searchText, prompt: "Search things")
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                LedgerToolbarIconButton(systemName: "plus", accessibilityLabel: "Add Thing") {
-                    isAddingThing = true
-                }
-            }
-        }
-        .sheet(isPresented: $isAddingThing) {
+        .searchable(
+            text: $searchText,
+            placement: .navigationBarDrawer(displayMode: .always),
+            prompt: "Search things"
+        )
+        .sheet(isPresented: isAddingThing) {
             NavigationStack {
                 ThingEditView(existingThing: nil) { thing in
                     modelContext.insert(thing)
@@ -137,6 +147,21 @@ struct ThingsListView: View {
         } message: {
             Text(reviewItemErrorMessage ?? "")
         }
+    }
+
+    private func showAddThingSheet() {
+        isAddingThing.wrappedValue = true
+    }
+
+    @ViewBuilder
+    private var emptyStateActions: some View {
+        Button("Open Timeline", action: onOpenLog)
+            .buttonStyle(.borderedProminent)
+
+        Button("Add Thing") {
+            showAddThingSheet()
+        }
+        .buttonStyle(.bordered)
     }
 
     private var searchResults: [LocalSearchResult] {
@@ -196,7 +221,8 @@ struct ThingsListView: View {
             thing: thing,
             reviewPresentation: reviewPresentation(for: thing),
             relatedRules: relatedRules(for: thing),
-            sourceMessages: sourceMessages(for: thing)
+            sourceMessages: sourceMessages(for: thing),
+            isSelected: presentsSelectionInPlace && selectedThingID == thing.id
         )
 
         if presentsSelectionInPlace {
@@ -251,6 +277,7 @@ private struct ThingRow: View {
     let reviewPresentation: LedgerReviewItemPresentation?
     var relatedRules: [LedgerRule] = []
     var sourceMessages: [ChatMessage] = []
+    var isSelected = false
 
     private var snapshot: ThingPreviewSnapshot {
         ThingPreviewSnapshot(thing: thing, relatedRules: relatedRules, sourceMessages: sourceMessages)
@@ -258,30 +285,48 @@ private struct ThingRow: View {
 
     var body: some View {
         let snapshot = snapshot
+        let candidateBadges = badgeCandidates(for: snapshot)
+        let visibleBadges = LedgerBadgePresentation.primaryBadges(from: candidateBadges)
 
         LedgerRow(
             primary: snapshot.title,
             secondary: rowLines(snapshot),
-            density: LedgerSurfaceDensity.thingsRow.rowDensity
+            density: LedgerSurfaceDensity.thingsRow.rowDensity,
+            emphasis: isSelected ? .active : .normal
         ) {
-            if let categoryTitle = snapshot.categoryTitle {
-                LedgerBadgePill(
-                    badge: LedgerBadgePresentation(semantic: .categoryThing, label: categoryTitle),
-                    size: .small
-                )
-            }
-            if let reviewPresentation {
-                LedgerBadgePill(badge: reviewPresentation.badge, size: .small)
+            ForEach(visibleBadges) { badge in
+                LedgerBadgePill(badge: badge, size: .small)
             }
         }
+        .accessibilityLabel(accessibilityLabel(for: snapshot, candidateBadges: candidateBadges, visibleBadges: visibleBadges))
+        .accessibilityValue(isSelected ? "Selected" : "")
     }
 
     private func rowLines(_ snapshot: ThingPreviewSnapshot) -> [LedgerRowLine] {
         var lines = [snapshot.listSummaryLine]
-        if let reviewPresentation {
-            lines.append(reviewPresentation.rowLine)
+        if let savedItemSummaryLine = snapshot.savedItemSummaryLine,
+           savedItemSummaryLine.text != snapshot.listSummaryLine.text {
+            lines.append(savedItemSummaryLine)
         }
         return lines
+    }
+
+    private func badgeCandidates(for snapshot: ThingPreviewSnapshot) -> [LedgerBadgePresentation] {
+        [
+            snapshot.categoryTitle.map { LedgerBadgePresentation(semantic: .categoryThing, label: $0) },
+            reviewPresentation?.badge
+        ].compactMap(\.self)
+    }
+
+    private func accessibilityLabel(
+        for snapshot: ThingPreviewSnapshot,
+        candidateBadges: [LedgerBadgePresentation],
+        visibleBadges: [LedgerBadgePresentation]
+    ) -> String {
+        let hiddenBadges = LedgerBadgePresentation.hiddenBadges(from: candidateBadges, visibleBadges: visibleBadges)
+        return ([snapshot.title] + visibleBadges.map(\.label) + hiddenBadges.map(\.label) + rowLines(snapshot).map(\.text))
+            .filter { !$0.isEmpty }
+            .joined(separator: ". ")
     }
 }
 

@@ -189,7 +189,7 @@ struct LocalJSONExportService {
         case .failed, .failedNeedsReview, .needsReview:
             return "Retry this entry, or review the saved local text."
         case .partiallySucceeded:
-            return "Review or edit the records this entry already created."
+            return "Review or edit the saved items this entry already created."
         case .pending, .extracting:
             return "Reopen the app to recover this entry if it stays unfinished."
         case .notRequired, .succeeded:

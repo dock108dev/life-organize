@@ -137,13 +137,32 @@ struct UnifiedSearchView: View {
             }
             .id(selectedRoute.id)
         } else {
-            LedgerNoSelectionPlaceholderView(
-                "Select a result",
-                systemImage: "sidebar.left",
-                description: "Choose an item from the search results."
-            )
+            regularSearchPlaceholder
             .background(Color(.systemGroupedBackground))
             .accessibilityIdentifier("search-no-selection")
+        }
+    }
+
+    @ViewBuilder
+    private var regularSearchPlaceholder: some View {
+        if !isSearching {
+            LedgerNoSelectionPlaceholderView(
+                "Search to choose a result",
+                systemImage: "magnifyingglass",
+                description: "Matches will open here on larger screens."
+            )
+        } else if searchResults.isEmpty {
+            LedgerNoSelectionPlaceholderView(
+                "No result to select",
+                systemImage: "magnifyingglass",
+                description: "Try a different search in the list pane."
+            )
+        } else {
+            LedgerNoSelectionPlaceholderView(
+                "Select a result",
+                systemImage: "magnifyingglass",
+                description: "Choose an item from the search results."
+            )
         }
     }
 

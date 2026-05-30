@@ -43,7 +43,7 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
             $0.kind == .intervalReminder && $0.targetID == scenario.filters.id
         })
         XCTAssertEqual(filterReviewItem.title, "Air filter cadence is ready for review")
-        XCTAssertTrue(filterReviewItem.detail.contains("Saved records show about every 90 days."))
+        XCTAssertTrue(filterReviewItem.detail.contains("Saved items show about every 90 days."))
         XCTAssertTrue(filterReviewItem.detail.contains("next date range 2026-09-23 to 2026-10-11"))
         XCTAssertTrue(filterReviewItem.detail.contains("No reminder has been created or changed."))
 
@@ -51,7 +51,7 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
             $0.kind == .intervalReminder && $0.targetID == scenario.dogFood.id
         })
         XCTAssertEqual(dogFoodReviewItem.title, "Dog food purchase cadence is ready for review")
-        XCTAssertTrue(dogFoodReviewItem.detail.contains("Saved records show about every 25 days."))
+        XCTAssertTrue(dogFoodReviewItem.detail.contains("Saved items show about every 25 days."))
         XCTAssertTrue(dogFoodReviewItem.detail.contains("next date range 2026-06-05 to 2026-06-07"))
         XCTAssertTrue(dogFoodReviewItem.detail.contains("No reminder has been created or changed."))
 
@@ -280,13 +280,13 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
         )
         XCTAssertEqual(generatedItem.title, "Thing match needs review")
         XCTAssertTrue(generatedItem.detail.contains("NWS may match Nimbus Web Services"))
-        XCTAssertTrue(generatedItem.detail.contains("No records have been merged"))
+        XCTAssertTrue(generatedItem.detail.contains("No items have been merged"))
 
         let correctionItem = LedgerReviewItem(
             dedupeKey: "normalization_candidate|scenario|\(sourceThing.id.uuidString)",
             kind: .normalizationCandidate,
             title: "Thing match needs review",
-            detail: "NWS may match Nimbus Web Services. No records have been merged.",
+            detail: "NWS may match Nimbus Web Services. No items have been merged.",
             actionTitle: "Review Thing",
             targetType: .thing,
             targetID: sourceThing.id,

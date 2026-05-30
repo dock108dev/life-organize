@@ -5,7 +5,7 @@ extension LedgerReviewItemGenerationService {
         for message: ChatMessage,
         createdRecordEvidence: [LedgerReviewItemEvidence]
     ) -> ReviewItemDefinition? {
-        guard let envelope = latestEnvelope(for: message),
+        guard let envelope = latestExtractionEnvelope(for: message),
               let window = ambiguousDateWindow(in: envelope, referenceDate: message.createdAt),
               let thingName = envelope.things.first?.name.nilIfEmpty else {
             return nil
@@ -20,7 +20,7 @@ extension LedgerReviewItemGenerationService {
             sourceType: .chatMessage,
             sourceID: message.id,
             summary: message.text,
-            detail: message.extractionErrorCode?.rawValue ?? message.extractionStatus.rawValue
+            detail: "Needs review"
         )
         let suggestionEvidence = LedgerReviewItemEvidence(
             sourceType: .chatMessage,
@@ -41,16 +41,6 @@ extension LedgerReviewItemGenerationService {
             confidence: 1,
             evidence: [messageEvidence, suggestionEvidence] + createdRecordEvidence
         )
-    }
-
-    private func latestEnvelope(for message: ChatMessage) -> ExtractionEnvelope? {
-        message.extractionAttempts
-            .sorted { $0.startedAt > $1.startedAt }
-            .compactMap { attempt -> ExtractionEnvelope? in
-                guard let data = attempt.normalizedJSONText.data(using: .utf8) else { return nil }
-                return try? JSONDecoder().decode(ExtractionEnvelope.self, from: data)
-            }
-            .first
     }
 
     private func ambiguousDateWindow(in envelope: ExtractionEnvelope, referenceDate: Date) -> AmbiguousDateWindow? {

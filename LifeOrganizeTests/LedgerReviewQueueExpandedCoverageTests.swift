@@ -72,7 +72,7 @@ final class LedgerReviewQueueExpandedCoverageTests: XCTestCase {
         XCTAssertTrue(items.contains { $0.kind == .duplicateThing && $0.evidence.map(\.sourceID).contains(duplicateA.id) })
         XCTAssertTrue(items.contains { $0.kind == .normalizationCandidate && $0.targetID == namingCandidate.id })
         XCTAssertEqual(importMessage.extractionStatus, .partiallySucceeded)
-        XCTAssertEqual(importItem.actionTitle, "Open Records")
+        XCTAssertEqual(importItem.actionTitle, "Open")
         XCTAssertTrue(importItem.evidence.contains { $0.sourceType == .event && $0.sourceID == importEvent.id })
         XCTAssertEqual(importEntry.createdRecords.map(\.title), ["Rutgers vs Iowa"])
         XCTAssertEqual(importEntry.blockedMessage, ManualExtractionRetryBlockedReason.createdRecordsExist.message)
@@ -89,7 +89,7 @@ final class LedgerReviewQueueExpandedCoverageTests: XCTestCase {
             dedupeKey: "normalization_candidate|expanded-coverage",
             kind: .normalizationCandidate,
             title: "Thing match needs review",
-            detail: "NWS may match Nimbus Web Services. No records have been merged.",
+            detail: "NWS may match Nimbus Web Services. No items have been merged.",
             actionTitle: "Review Thing",
             targetType: .thing,
             targetID: source.id,
@@ -146,7 +146,7 @@ final class LedgerReviewQueueExpandedCoverageTests: XCTestCase {
         let messageItem = reviewItem(
             kind: .extractionReview,
             title: "Entry needs review",
-            actionTitle: "Open Records",
+            actionTitle: "Open",
             targetType: .chatMessage,
             targetID: messageID
         )
@@ -170,7 +170,7 @@ final class LedgerReviewQueueExpandedCoverageTests: XCTestCase {
             title: messageItem.title,
             detail: messageItem.detail,
             correctionClass: .quickReview,
-            primaryActionTitle: "Open Records",
+            primaryActionTitle: "Open",
             blockedMessage: nil,
             createdRecords: [LedgerReviewCreatedRecord(targetType: .event, targetID: UUID(), title: "Changed filter", subtitle: "Event")],
             origin: nil
@@ -184,8 +184,9 @@ final class LedgerReviewQueueExpandedCoverageTests: XCTestCase {
         let timelineMessageBadge = LedgerBadgePresentation.timelineCategory(for: .message)
         let carryForwardReviewBadge = LedgerBadgePresentation.reminderStatus(for: .review)
 
-        XCTAssertEqual(queueRow.badges.map(\.semantic), [.actionReview, .categoryMessage])
-        XCTAssertEqual(queueRow.badges.map(\.role), [.action, .category])
+        XCTAssertEqual(queueRow.badges.map(\.semantic), [.actionReview])
+        XCTAssertEqual(queueRow.badges.map(\.role), [.action])
+        XCTAssertEqual(queueRow.hiddenBadgeAccessibilityText, "Context: Message")
         XCTAssertEqual(searchMessageBadge.semantic, .categoryMessage)
         XCTAssertEqual(timelineMessageBadge.semantic, .categoryMessage)
         XCTAssertEqual(thingPresentation?.badge.semantic, .actionReview)
@@ -195,7 +196,8 @@ final class LedgerReviewQueueExpandedCoverageTests: XCTestCase {
         XCTAssertEqual(carryForwardReviewBadge.semantic, .actionReview)
         XCTAssertEqual(carryForwardReviewBadge.tone, .attention)
         XCTAssertEqual(queueRow.accessibilityLabel.occurrenceCount(of: "Entry needs review"), 1)
-        XCTAssertEqual(queueRow.accessibilityLabel.occurrenceCount(of: "Suggested:"), 1)
+        XCTAssertEqual(queueRow.accessibilityLabel.occurrenceCount(of: "Suggested:"), 0)
+        XCTAssertEqual(queueRow.accessibilityLabel.occurrenceCount(of: "Saved items include"), 1)
     }
 
     func testScenarioReviewFixtureReloadsAfterLocalClearWithoutDuplicateQueueItems() throws {

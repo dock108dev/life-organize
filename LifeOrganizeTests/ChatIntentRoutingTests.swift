@@ -61,7 +61,7 @@ final class ChatIntentRoutingTests: XCTestCase {
         let assistantMessage = try XCTUnwrap(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .assistant })
 
         XCTAssertEqual(userMessage.extractionStatus, .notRequired)
-        XCTAssertEqual(assistantMessage.text, "Add to Timeline, search saved records, or check Carry Forward.")
+        XCTAssertEqual(assistantMessage.text, "Add to Timeline, search saved entries, or check Carry Forward.")
         XCTAssertEqual(try context.fetch(FetchDescriptor<ExtractionAttempt>()).count, 0)
     }
 
@@ -129,7 +129,7 @@ final class ChatIntentRoutingTests: XCTestCase {
 
         XCTAssertEqual(observedMode, .answer)
         XCTAssertEqual(userMessage.extractionStatus, .notRequired)
-        XCTAssertEqual(assistantMessage.text, "Web results:\n1. Ohio State at Michigan, 12:00 PM ET. Source: https://example.com/schedule")
+        XCTAssertEqual(assistantMessage.text, "Web results:\n1. Ohio State at Michigan, 12:00 PM ET. Link: https://example.com/schedule")
         XCTAssertEqual(try context.fetch(FetchDescriptor<ExtractionAttempt>()).count, 0)
     }
 

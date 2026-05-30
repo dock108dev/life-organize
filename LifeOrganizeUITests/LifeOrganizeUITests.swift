@@ -71,18 +71,29 @@ final class LifeOrganizeUITests: XCTestCase {
         XCTAssertTrue(timelineApp.navigationBars["Timeline"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(timelineApp.buttons["root-search-entry"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(timelineApp.buttons["settings-entry"].exists)
+        XCTAssertFalse(timelineApp.buttons["add-thing-button"].exists)
+        XCTAssertFalse(timelineApp.buttons["add-reminder-button"].exists)
         timelineApp.terminate()
 
         let thingsApp = launchApp(resetStore: true, extraArguments: ["--initial-tab=things"])
         XCTAssertTrue(thingsApp.navigationBars["Things"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(thingsApp.buttons["add-thing-button"].waitForFastExistence(timeout: 5))
         XCTAssertFalse(thingsApp.buttons["root-search-entry"].exists)
         XCTAssertTrue(thingsApp.buttons["settings-entry"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(thingsApp.searchFields.firstMatch.waitForFastExistence(timeout: 5))
+        thingsApp.buttons["add-thing-button"].tap()
+        XCTAssertTrue(thingsApp.navigationBars["Add Thing"].waitForFastExistence(timeout: 5))
+        thingsApp.buttons["Cancel"].tap()
         thingsApp.terminate()
 
         let carryForwardApp = launchApp(resetStore: true, extraArguments: ["--initial-tab=carry_forward"])
         XCTAssertTrue(carryForwardApp.navigationBars["Carry Forward"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(carryForwardApp.buttons["add-reminder-button"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(carryForwardApp.buttons["root-search-entry"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(carryForwardApp.buttons["settings-entry"].exists)
+        carryForwardApp.buttons["add-reminder-button"].tap()
+        XCTAssertTrue(carryForwardApp.navigationBars["Add Reminder"].waitForFastExistence(timeout: 5))
+        carryForwardApp.buttons["Cancel"].tap()
     }
 
     func testGlobalLedgerSearchNavigatesToResultContext() throws {

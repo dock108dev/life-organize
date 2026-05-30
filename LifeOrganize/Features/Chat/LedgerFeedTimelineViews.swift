@@ -171,11 +171,11 @@ private struct LedgerFeedRow: View {
         ) {
             VStack(alignment: .leading, spacing: LedgerFeedTimelineLayout.rowContentSpacing) {
                 if shouldSeparateMetadata {
-                    metadataBadges
+                    metadataBadge
                     primaryLabel
                 } else {
                     HStack(alignment: .firstTextBaseline, spacing: LedgerFeedTimelineLayout.rowBadgeGap) {
-                        metadataBadges
+                        metadataBadge
                             .fixedSize(horizontal: true, vertical: false)
                         primaryLabel
                     }
@@ -194,7 +194,7 @@ private struct LedgerFeedRow: View {
             timestampWeight: timestampWeight
         ) {
             VStack(alignment: .leading, spacing: LedgerFeedTimelineLayout.rowContentSpacing) {
-                metadataBadges
+                metadataBadge
                 primaryLabel
                 detailLabels
             }
@@ -222,7 +222,7 @@ private struct LedgerFeedRow: View {
 
     private var quietInlineStatusContent: some View {
         HStack(alignment: .firstTextBaseline, spacing: LedgerFeedTimelineLayout.rowBadgeGap) {
-            sourceLabel
+            metadataBadge
                 .fixedSize(horizontal: true, vertical: false)
 
             statusSummaryText
@@ -231,7 +231,7 @@ private struct LedgerFeedRow: View {
 
     private var quietStackedStatusContent: some View {
         VStack(alignment: .leading, spacing: LedgerFeedTimelineLayout.rowContentSpacing) {
-            sourceLabel
+            metadataBadge
             statusSummaryText
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -247,28 +247,11 @@ private struct LedgerFeedRow: View {
     }
 
     @ViewBuilder
-    private var metadataBadges: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .firstTextBaseline, spacing: LedgerFeedTimelineLayout.rowBadgeGap) {
-                sourceLabel
-
-                if let statusBadge {
-                    statusLabel(statusBadge)
-                }
-            }
-
-            VStack(alignment: .leading, spacing: LedgerFeedTimelineLayout.rowBadgeGap) {
-                sourceLabel
-
-                if let statusBadge {
-                    statusLabel(statusBadge)
-                }
-            }
+    private var metadataBadge: some View {
+        if let primaryMetadataBadge {
+            LedgerFeedMetadataLabel(badge: primaryMetadataBadge, allowsAccessibilityWrapping: true)
+                .fixedSize(horizontal: false, vertical: true)
         }
-    }
-
-    private var sourceLabel: some View {
-        LedgerFeedMetadataLabel(badge: content.sourceBadge)
     }
 
     private var primaryLabel: some View {
@@ -295,23 +278,12 @@ private struct LedgerFeedRow: View {
         }
     }
 
-    private func statusLabel(_ badge: LedgerBadgePresentation) -> some View {
-        LedgerFeedMetadataLabel(badge: badge, allowsAccessibilityWrapping: true)
-            .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private var statusBadge: LedgerBadgePresentation? {
-        if let reviewPresentation {
-            return reviewPresentation.badge
-        }
-        if content.secondaryBadge?.semantic == .actionReview {
-            return nil
-        }
-        return content.secondaryBadge
+    private var primaryMetadataBadge: LedgerBadgePresentation? {
+        content.primaryBadge(reviewBadge: reviewPresentation?.badge)
     }
 
     private var sourceTone: LedgerTone {
-        content.sourceBadge.tone
+        primaryMetadataBadge?.tone ?? content.sourceBadge.tone
     }
 
     private var primaryWeight: Font.Weight {
@@ -347,7 +319,7 @@ private struct LedgerFeedRow: View {
     }
 
     private var shouldSeparateMetadata: Bool {
-        statusBadge != nil || dynamicTypeSize.isAccessibilitySize
+        primaryMetadataBadge?.id != content.sourceBadge.id || dynamicTypeSize.isAccessibilitySize
     }
 }
 
@@ -359,7 +331,7 @@ private struct LedgerFeedMetadataLabel: View {
     var body: some View {
         Text(badge.label)
             .font(LedgerVisualSystem.Typography.rowFooter.weight(.medium))
-            .foregroundStyle(badge.tone.foreground.opacity(badge.tone == .muted ? 0.62 : 0.92))
+            .foregroundStyle(badge.tone.foreground.opacity(badge.tone == .muted ? 0.74 : 0.92))
             .lineLimit(lineLimit)
             .truncationMode(.tail)
             .minimumScaleFactor(allowsAccessibilityWrapping && dynamicTypeSize.isAccessibilitySize ? 0.9 : 0.85)

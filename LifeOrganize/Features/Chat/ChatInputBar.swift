@@ -5,8 +5,13 @@ struct ChatInputBar: View {
     let placeholder: String
     let isCommittingSend: Bool
     let isOrganizing: Bool
+    let errorMessage: String?
     let onSend: () -> Void
     @FocusState.Binding var isFocused: Bool
+
+    private var showsComposerStatus: Bool {
+        errorMessage?.isEmpty == false || isOrganizing
+    }
 
     private var canSend: Bool {
         !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isCommittingSend
@@ -17,6 +22,7 @@ struct ChatInputBar: View {
         placeholder: String = "Add anything or ask what’s due",
         isCommittingSend: Bool,
         isOrganizing: Bool,
+        errorMessage: String? = nil,
         isFocused: FocusState<Bool>.Binding,
         onSend: @escaping () -> Void
     ) {
@@ -24,24 +30,25 @@ struct ChatInputBar: View {
         self.placeholder = placeholder
         self.isCommittingSend = isCommittingSend
         self.isOrganizing = isOrganizing
+        self.errorMessage = errorMessage
         _isFocused = isFocused
         self.onSend = onSend
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if isOrganizing {
-                HStack(spacing: 6) {
-                    ProgressView()
-                        .controlSize(.mini)
-
-                    Text("Connecting details...")
-                        .font(LedgerVisualSystem.Typography.rowFooter)
-                }
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 12)
-                .padding(.top, 6)
-                .padding(.bottom, 2)
+            if let errorMessage, !errorMessage.isEmpty {
+                composerMessage(
+                    text: errorMessage,
+                    tone: .danger,
+                    iconName: "exclamationmark.circle"
+                )
+            } else if isOrganizing {
+                composerMessage(
+                    text: "Saved. Organizing details",
+                    tone: .muted,
+                    showsProgress: true
+                )
             }
 
             HStack(alignment: .center, spacing: 8) {
@@ -63,8 +70,8 @@ struct ChatInputBar: View {
 
                 Button(action: onSend) {
                     Image(systemName: "plus")
-                        .font(.system(size: 15, weight: .semibold))
-                        .frame(width: 28, height: 28)
+                        .font(.system(size: 17, weight: .semibold))
+                        .frame(width: 36, height: 36)
                         .foregroundStyle(canSend ? Color.white : Color.secondary)
                         .background(sendBackground)
                         .clipShape(Circle())
@@ -88,18 +95,40 @@ struct ChatInputBar: View {
                     .stroke(LedgerPalette.hairline, lineWidth: 1)
             }
             .padding(.horizontal, 10)
-            .padding(.top, isOrganizing ? 2 : 8)
+            .padding(.top, showsComposerStatus ? 2 : 8)
             .padding(.bottom, 8)
         }
     }
 
+    private func composerMessage(
+        text: String,
+        tone: LedgerTone,
+        iconName: String? = nil,
+        showsProgress: Bool = false
+    ) -> some View {
+        HStack(spacing: 6) {
+            if showsProgress {
+                ProgressView()
+                    .controlSize(.mini)
+            } else if let iconName {
+                Image(systemName: iconName)
+                    .font(LedgerVisualSystem.Typography.rowFooter.weight(.medium))
+                    .accessibilityHidden(true)
+            }
+
+            Text(text)
+                .font(LedgerVisualSystem.Typography.rowFooter)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .foregroundStyle(tone == .muted ? Color.secondary : tone.foreground)
+        .padding(.horizontal, 12)
+        .padding(.top, 6)
+        .padding(.bottom, 2)
+    }
+
     private var sendBackground: some ShapeStyle {
         canSend
-            ? AnyShapeStyle(LinearGradient(
-                colors: [LedgerPalette.accent, LedgerPalette.teal],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            ))
+            ? AnyShapeStyle(LedgerPalette.accent)
             : AnyShapeStyle(Color(.tertiarySystemFill))
     }
 

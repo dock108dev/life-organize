@@ -44,7 +44,12 @@ extension LifeOrganizeScenarioUITests {
         waitUntilReady(in: app)
         XCTAssertTrue(app.navigationBars["Timeline"].waitForFastExistence(timeout: 10))
         XCTAssertTrue(app.descendants(matching: .any)["timeline-feed"].waitForFastExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts.matching(labelContaining: "Replaced Home Air Filters").firstMatch.exists)
+        XCTAssertTrue(
+            app.descendants(matching: .any)
+                .matching(identifierPrefix: "timeline-row-")
+                .firstMatch
+                .waitForFastExistence(timeout: 10)
+        )
 
         capture("timeline", from: app)
     }
@@ -59,7 +64,10 @@ extension LifeOrganizeScenarioUITests {
         capture("things", from: app)
 
         filtersRow.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["thing-detail"].waitForFastExistence(timeout: 10))
+        if !app.descendants(matching: .any)["thing-detail"].waitForFastExistence(timeout: 5) {
+            XCTAssertTrue(app.descendants(matching: .any)["things-detail"].waitForFastExistence(timeout: 5))
+            XCTAssertFalse(app.descendants(matching: .any)["things-no-selection"].exists)
+        }
         waitForScreenshotChromeToSettle()
 
         capture("thing_detail", from: app)
@@ -100,6 +108,19 @@ extension LifeOrganizeScenarioUITests {
         XCTAssertTrue(app.buttons.matching(identifierPrefix: "review-queue-row-").firstMatch.exists)
 
         capture("review_queue", from: app)
+    }
+
+    func testSettingsScreenshot() throws {
+        let app = launchScreenshotApp(seed: "empty", start: "settings")
+        waitUntilReady(in: app)
+        XCTAssertTrue(app.navigationBars["Settings"].waitForFastExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["settings-workspace"].waitForFastExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["device-token-status"].waitForFastExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["device-token-save-button"].waitForFastExistence(timeout: 10))
+        XCTAssertFalse(app.staticTexts["Developer Diagnostics"].exists)
+        XCTAssertFalse(app.buttons["Internal QA Lab"].exists)
+
+        capture("settings", from: app)
     }
 
     func testHeavyTimelineScreenshot() throws {

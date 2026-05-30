@@ -18,7 +18,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
             title: item.title,
             source: source,
             suggestion: suggestion,
-            evidence: evidencePanel(for: item, things: things, events: events, rules: rules, notes: notes, messages: messages),
+            evidence: evidencePanel(for: item, entry: entry),
             actions: actions(
                 for: item,
                 entry: entry,
@@ -45,17 +45,26 @@ struct LedgerReviewReconciliationPresentationBuilder {
             let rows = item.evidence
                 .filter { $0.sourceType == .thing }
                 .map { evidenceRow($0, things: things, events: events, rules: rules, notes: notes, messages: messages) }
-            return panel(title: "Source Records", summary: nil, rows: rows, fallback: item.detail)
+            return panel(title: "Saved Items", summary: nil, rows: rows, fallback: item.detail)
         }
 
+        if item.targetType == .chatMessage,
+           let targetRow = targetRow(for: item, messages: messages, things: things, events: events, rules: rules, notes: notes) {
+            return LedgerReviewReconciliationPanel(title: "Original Entry", summary: nil, rows: [targetRow])
+        }
+
+        var rows = [LedgerReviewReconciliationRow]()
         if let targetRow = targetRow(for: item, messages: messages, things: things, events: events, rules: rules, notes: notes) {
-            return LedgerReviewReconciliationPanel(title: sourceTitle(for: item.targetType), summary: nil, rows: [targetRow])
+            rows.append(targetRow)
         }
-
-        let rows = item.evidence.map {
+        rows += item.evidence.map {
             evidenceRow($0, things: things, events: events, rules: rules, notes: notes, messages: messages)
         }
-        return panel(title: rows.count > 1 ? "Source Records" : sourceTitle(for: item.targetType), summary: nil, rows: rows, fallback: item.detail)
+        rows = rows.reduce(into: [LedgerReviewReconciliationRow]()) { uniqueRows, row in
+            guard !uniqueRows.contains(where: { $0.targetType == row.targetType && $0.targetID == row.targetID }) else { return }
+            uniqueRows.append(row)
+        }
+        return panel(title: sourceTitle(for: item.targetType), summary: nil, rows: rows, fallback: item.detail)
     }
 
     private func suggestionPanel(
@@ -67,28 +76,23 @@ struct LedgerReviewReconciliationPresentationBuilder {
         notes: [LedgerNote]
     ) -> LedgerReviewReconciliationPanel {
         let createdRows = entry.createdRecords.map { createdRecordRow($0, things: things, events: events, rules: rules, notes: notes) }
-        let summary = [entry.detail.nilIfEmpty, confidenceText(for: item)].compactMap { $0 }.joined(separator: " ")
-        return panel(
-            title: "Suggested Interpretation",
-            summary: summary.nilIfEmpty,
-            rows: createdRows,
-            fallback: item.title
-        )
+        if createdRows.isEmpty {
+            return LedgerReviewReconciliationPanel(
+                title: "Needs Confirmation",
+                summary: confirmationSummary(for: item, entry: entry),
+                rows: []
+            )
+        }
+        return LedgerReviewReconciliationPanel(title: "Saved Items", summary: nil, rows: createdRows)
     }
 
-    private func evidencePanel(
-        for item: LedgerReviewItem,
-        things: [Thing],
-        events: [LedgerEvent],
-        rules: [LedgerRule],
-        notes: [LedgerNote],
-        messages: [ChatMessage]
-    ) -> LedgerReviewReconciliationPanel? {
-        let rows = item.evidence.map {
-            evidenceRow($0, things: things, events: events, rules: rules, notes: notes, messages: messages)
-        }
-        guard !rows.isEmpty else { return nil }
-        return LedgerReviewReconciliationPanel(title: "Evidence", summary: nil, rows: rows)
+    private func evidencePanel(for item: LedgerReviewItem, entry: LedgerReviewQueueEntry) -> LedgerReviewReconciliationPanel? {
+        guard !entry.createdRecords.isEmpty else { return nil }
+        return LedgerReviewReconciliationPanel(
+            title: "Needs Confirmation",
+            summary: confirmationSummary(for: item, entry: entry),
+            rows: []
+        )
     }
 
     private func actions(
@@ -104,13 +108,14 @@ struct LedgerReviewReconciliationPresentationBuilder {
         let primary = primaryAction(for: item, entry: entry, rules: rules)
         var contextual = editActions(for: item, entry: entry, things: things, events: events, rules: rules, notes: notes, messages: messages)
         if canSaveAsNote {
-            contextual.append(action(.saveAsNote, "Save as Note", role: .note, detail: "Keep this review context as a note and close the item."))
+            contextual.append(action(.saveAsNote, "Save as Note", role: .note, detail: "Save the original entry as a note, then close this review."))
         }
-        let reviewState = primary?.kind == .confirm ? [] : [action(.confirm, "Mark Reviewed", role: .reviewState)]
+        let canMarkReviewed = primary?.kind != .confirm && primary?.kind != .blocked
+        let reviewState = canMarkReviewed ? [action(.confirm, "Mark Reviewed", role: .reviewState)] : []
         return LedgerReviewReconciliationActions(
             primary: primary,
             contextual: contextual,
-            reviewState: reviewState + [action(.snooze, "Snooze Until Tomorrow", role: .reviewState)],
+            reviewState: reviewState + [action(.snooze, "Snooze", role: .reviewState)],
             destructive: [action(.dismiss, "Dismiss", role: .destructive)]
         )
     }
@@ -124,7 +129,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
             if entry.primaryActionTitle == "Connect Service" {
                 return action(.connectService, "Connect Service", role: .primary, detail: blockedMessage)
             }
-            return action(.blocked, "Next Step Blocked", role: .blocked, detail: blockedMessage, isEnabled: false)
+            return action(.blocked, "Needs Confirmation", role: .blocked, detail: blockedActionDetail(for: item, fallback: blockedMessage), isEnabled: false)
         }
 
         if entry.primaryActionTitle == "Retry Now" {
@@ -137,13 +142,13 @@ struct LedgerReviewReconciliationPresentationBuilder {
             let hasRule = targetRule(for: item, rules: rules) != nil
             return action(
                 hasRule ? .adjustReminderTiming : .blocked,
-                hasRule ? "Adjust Timing" : "Saved Reminder Missing",
+                hasRule ? "Adjust Timing" : "Needs Confirmation",
                 role: hasRule ? .primary : .blocked,
-                detail: hasRule ? nil : "The saved reminder is no longer available. Use the evidence below, then dismiss or mark reviewed.",
+                detail: hasRule ? nil : "This reminder is not available. Dismiss this review if you no longer need it, or restore the reminder first.",
                 isEnabled: hasRule
             )
         }
-        return action(.confirm, "Confirm", role: .primary)
+        return action(.confirm, "Mark Reviewed", role: .primary)
     }
 
     private func editActions(
@@ -163,12 +168,8 @@ struct LedgerReviewReconciliationPresentationBuilder {
 
         if item.kind == .duplicateThing {
             return candidateThings(for: item, things: things).map {
-                action(.mergeThing($0.id), "Merge into \($0.name)", role: .contextual, detail: "Move linked records, then close the review.")
+                action(.mergeThing($0.id), "Merge into \($0.name)", role: .contextual, detail: "Move linked items, then close the review.")
             }
-        }
-
-        if item.kind == .normalizationCandidate {
-            return openTargetAction(for: item, messages: messages, things: things, events: events, rules: rules, notes: notes).map { [$0] } ?? []
         }
 
         return openTargetAction(for: item, messages: messages, things: things, events: events, rules: rules, notes: notes).map { [$0] } ?? []
@@ -186,7 +187,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
               targetExists(item.targetType, id: targetID, messages: messages, things: things, events: events, rules: rules, notes: notes) else {
             return nil
         }
-        return action(.openRecord(item.targetType, targetID), "Open \(sourceNoun(for: item.targetType))", role: .edit)
+        return action(.openRecord(item.targetType, targetID), editActionTitle(for: item.targetType), role: .edit)
     }
 
     private func saveAsNoteBody(
@@ -204,7 +205,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
                 source.title + ":",
                 sourceText,
                 "",
-                "Suggested interpretation:",
+                "Needs Confirmation:",
                 suggestionText
             ].joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
             return body.nilIfEmpty
@@ -262,7 +263,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
                 LedgerReviewReconciliationRow(
                     id: "evidence-\($0.id)",
                     title: $0.title,
-                    detail: evidence.detail ?? $0.detail,
+                    detail: productFacingDetail(evidence.detail ?? $0.detail, fallbackType: evidence.sourceType),
                     targetType: evidence.sourceType,
                     targetID: evidence.sourceID,
                     isMissing: false
@@ -271,7 +272,10 @@ struct LedgerReviewReconciliationPresentationBuilder {
             ?? LedgerReviewReconciliationRow(
                 id: "evidence-missing-\(evidence.sourceType.rawValue)-\(evidence.sourceID.uuidString)",
                 title: evidence.summary,
-                detail: evidence.detail ?? "\(sourceNoun(for: evidence.sourceType)) is no longer available.",
+                detail: productFacingDetail(
+                    evidence.detail,
+                    fallbackType: evidence.sourceType
+                ) ?? "\(sourceNoun(for: evidence.sourceType)) is no longer available.",
                 targetType: evidence.sourceType,
                 targetID: evidence.sourceID,
                 isMissing: true
@@ -308,7 +312,13 @@ struct LedgerReviewReconciliationPresentationBuilder {
         switch type {
         case .chatMessage:
             return messages.first { $0.id == id }.map {
-                LedgerReviewReconciliationRow(id: "message-\(id.uuidString)", title: $0.text, detail: $0.extractionError, targetType: type, targetID: id)
+                LedgerReviewReconciliationRow(
+                    id: "message-\(id.uuidString)",
+                    title: $0.text,
+                    detail: messageDetail(for: $0),
+                    targetType: type,
+                    targetID: id
+                )
             }
         case .thing:
             return things.first { $0.id == id }.map {
@@ -369,14 +379,23 @@ struct LedgerReviewReconciliationPresentationBuilder {
         switch type {
         case .chatMessage:
             return "Original Entry"
+        case .event, .thing, .rule, .none:
+            return "Saved Items"
+        }
+    }
+
+    private func editActionTitle(for type: LedgerReviewItemTargetType) -> String {
+        switch type {
+        case .chatMessage:
+            return "Open Original Entry"
         case .event:
-            return "Saved Event"
+            return "Edit Event"
         case .thing:
-            return "Saved Thing"
+            return "Edit Thing"
         case .rule:
-            return "Saved Reminder"
+            return "Edit Reminder"
         case .none:
-            return "Source Records"
+            return "Edit Note"
         }
     }
 
@@ -395,8 +414,82 @@ struct LedgerReviewReconciliationPresentationBuilder {
         }
     }
 
-    private func confidenceText(for item: LedgerReviewItem) -> String? {
-        guard item.confidence < 0.99 else { return nil }
-        return "Confidence \(Int((item.confidence * 100).rounded()))%."
+    private func confirmationSummary(for item: LedgerReviewItem, entry: LedgerReviewQueueEntry) -> String {
+        if entry.blockedMessage != nil {
+            return blockedActionDetail(for: item, fallback: entry.blockedMessage)
+        }
+        switch item.kind {
+        case .localRecovery:
+            return "Try again, save as a note, or mark reviewed if no more follow-up is needed."
+        case .extractionReview:
+            return entry.createdRecords.isEmpty
+                ? "Decide whether to try again, save as a note, or mark reviewed."
+                : "Check the saved items, edit anything that needs attention, then mark reviewed."
+        case .conflictingDate:
+            return "Check the date, edit the event if needed, then mark reviewed."
+        case .duplicateThing:
+            return "Choose the item to keep, or dismiss this if both should stay."
+        case .normalizationCandidate:
+            return "Edit the name if needed, then mark reviewed."
+        case .intervalReminder:
+            return "Review the reminder setup, then mark reviewed when the timing looks right."
+        case .overdueReminderReview:
+            return "Update the reminder date or status, then mark reviewed."
+        }
+    }
+
+    private func blockedActionDetail(for item: LedgerReviewItem, fallback: String?) -> String {
+        if item.kind == .overdueReminderReview {
+            return "Update or restore the reminder before closing this review."
+        }
+        if fallback?.localizedCaseInsensitiveContains("service") == true {
+            return fallback ?? "Reconnect the service before continuing."
+        }
+        return "Check the saved items before closing this review."
+    }
+
+    private func messageDetail(for message: ChatMessage) -> String? {
+        switch message.extractionStatus {
+        case .pending, .extracting:
+            return "Saving"
+        case .pendingToken:
+            return "Saved locally"
+        case .pendingRetry:
+            return "Retry later"
+        case .partiallySucceeded, .failedNeedsReview, .needsReview, .failed:
+            return "Needs review"
+        case .notRequired, .succeeded:
+            return nil
+        }
+    }
+
+    private func productFacingDetail(_ detail: String?, fallbackType: LedgerReviewItemTargetType) -> String? {
+        guard let detail = detail?.nilIfEmpty else { return nil }
+        if isInternalStatusText(detail) {
+            return fallbackType == .chatMessage ? "Needs review" : "Needs confirmation"
+        }
+        return detail
+    }
+
+    private func isInternalStatusText(_ text: String) -> Bool {
+        let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if ExtractionStatus.allCases.map(\.rawValue).contains(normalized) {
+            return true
+        }
+        if ExtractionErrorCode.allCases.map(\.rawValue).contains(normalized) {
+            return true
+        }
+        return normalized.contains("validation")
+            || normalized.contains("extraction")
+            || normalized.contains("schema_")
+            || normalized.contains("invalid_json")
+            || normalized == "failed"
+            || normalized.contains("_failed")
+            || normalized.contains("blocked next step")
+            || normalized.contains("next step blocked")
+            || normalized.contains("source:")
+            || normalized.contains("source key:")
+            || normalized.contains("matched key:")
+            || normalized.contains("model confidence:")
     }
 }

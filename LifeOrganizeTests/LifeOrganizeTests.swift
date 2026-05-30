@@ -48,6 +48,47 @@ final class LifeOrganizeTests: XCTestCase {
         XCTAssertEqual(RegularRootShell.validSelection(.review, toolbarState: state), .review)
     }
 
+    func testToolbarConfigurationKeepsStableRootActionOrder() {
+        let state = AppToolbarState(openReviewItemCount: 2)
+
+        XCTAssertEqual(
+            AppToolbarConfiguration.root(state: state).orderedAccessibilityIdentifiers,
+            ["review-queue-button", "root-search-entry", "settings-entry"]
+        )
+        XCTAssertEqual(
+            AppToolbarConfiguration.root(
+                state: state,
+                screenAction: .addThing,
+                showsSearch: false
+            ).orderedAccessibilityIdentifiers,
+            ["add-thing-button", "review-queue-button", "settings-entry"]
+        )
+        XCTAssertEqual(
+            AppToolbarConfiguration.root(
+                state: state,
+                screenAction: .addReminder
+            ).orderedAccessibilityIdentifiers,
+            ["add-reminder-button", "review-queue-button", "root-search-entry", "settings-entry"]
+        )
+    }
+
+    func testToolbarConfigurationSuppressesUnavailableReviewAndThingsGlobalSearch() {
+        let state = AppToolbarState(openReviewItemCount: 0)
+
+        XCTAssertEqual(
+            AppToolbarConfiguration.root(state: state).orderedAccessibilityIdentifiers,
+            ["root-search-entry", "settings-entry"]
+        )
+        XCTAssertEqual(
+            AppToolbarConfiguration.root(
+                state: state,
+                screenAction: .addThing,
+                showsSearch: false
+            ).orderedAccessibilityIdentifiers,
+            ["add-thing-button", "settings-entry"]
+        )
+    }
+
     func testPrimaryTabsBridgeToRegularSections() {
         XCTAssertEqual(AppTab.log.section, .timeline)
         XCTAssertEqual(AppTab.things.section, .things)

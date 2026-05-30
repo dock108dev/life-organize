@@ -1,549 +1,517 @@
-# LifeOrganize iOS Screen Support Braindump
+# Production visual polish braindump
 
-This is the working plan for making LifeOrganize feel native and durable across iPhone, iPad, orientation changes, Dynamic Type, Split View, Stage Manager, and future iOS screen classes.
+Date: 2026-05-29
 
-The goal is not "make the phone UI bigger." The goal is one adaptive SwiftUI app shell where compact screens stay focused and regular-width screens use the room for navigation, context, and detail.
+## Intent
 
-## Hard Rules
+This pass is primarily about getting LifeOrganize visually ready for production. The app already has the right high-level structure: persistent navigation, a main workspace, contextual detail panes, and strong iPad use of space. The next pass should not add major product scope. It should make the existing experience feel finished, consistent, calm, and professional.
 
-- iPad support is first-class. The app target already includes iPhone and iPad with `TARGETED_DEVICE_FAMILY = "1,2"`, so the UI must be treated as universal.
-- Do not branch on device names, model names, or `UIDevice` for layout. Use SwiftUI environment traits, available width, Dynamic Type, and platform presentation behavior.
-- Design the full layout first, then collapse only when it no longer fits.
-- Keep compact iPhone behavior fast: the existing `TabView` plus per-tab `NavigationStack` remains the compact baseline unless a change proves better.
-- On regular-width iPad, prefer a persistent navigation structure over a stretched tab-only phone shell.
-- Do not let row content, cards, editors, or empty states stretch edge to edge on large iPad canvases. Use readable max widths and intentional columns.
-- Support portrait and landscape. Avoid portrait-only assumptions in screenshots, safe-area math, keyboard behavior, and toolbar placement.
-- Dynamic Type is part of screen support. Text can wrap, reflow, move to secondary lines, or collapse metadata, but it should not overlap, truncate important actions, or force horizontal scrolling.
-- Screens should preserve the product rule already used here: the UI should behave by the rules, not explain them with extra copy.
+The key work is theme finalization, noise reduction, hiding or translating debug/internal surfaces, and making the UI read as one coherent product rather than several feature prototypes stitched together.
 
-## Current Repo State
+## Product feel target
 
-Already true:
+LifeOrganize should feel like a quiet personal operations tool:
 
-- Native SwiftUI app under `LifeOrganize/`.
-- App target deployment target is iOS `17.0`.
-- App target supports iPhone and iPad through `TARGETED_DEVICE_FAMILY = "1,2"`.
-- Root shell is `AppRootView`.
-- Current primary navigation is a `TabView` with three tabs:
-  - `Timeline`
-  - `Things`
-  - `Carry Forward`
-- Each tab currently owns a `NavigationStack`.
-- Shared modal surfaces are owned at the root through `AppRootSheet`:
-  - settings
-  - search
-  - review queue
-- There is existing visual regression tooling:
-  - `Scripts/screenshots/run-screenshot-tests.sh`
-  - `LifeOrganizeUITests/LifeOrganizeScreenshotTests.swift`
-  - `Tests/ScreenshotBaselines/`
-- Current screenshot baselines cover iPhone classes only:
-  - `iPhone_16/light`
-  - `iPhone_17_Pro/light`
-- The screenshot script is already parameterized with `SCREENSHOT_DEVICE_NAME`, `SCREENSHOT_DEVICE_OS`, `SCREENSHOT_APPEARANCE`, and baseline paths.
+- Clear enough to understand at a glance.
+- Calm enough to live with every day.
+- Dense enough to be useful on iPad without becoming busy.
+- Professional enough that review states, reminder states, extraction states, and timeline history all feel intentional.
+- Trustworthy enough that the app does not expose implementation details unless the user explicitly asks for diagnostics.
 
-Current gaps:
+The desired feel is closer to a polished productivity system than a demo of an extraction engine.
 
-- No iPad screenshot baselines.
-- No iPad-specific UI test coverage.
-- No landscape screenshot coverage.
-- No explicit adaptive root shell for regular-width layouts.
-- No central layout policy for readable content widths, wide gutters, split columns, or form widths.
-- Some views use one-column phone assumptions that will look sparse or overly wide on iPad.
-- Some `lineLimit(1)` and fixed frame choices are appropriate for badges or icons, but need an audit so important content can reflow at larger text sizes.
-- Search, settings, review, list-detail, and editor presentation choices are still mostly phone-shaped.
+## Non-goals
 
-## Apple-Guided Principles
+- Do not redesign the product architecture.
+- Do not add new features as part of this pass unless required to remove visual dead ends.
+- Do not change data behavior unless user-facing debug text depends on it.
+- Do not over-animate or add decorative art.
+- Do not make a marketing-style interface.
+- Do not hide important review/accountability information; translate it into user-facing language instead.
 
-Use these as product constraints:
+## Highest priority outcomes
 
-- SwiftUI should adapt to traits and context changes such as size classes, display zoom, resizable iPad windows, and external displays.
-- Build the full layout first. Collapse to compact only when the full layout no longer fits.
-- Use `NavigationSplitView` for two-column or three-column navigation that needs to work across iPhone and iPad. SwiftUI collapses split views into stack behavior in narrow contexts.
-- If an app has multiple columns in some cases and a single column in others, migrate that navigation surface to `NavigationSplitView`.
-- Accessibility sizing is not optional. The interface should support people who enlarge text substantially, with important content and controls still reachable.
+1. Normal production UI should not show raw debug identifiers.
+2. The major screens should share the same card, badge, toolbar, empty-state, and detail-pane language.
+3. Accent colors should have strict semantic roles.
+4. Review states should feel like clear user tasks, not extraction logs.
+5. iPad layouts should feel intentionally composed across Timeline, Things, Carry Forward, Review, and Settings.
+6. The app should look coherent when screenshots are viewed side by side.
 
-Reference docs:
+## Current visual read
 
-- Apple HIG Layout: https://developer.apple.com/design/human-interface-guidelines/layout
-- SwiftUI `NavigationSplitView`: https://developer.apple.com/documentation/swiftui/navigationsplitview
-- Migrating to new navigation types: https://developer.apple.com/documentation/swiftui/migrating-to-new-navigation-types
-- Apple HIG Accessibility: https://developer.apple.com/design/human-interface-guidelines/accessibility
+The app is close, but several surfaces still feel internal:
 
-## Desired App Shape
+- Review exposes evidence and validation language too directly.
+- Multiple badge colors compete for attention.
+- Orange is overused and sometimes colors whole surfaces that are only mildly actionable.
+- Some cards feel like system settings groups, others like debug panels, others like warning banners.
+- Floating toolbars vary between screens.
+- Empty states are functional but not always polished.
+- The sidebar selected state is clear but slightly default/prototype-like.
+- Some user-facing copy repeats implementation concepts such as records, extracted details, validation, and blocked next steps.
 
-### Compact Width
+## Theme principles
 
-Use the current model:
+### Color
 
-- `TabView` at the root.
-- One `NavigationStack` per tab.
-- Toolbar buttons remain compact icon buttons.
-- Search, settings, and review can remain modal flows.
-- Composer stays bottom-pinned in Timeline.
-- Lists navigate forward to detail.
+Define a small semantic color system and enforce it consistently.
 
-This covers:
+- Blue: navigation, informational links, selected context, primary non-destructive actions.
+- Orange: review required, attention needed, upcoming work that needs human judgment.
+- Red: destructive action only, such as Dismiss or Delete.
+- Teal/green: calm, completed, quiet, stable, healthy status.
+- Purple: avoid unless it has a specific semantic role. Right now it adds noise.
+- Gray: secondary metadata, disabled states, dividers, neutral labels.
 
-- iPhone portrait.
-- iPhone landscape when width is still constrained by height or keyboard.
-- iPad Slide Over or narrow Split View.
-- Stage Manager narrow windows.
+Avoid rows where the entire background is tinted only because one tag inside the row is actionable. Prefer neutral cards with small semantic accents.
 
-### Regular Width
+### Surfaces
 
-Use a first-class iPad shell:
+Pick one production card system:
 
-- `NavigationSplitView` at the root.
-- Sidebar owns primary destinations:
-  - Timeline
-  - Things
-  - Carry Forward
-  - Search
-  - Review, when review items exist
-  - Settings
-- Detail column renders the selected destination.
-- Avoid stacking a tab bar and sidebar at the same time.
-- Keep toolbar actions, but promote persistent destinations to the sidebar when the space exists.
-- For list-detail features, keep selection visible where useful:
-  - Things list on the leading/content column, selected thing in detail.
-  - Carry Forward list on the leading/content column, selected reminder detail in detail.
-  - Search results on the leading/content column, selected result detail in detail.
-  - Review queue list on the leading/content column, selected review item detail in detail.
+- Neutral card fill.
+- Subtle border.
+- Minimal shadow, if any.
+- Consistent corner radius.
+- Consistent internal padding.
+- Consistent row spacing.
 
-This covers:
+Use stronger borders or color fills only when they communicate state. For example, review-required items can have a small orange leading rail, orange icon, or orange badge, but should not make the whole screen feel orange.
 
-- iPad portrait.
-- iPad landscape.
-- iPad full screen.
-- iPad Split View widths that still have regular horizontal size.
-- Stage Manager windows with enough width.
+### Typography
 
-## Recommended Architecture
+Keep the current large iPad titles; they work. Tighten the lower hierarchy:
 
-### 1. Add a Single Adaptive Root Shell
+- Screen title: strong and stable.
+- Section title: small, blue or neutral, consistent casing.
+- Item title: readable, high contrast, not oversized.
+- Metadata: muted, compact, consistent line height.
+- Debug/detail text: hidden from production unless inside an explicit diagnostics affordance.
 
-Keep `AppRootView` as the owner of app-level state, sheets, model queries, maintenance, tint, and environment objects. Extract the layout decision into a focused shell:
+Avoid repeating a title and its status in multiple adjacent places. The user should be able to scan once and understand the item.
 
-```swift
-struct AppRootView: View {
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+### Icons
 
-    var body: some View {
-        if horizontalSizeClass == .regular {
-            RegularRootShell(...)
-        } else {
-            CompactRootShell(...)
-        }
-    }
-}
-```
+Icon weight should feel consistent across sidebar, toolbars, empty states, and cards.
 
-Do not scatter this decision across every feature. Screen-specific adaptations should be local only when a screen genuinely needs different composition.
+- Sidebar icons can remain simple and large.
+- Toolbar icons should have the same visual weight and spacing.
+- Empty-state icons should be soft and quiet, not attention-grabbing.
+- Warning/review icons should use orange sparingly.
 
-### 2. Preserve Compact Behavior
+### Layout
 
-Move the existing `TabView` body into `CompactRootShell`. This keeps current iPhone behavior stable while the iPad shell is introduced.
+The iPad layout is strongest when it feels like a workspace:
 
-Compact shell responsibilities:
+- Sidebar fixed on the left.
+- Main list/work area centered and readable.
+- Detail pane on the right when context exists.
+- Empty states centered within their pane, not drifting.
+- Top toolbars aligned to screen-level conventions.
 
-- Existing `TabView(selection:)`.
-- Existing tab item labels and icons.
-- Existing `LogNavigationRoot`, `ThingsNavigationRoot`, and `RulesNavigationRoot`.
-- Existing reset token behavior.
+Avoid making each screen invent its own top action model.
 
-### 3. Add RegularRootShell
+## Debug and internal text cleanup
 
-Use `NavigationSplitView` for regular-width layouts.
+Normal production UI should not display:
 
-Regular shell responsibilities:
+- `partial_validation_failed`
+- Raw validation status identifiers.
+- Raw extraction state names.
+- Raw source snippets that trail off without clear purpose.
+- Internal terms like "created saved records" when simpler product language works.
+- Overly technical section labels like "Evidence" unless the user is explicitly reviewing evidence.
+- Repeated implementation nouns such as "record" where "item", "thing", "reminder", or the actual content is clearer.
 
-- Sidebar selection of app areas.
-- Detail rendering for the selected area.
-- Root-owned search/settings/review routing.
-- Column visibility defaults.
-- Optional selected entity state for future list-detail layouts.
+Suggested translations:
 
-Start with two columns before trying three:
+- `partial_validation_failed` -> "Needs confirmation" or hide behind details.
+- "Some extracted details need review." -> "Check the details before this is marked done."
+- "This entry created 2 records." -> "This created a thing and a reminder."
+- "Next Step Blocked" -> "Review the saved items"
+- "Open those records to check or edit them." -> "Open the saved items to confirm or adjust them."
+- "Source: Stores dogs t..." -> remove, or show only in a diagnostics/details disclosure.
+- "Evidence" -> "What we found" only if the section is still necessary.
 
-```swift
-NavigationSplitView {
-    List(selection: $selectedSection) {
-        Label("Timeline", systemImage: "clock").tag(AppSection.timeline)
-        Label("Things", systemImage: "tray.full").tag(AppSection.things)
-        Label("Carry Forward", systemImage: "checklist").tag(AppSection.carryForward)
-        Label("Search", systemImage: "magnifyingglass").tag(AppSection.search)
-        Label("Settings", systemImage: "gearshape").tag(AppSection.settings)
-    }
-    .navigationTitle("LifeOrganize")
-} detail: {
-    NavigationStack {
-        selectedDetailView
-    }
-}
-```
+## Component rules
 
-Only add a three-column split after a screen has a real persistent middle column. Things, search, and review are the likely candidates.
+### Sidebar
 
-### 4. Centralize Layout Metrics
+The sidebar is structurally good. Polish opportunities:
 
-Add one small layout policy type rather than hard-coding widths in each screen.
+- Make the selected state less like a default table highlight.
+- Consider a subtle active rail, stronger label weight, and icon tint.
+- Keep selection backgrounds soft and full-width only if that style is repeated elsewhere.
+- Align section spacing and icon/title baselines carefully.
+- Keep section labels muted, but ensure they do not look disabled.
 
-Candidate:
+The sidebar should feel durable and app-defining.
 
-```swift
-enum LedgerAdaptiveLayout {
-    static let readableWidth: CGFloat = 760
-    static let detailWidth: CGFloat = 920
-    static let formWidth: CGFloat = 680
-    static let wideGutter: CGFloat = 32
-}
-```
+### Floating toolbar
 
-Use it through modifiers:
+Toolbars need one system.
 
-```swift
-extension View {
-    func ledgerReadableColumn(alignment: Alignment = .top) -> some View {
-        frame(maxWidth: LedgerAdaptiveLayout.readableWidth, alignment: alignment)
-            .frame(maxWidth: .infinity, alignment: alignment)
-    }
-}
-```
+Decide whether the toolbar is:
 
-Initial width policy:
+- Global navigation/action chrome, or
+- Screen-specific controls, or
+- A combination where global icons stay stable and screen-specific actions appear in predictable slots.
 
-- Timeline feed: max `760-860`.
-- Things list: max `760` when alone, split when paired with detail.
-- Thing detail: max `920-1040`.
-- Carry Forward list: max `760`.
-- Reminder detail: max `920`.
-- Search: max `900`, with results/detail split on iPad.
-- Settings: max `640-720`.
-- Empty states: keep the existing constrained card pattern.
+Suggested order when visible:
 
-### 5. Make List-Detail Real on iPad
+1. Review / carry-forward or current-work indicator.
+2. Search.
+3. Settings.
+4. Add.
+5. Overflow / more.
+6. Edit only when it applies to the current screen or selection.
 
-Phone navigation should remain push-based. iPad should keep context.
+Avoid changing icon order screen to screen without a clear reason.
 
-Priority list-detail conversions:
+### Search field
 
-1. Things
-   - Compact: tap thing pushes `ThingDetailView`.
-   - Regular: list remains visible, detail updates with selected thing.
-   - Empty detail state says nothing verbose, just a quiet placeholder.
-2. Carry Forward
-   - Compact: tap reminder pushes detail/actions.
-   - Regular: list remains visible, selected reminder detail/actions stay beside it.
-3. Search
-   - Compact: modal search remains acceptable.
-   - Regular: search can become a sidebar destination with results and selected result detail.
-4. Review Queue
-   - Compact: modal or push flow remains acceptable.
-   - Regular: review list and selected review item detail should sit side by side.
+The search field on Things looks good but should match toolbar spacing and height.
 
-### 6. Revisit Presentations
+- Keep the placeholder specific: "Search things" is good.
+- Avoid mixing search as both a standalone field and an icon-only action without clear screen logic.
+- If some screens only show the icon, make sure tapping it leads to the same search surface.
 
-Presentation policy:
+### Cards
 
-- Compact:
-  - keep sheets for settings, search, review.
-  - use full-screen-ish navigation flows when content is dense.
-- Regular:
-  - prefer sidebar destinations for settings/search/review when they are persistent work surfaces.
-  - use sheets for short edit/create flows.
-  - use popovers or menus for lightweight chooser actions.
-  - constrain sheet content width with the form width policy.
+Cards should be visually quiet by default.
 
-Avoid large iPad sheets that are just stretched phone screens.
+Recommended card pattern:
 
-### 7. Keyboard and Composer Rules
+- White or near-white fill.
+- Thin neutral border.
+- 8-12 px corner radius, matching app conventions.
+- Compact vertical padding.
+- Optional left rail only for state.
+- Badges grouped after the title or metadata, not scattered.
 
-Timeline is the highest-risk screen because it has a bottom composer.
+Avoid:
+
+- Too many pastel fills.
+- Multiple borders plus badges plus colored text on the same item.
+- Nested card-looking elements inside card-looking sections.
+
+### Badges
+
+Badges are currently useful but too numerous and colorful.
 
 Rules:
 
-- Composer stays attached to the bottom safe area.
-- Feed bottom padding accounts for the composer height.
-- Keyboard should not hide the active text input.
-- On iPad regular width, the composer should use the readable feed width, not full window width.
-- Suggestions should wrap or collapse before they overflow.
-- Hardware keyboard users should still have visible focus behavior and send affordances.
+- One primary status badge per item.
+- Secondary badges only when they change what the user should do.
+- Keep badge colors semantic.
+- Avoid using badges for categories if those categories can be shown as plain metadata.
+- Prefer short labels: "Review", "Due", "Upcoming", "Quiet", "Pet", "Project".
 
-### 8. Dynamic Type and Accessibility Rules
+For Things, a row like "Dog / Pet / Review / 2 records / Reminder tomorrow / Review..." is too much. The row can carry the same information with one title, one semantic badge, and one or two metadata lines.
 
-Audit these patterns:
+### Empty states
 
-- `lineLimit(1)` is allowed for timestamps, short badges, and compact metadata only.
-- Primary titles, reminder text, event summaries, settings copy, review reasons, and search result titles must wrap.
-- Use `ViewThatFits` for metadata rows that can switch from horizontal to vertical.
-- Keep icon-only buttons accessible with labels and identifiers.
-- Hit targets should remain comfortable at larger text sizes.
-- Avoid fixed row heights for content rows.
-- Avoid horizontally scrollable text.
-- Test at least normal, large, accessibility large, and accessibility extra extra extra large.
+Empty states should be calm and useful:
 
-## Screen-by-Screen Work
+- Use a soft icon.
+- Use one short label.
+- Optionally include one muted sentence if it helps.
+- Center within the pane.
+- Do not look like debug placeholders.
 
-### App Root
+"Select a reminder" is okay. It can become more polished with a softer icon, stronger vertical centering, and consistent text color.
 
-Files:
+### Bottom input
 
-- `LifeOrganize/AppRootView.swift`
+The Timeline bottom input is promising but needs production cleanup:
 
-Work:
+- "Connecting details..." feels diagnostic. Replace with user-facing status or hide unless meaningful.
+- The input placeholder is good: "Add anything or ask what's due".
+- Ensure the plus button has consistent size and contrast.
+- The bottom bar should feel integrated with the app, not like a debug console.
 
-- Extract current tab shell to `CompactRootShell`.
-- Add `RegularRootShell` with `NavigationSplitView`.
-- Keep `AppRootView` as state owner.
-- Avoid duplicating sheet state.
-- Decide whether regular-width Search and Settings are sidebar destinations or root sheets. Prefer sidebar destinations for first-class iPad support.
-
-Acceptance:
-
-- iPhone screenshots are unchanged except for intentional toolbar/sidebar differences in compact edge cases.
-- iPad launches directly into a sidebar/detail app layout.
-- Narrow iPad windows collapse to compact behavior.
+## Screen-by-screen notes
 
 ### Timeline
 
-Files:
+Current strengths:
 
-- `LifeOrganize/Features/Chat/ChatView.swift`
-- `LifeOrganize/Features/Chat/ChatInputBar.swift`
-- `LifeOrganize/Features/Chat/LedgerFeedTimelineViews.swift`
+- The screen title is strong.
+- Timeline grouping is readable.
+- The onboarding card is helpful.
+- The bottom input gives the screen a clear primary action.
 
-Work:
+Polish targets:
 
-- Apply readable column width to feed and composer.
-- Verify empty state stays centered and constrained.
-- Verify heavy timeline rows do not stretch too wide.
-- Audit timestamp and badge behavior at large text.
-- Confirm keyboard and safe-area behavior in portrait and landscape.
+- Reduce the startup card tint and border if it competes with timeline content.
+- Make timeline day cards consistent with other list cards.
+- Confirm the muted text contrast is still readable.
+- Remove or translate "Connecting details..." if it is internal.
+- Make note/reminder labels quieter and more consistent.
+- Ensure category chips such as "Airflow" and "Golf" follow the badge color rules.
 
-Acceptance:
+Production copy ideas:
 
-- Timeline feels like a ledger column on iPad, not a full-width table.
-- Composer aligns with feed width.
-- Heavy history remains scannable in landscape.
+- "LifeOrganize starts here" is good.
+- "Capture a note, task, receipt, or question..." is good but a bit long; consider tightening.
+- "Today", "May 30", and "Jun 1" group labels work well.
 
 ### Things
 
-Files:
+Current strengths:
 
-- `LifeOrganize/Features/Things/ThingsListView.swift`
-- `LifeOrganize/Features/Things/ThingDetailView.swift`
-- `LifeOrganize/Features/Things/*EditView.swift`
+- This is probably the most promising production screen.
+- Master/detail structure is strong.
+- The right summary pane has useful content.
+- Search placement is good.
+- "Dog" detail page has a clear user focus.
 
-Work:
+Polish targets:
 
-- Add list-detail selection for regular width.
-- Keep phone push navigation.
-- Constrain detail surfaces.
-- Keep edit flows as constrained sheets or navigation flows depending on density.
+- Simplify list rows.
+- Reduce badge density in the selected item.
+- Make the introductory "Your organized subjects" card less prominent after first use.
+- Make the summary pane use the same card/list language as the main pane.
+- Avoid repeating review state in every nearby area.
+- Clean up "0 events - 0 notes - 0 active reminders" formatting so it feels intentional.
 
-Acceptance:
+Suggested row structure:
 
-- Selecting a thing on iPad updates detail without losing the list.
-- Thing detail does not become an oversized card field.
-- Edit/delete/reassignment flows remain reachable with keyboard and touch.
+- Title: Dog
+- Badges: Pet, Review
+- Metadata: Reminder tomorrow
+- Secondary line: 2 saved items
+
+Avoid having "Review: Entry needs review" on the row if the Review badge is already visible.
+
+Right pane:
+
+- "Summary" works.
+- "Quiet" works as a state, but the badge and section can be visually quieter.
+- "Latest activity: Stores dogs" is good.
+- "Scheduled Reminder" is good.
+- The review callout should be tighter and less orange-dominant.
+- Collapsible sections are good, but the chevrons and row spacing should match a single component system.
 
 ### Carry Forward
 
-Files:
+Current strengths:
 
-- `LifeOrganize/Features/Rules/RulesListView.swift`
-- `LifeOrganize/Features/Rules/RuleDetailView.swift`
-- `LifeOrganize/Features/Rules/ReminderDetailActions.swift`
+- The concept is clear.
+- The screen name is strong.
+- The list has useful upcoming reminders.
+- Empty detail state is clear.
 
-Work:
+Polish targets:
 
-- Add list-detail selection for regular width.
-- Keep action surfaces readable and constrained.
-- Ensure repeated action buttons do not form a long full-width control wall on iPad.
+- Orange currently dominates the whole list. Use it as an accent, not a base surface.
+- The help card "What should resurface" is useful, but should be quieter once the user has content.
+- The selected/not-selected detail pane should feel like the same system as Things.
+- The toolbar should match other screens.
+- Reminder rows need clearer hierarchy: title first, then due timing, then reason/status.
 
-Acceptance:
+Suggested row pattern:
 
-- Reminder list and reminder detail can be visible together on iPad.
-- Date/reschedule sheets use form width.
-- The list remains efficient for repeated review.
+- Title: Stores dogs
+- Badges: Upcoming, Review
+- Metadata: Due May 30, 2026
+- Reason: Will move to Now on that date
 
-### Search
+If "Due date" is a system attribute, make it neutral. Do not color it like an action.
 
-Files:
+### Review
 
-- `LifeOrganize/Features/Search/UnifiedSearchView.swift`
-- `LifeOrganize/Features/Search/LocalSearchDestinationView.swift`
+Current strengths:
 
-Work:
+- The split review model is useful.
+- The user can see the original entry, suggested interpretation, and actions.
+- Edit actions are present.
 
-- Keep compact search as a modal flow.
-- Make regular-width search a persistent workspace.
-- Consider results/detail split after root shell lands.
-- Remove arbitrary `maxWidth: 320` if it makes iPad empty states or search prompts feel cramped.
+This is the screen that most needs production cleanup.
 
-Acceptance:
+Problems to address:
 
-- Search field, results, and destination detail do not compete in one stretched column.
-- Empty and no-result states are centered and constrained.
+- "Evidence" feels technical.
+- `partial_validation_failed` is a debug leak.
+- "Next Step Blocked" sounds like system state rather than user guidance.
+- "This entry created 2 records" exposes implementation language.
+- The same idea appears in too many places: entry needs review, created records, open records, edit thing, edit reminder.
+- The left review card has a strong blue outline, orange rail, multiple badges, a warning icon, and orange text all competing.
 
-### Settings and Debug
+Suggested user-facing model:
 
-Files:
+- Original Entry
+- Saved Items
+- Needs Confirmation
+- Actions
 
-- `LifeOrganize/Features/Settings/SettingsView.swift`
-- `LifeOrganize/Features/Debug/*`
+Suggested copy:
 
-Work:
+- "Original Entry"
+- "Stores dogs tomorrow evening at some point"
+- "Saved Items"
+- "Dog" / "Thing"
+- "Stores dogs" / "Reminder"
+- "Needs Confirmation"
+- "Confirm the saved thing and reminder before marking this reviewed."
+- "Edit Thing"
+- "Edit Reminder"
+- "Mark Reviewed"
+- "Snooze"
+- "Dismiss"
 
-- Constrain form content width.
-- Keep debug lists readable, not full-window wide.
-- Use sidebar destination on iPad if Settings becomes persistent.
-- Keep destructive flows modal and narrow.
+Possible removals:
 
-Acceptance:
+- Remove "Evidence" from default view.
+- Hide raw failure status.
+- Remove duplicate "Suggested Interpretation" if "Saved Items" communicates the same thing.
+- Replace "Next Step Blocked" with a friendlier action header.
 
-- Settings reads like an iPad form, not a full-screen wall of text.
-- Debug surfaces remain usable but do not drive the production layout.
+Left review card:
 
-### Review Queue
+- Use one orange review badge.
+- Use one subtle orange leading rail or icon, not both plus a bright outline.
+- Remove the blue outline unless it indicates keyboard focus or actual selection.
+- If selected, use the same selected-row treatment as Things and Carry Forward.
 
-Files:
+### Settings
 
-- `LifeOrganize/Features/Shared/LedgerReviewQueueView.swift`
-- `LifeOrganize/Features/Shared/LedgerReviewQueueDetailView.swift`
+Settings is not pictured here, but the polish pass should include it for consistency.
 
-Work:
+Targets:
 
-- Keep compact modal/push behavior.
-- Add regular-width list-detail behavior.
-- Preserve quick triage actions.
+- Remove developer-only toggles from production builds.
+- Group settings into stable sections.
+- Make destructive data controls visually distinct and separated.
+- Ensure diagnostics/export controls are behind a clear advanced/debug grouping if they remain.
+- Match sidebar, card, section header, and row styles used elsewhere.
 
-Acceptance:
+## Copy cleanup checklist
 
-- Review list and selected review item can be visible together on iPad.
-- Triage actions remain reachable without vertical hunting.
+Audit visible strings for these categories:
 
-## Validation Matrix
+- Raw state IDs.
+- Failed validation terminology.
+- Internal persistence terms.
+- Debug transport/service status.
+- Repeated descriptions.
+- Placeholder text left from fixtures.
+- User-hostile blocked/failed wording.
 
-At minimum, validate these local simulator targets:
+Preferred language:
 
-- iPhone 17 Pro, iOS 26.2, portrait.
-- iPhone 17 Pro, iOS 26.2, landscape.
-- iPad Pro 13-inch (M5), iOS 26.2, portrait.
-- iPad Pro 13-inch (M5), iOS 26.2, landscape.
-- iPad mini or 11-inch iPad class, portrait.
-- One narrow iPad window class if simulator tooling can approximate it.
+- "Needs review"
+- "Needs confirmation"
+- "Saved items"
+- "Reminder"
+- "Thing"
+- "Open"
+- "Edit"
+- "Mark reviewed"
+- "Snooze"
+- "Dismiss"
 
-Also validate text sizes:
+Avoid in normal UI:
 
-- Large.
-- Accessibility Large.
-- Accessibility Extra Extra Extra Large.
+- "validation"
+- "partial"
+- "failed"
+- "record" unless the product has taught that term
+- "source" unless it is a user-facing source
+- "blocked" unless the user is actually blocked by a workflow
+- raw enum values
 
-Current local command shape:
+## Interaction polish
 
-```sh
-xcodebuild test \
-  -project LifeOrganize.xcodeproj \
-  -scheme LifeOrganize \
-  -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M5),OS=26.2' \
-  CODE_SIGNING_ALLOWED=NO
-```
+Selection behavior:
 
-Screenshot examples:
+- Selected rows should be visually consistent across lists.
+- If a row opens a detail pane, that selected state should remain clear.
+- Review cards and reminder cards should not use unrelated selection styles.
 
-```sh
-SCREENSHOT_DEVICE_NAME='iPad Pro 13-inch (M5)' \
-SCREENSHOT_DEVICE_OS='26.2' \
-Scripts/screenshots/run-screenshot-tests.sh update
-```
+Disabled actions:
 
-```sh
-SCREENSHOT_DEVICE_NAME='iPad Pro 13-inch (M5)' \
-SCREENSHOT_DEVICE_OS='26.2' \
-Scripts/screenshots/run-screenshot-tests.sh compare
-```
+- Disabled actions should explain themselves only when necessary.
+- Do not show disabled-looking primary user actions unless there is a clear next step.
+- In Review, if "Mark Reviewed" is unavailable, the UI should say what must be done first in plain language.
 
-Add landscape screenshot support explicitly. Today `LifeOrganizeScreenshotTests` forces portrait with:
+Dismiss/destructive actions:
 
-```swift
-XCUIDevice.shared.orientation = .portrait
-```
+- Red should be reserved for destructive actions.
+- Destructive actions should not visually compete with edit/confirm actions.
 
-That should become parameterized by launch arguments or separate screenshot test methods.
+First-run/help cards:
 
-## Guardrails Worth Adding
+- Good for orientation, but they should not dominate once real content exists.
+- Consider making them dismissible, collapsible, or less visually loud after first use.
 
-Add lightweight tests or scripts for:
+## Visual QA checklist
 
-- No new direct `UIScreen.main.bounds` layout logic.
-- No new `UIDevice.current.userInterfaceIdiom` layout branching unless explicitly justified.
-- No new hard-coded full-screen widths in feature views.
-- Screenshot baseline directories exist for required devices.
-- iPad screenshot comparison runs for at least Timeline, Things, Thing Detail, Carry Forward, Search, and Review Queue.
-- Accessibility text-size UI smoke covers Timeline, Things, Settings, and Review Queue.
+Run this pass by looking at full-screen iPad screenshots, not just component previews.
 
-Do not make these guardrails noisy. They should catch broad regressions, not ban every fixed icon size or divider height.
+For each primary screen:
 
-## Implementation Order
+- Sidebar selected state looks intentional.
+- Screen title alignment is consistent.
+- Toolbar placement and order are consistent.
+- Main content starts at a predictable vertical rhythm.
+- Card styles match across screens.
+- Badges use approved semantic colors.
+- Empty states are centered and calm.
+- No debug/internal text is visible.
+- No section looks visually heavier than its importance.
+- Text does not clip or wrap awkwardly.
+- Long item names still fit cleanly.
+- Right detail panes do not look abandoned when empty.
+- Bottom input/status areas do not look like debug consoles.
 
-1. Add iPad screenshot smoke first.
-   - Run existing screenshot tests on `iPad Pro 13-inch (M5)` portrait.
-   - Save failures or awkward screenshots as the before-state.
-   - Do not polish blindly before seeing the real screenshots.
-2. Add central adaptive layout metrics.
-   - Readable column modifier.
-   - Form width modifier.
-   - Wide detail modifier.
-3. Apply readable widths to Timeline, Settings, Search, and core empty states.
-   - This is low-risk and improves iPad even before split navigation.
-4. Extract compact shell from `AppRootView`.
-   - Keep existing behavior intact.
-5. Add regular-width `NavigationSplitView` root shell.
-   - Sidebar plus detail.
-   - Keep root state ownership centralized.
-6. Convert Things to list-detail on regular width.
-   - This is the highest-value iPad workflow after the root shell.
-7. Convert Carry Forward and Review Queue list-detail.
-8. Convert Search to a regular-width workspace.
-9. Parameterize screenshot orientation and add iPad portrait/landscape baselines.
-10. Add Dynamic Type UI smoke and guardrails.
-11. Only after the layout stabilizes, update CI to run the expanded visual matrix.
+Compare screenshots side by side:
 
-## CI Shape
+- Timeline vs Things should feel like the same product.
+- Carry Forward orange should not overpower the theme.
+- Review should feel like a polished workflow, not a diagnostic report.
+- Sidebar and toolbar chrome should be stable across all screens.
 
-Do not run every visual target on every small change at first. Start with a practical split:
+## Accessibility and contrast
 
-- Required on iOS UI changes:
-  - iPhone default screenshots.
-  - iPad portrait screenshots.
-  - unit/UI tests.
-- Nightly or manual:
-  - iPad landscape screenshots.
-  - accessibility text-size UI smoke.
-  - broader simulator matrix.
+Production polish should not reduce accessibility.
 
-Once the iPad layout stabilizes, promote the iPad portrait visual gate to required.
+- Check contrast for muted gray metadata.
+- Check contrast for colored badges.
+- Ensure selected sidebar rows and selected list rows are visible without relying only on color.
+- Keep touch targets comfortably sized.
+- Make icon-only buttons accessible with labels.
+- Ensure Dynamic Type does not break list rows or badges.
+- Avoid tiny badge text that becomes unreadable on iPad screenshots.
 
-## Open Decisions
+## Suggested implementation order
 
-- Should regular-width root navigation use only a sidebar, or a sidebar plus top tabs? Recommendation: sidebar only.
-- Should Timeline remain a single readable column on iPad, or gain a secondary context column? Recommendation: single readable column first.
-- Should Settings become a sidebar destination on iPad? Recommendation: yes, but keep compact as a sheet.
-- Should Search become persistent on iPad? Recommendation: yes, because search-result-detail is a real workspace.
-- Should review queue be a sidebar destination even when empty? Recommendation: hide or de-emphasize when empty.
-- Which iPad simulator should be canonical in CI? Recommendation: local default can be `iPad Pro 13-inch (M5), OS=26.2`; CI should pin the newest available runner device deliberately and document it.
+1. Define theme tokens for surfaces, borders, fills, text, semantic colors, badges, and selected states.
+2. Create or consolidate shared card/list/badge components.
+3. Apply the shared style to Sidebar, Timeline cards, Things rows, Carry Forward rows, and Review cards.
+4. Remove or translate debug/internal text from production UI.
+5. Normalize toolbar composition and icon order.
+6. Clean up Review copy and layout.
+7. Clean up Things and Carry Forward list density.
+8. Clean up Timeline bottom input/status treatment.
+9. Review Settings for production-only visibility.
+10. Capture iPad screenshots and iterate from the full-screen visual read.
 
-## Definition of Done
+## Acceptance criteria
 
-- iPhone compact behavior still works and screenshots remain intentional.
-- iPad launches into an adaptive regular-width shell, not a stretched phone tab layout.
-- Timeline feed and composer use readable widths on iPad.
-- Things has real iPad list-detail behavior.
-- Carry Forward and Review Queue have either list-detail behavior or documented follow-up issues.
-- Search and Settings are constrained and usable on iPad.
-- Portrait and landscape are both validated on at least one iPad class.
-- Dynamic Type smoke proves large text does not overlap or hide core actions.
-- `Scripts/screenshots/run-screenshot-tests.sh compare` has committed iPad baselines for the agreed canonical iPad.
-- Any remaining unsupported screen class is documented as an explicit follow-up, not an accidental gap.
+- No raw validation, extraction, persistence, or enum identifiers appear in normal UI.
+- Review screen uses user-facing task language.
+- At most one primary semantic status badge appears per row.
+- Orange is reserved for attention/review, not broad decoration.
+- Red is reserved for destructive actions.
+- Cards, list rows, section headers, and detail panes share one visual system.
+- Toolbars use consistent icon order, weight, and spacing.
+- Sidebar selected state feels intentional and production-ready.
+- Empty states feel polished and aligned.
+- Timeline, Things, Carry Forward, and Review look coherent as a suite.
+- iPad Pro screenshots pass a side-by-side visual review without obvious prototype/debug artifacts.
+
+## Final note
+
+This should be treated as a finishing pass with strong restraint. The app already has enough UI. The production step is to remove noise, clarify hierarchy, standardize the theme, and make every visible string and color earn its place.

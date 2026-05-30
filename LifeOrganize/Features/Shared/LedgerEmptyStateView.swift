@@ -18,7 +18,7 @@ extension LedgerEmptyStateContent {
     static let chat = LedgerEmptyStateContent(
         symbolName: "clock",
         title: "Timeline",
-        body: "Type anything worth remembering. LifeOrganize will turn it into history, Things, and follow-up reminders.",
+        body: "Capture anything worth remembering. LifeOrganize turns it into history, Things, and follow-up reminders.",
         secondaryBody: "Try a note, a task, a receipt, or “what is due today?”"
     )
 
@@ -26,7 +26,7 @@ extension LedgerEmptyStateContent {
         symbolName: "tray",
         title: "No saved things yet",
         body: "Things are people, pets, projects, places, and accounts collected from your timeline.",
-        secondaryBody: "Start by capturing something, or add one directly."
+        secondaryBody: "Start from the timeline, or add one directly."
     )
 
     static let rules = LedgerEmptyStateContent(
@@ -39,7 +39,7 @@ extension LedgerEmptyStateContent {
     static let settingsNoDeviceToken = LedgerEmptyStateContent(
         symbolName: "server.rack",
         title: "AI service token",
-        body: "Entries stay local on this device. A private token lets the backend organize new details."
+        body: "Entries stay local on this device. A private token lets the service organize new details."
     )
 
     static let searchLanding = LedgerEmptyStateContent(
@@ -51,7 +51,7 @@ extension LedgerEmptyStateContent {
     static let noSearchResults = LedgerEmptyStateContent(
         symbolName: "magnifyingglass",
         title: "No results",
-        body: "Try a shorter phrase or a different detail from the entry."
+        body: "Try a shorter phrase or a different detail."
     )
 
     static let noThingSearchResults = LedgerEmptyStateContent(
@@ -71,6 +71,20 @@ extension LedgerEmptyStateContent {
         title: "Nothing to review here",
         body: "Nothing needs a decision right now."
     )
+}
+
+struct LedgerCenteredEmptyState<Content: View>: View {
+    let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        content
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(LedgerScreenBackground().ignoresSafeArea())
+    }
 }
 
 struct LedgerEmptyStateView<Actions: View>: View {

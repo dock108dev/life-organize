@@ -144,9 +144,11 @@ struct LedgerReviewQueueView: View {
                         .buttonStyle(.plain)
                         .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
                         .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
                         .accessibilityIdentifier("review-queue-row-\(entry.itemID.uuidString)")
                         .accessibilityLabel(presentation.accessibilityLabel)
                         .accessibilityHint(selectedItemID == entry.itemID ? "Selected review" : "Shows review details")
+                        .accessibilityAddTraits(selectedItemID == entry.itemID ? .isSelected : [])
                     }
                 }
             }
@@ -159,27 +161,32 @@ struct LedgerReviewQueueView: View {
 
     @ViewBuilder
     private var regularDetail: some View {
-        if let selectedReview {
-            detailView(item: selectedReview.item, entry: selectedReview.entry)
-                .id(selectedReview.item.id)
-        } else if visibleEntries.isEmpty {
-            emptyState
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(.systemGroupedBackground))
-        } else {
-            LedgerNoSelectionPlaceholderView(
-                "Select a Review",
-                systemImage: "sidebar.left",
-                description: "Choose an item from the review queue."
-            )
-            .background(Color(.systemGroupedBackground))
+        Group {
+            if let selectedReview {
+                detailView(item: selectedReview.item, entry: selectedReview.entry)
+                    .id(selectedReview.item.id)
+            } else if visibleEntries.isEmpty {
+                emptyState
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(LedgerScreenBackground().ignoresSafeArea())
+            } else {
+                LedgerNoSelectionPlaceholderView(
+                    "Select a review",
+                    systemImage: "sidebar.left",
+                    description: "Choose an item from the review queue."
+                )
+                .background(LedgerScreenBackground().ignoresSafeArea())
+            }
         }
+        .ledgerWorkspaceDetailPane("review-queue-detail")
     }
 
     private var compactQueueView: some View {
         Group {
             if visibleEntries.isEmpty {
-                emptyState
+                LedgerCenteredEmptyState {
+                    emptyState
+                }
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 10) {
@@ -258,99 +265,31 @@ struct LedgerReviewQueueView: View {
 private struct LedgerReviewQueueRow: View {
     let presentation: LedgerReviewQueueRowPresentation
     var isSelected = false
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            questionAndBadges
-
-            Text(presentation.suggestedHint)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(dynamicTypeSize.isAccessibilitySize ? 4 : 2)
-                .fixedSize(horizontal: false, vertical: true)
-
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                if let sourceHint = presentation.sourceHint {
-                    Text(sourceHint)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .minimumScaleFactor(0.85)
-                        .accessibilityLabel(sourceHint)
+        LedgerRow(
+            primary: presentation.question,
+            secondary: secondaryLines,
+            surfaceDensity: .detailSummary,
+            emphasis: isSelected ? .active : .normal,
+            badges: {
+                ForEach(Array(presentation.badges.prefix(1))) { badge in
+                    LedgerBadgePill(badge: badge, size: .micro)
                 }
-
-                Spacer(minLength: 8)
-
-                Label(presentation.nextActionTitle, systemImage: presentation.isBlocked ? "exclamationmark.circle" : "arrow.right")
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(presentation.isBlocked ? LedgerTone.attention.foreground : .secondary)
-                    .labelStyle(.titleAndIcon)
+            },
+            accessory: {
+                LedgerIcon(systemName: "chevron.right", context: .cardList, tone: isSelected ? .link : .muted)
             }
-            .font(.caption2)
-            .foregroundStyle(.tertiary)
-
-            Text(presentation.urgencyText)
-                .font(.caption2.weight(.medium))
-                .foregroundStyle(presentation.isBlocked ? LedgerTone.attention.foreground : .secondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 12)
-        .ledgerSurface(cornerRadius: 12, tint: presentation.isBlocked ? .attention : .info)
-        .background {
-            if isSelected {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.accentColor.opacity(0.10))
-            }
-        }
-        .overlay {
-            if isSelected {
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(Color.accentColor, lineWidth: 2)
-            }
-        }
-        .overlay(alignment: .leading) {
-            if presentation.isBlocked {
-                Rectangle()
-                    .fill(LedgerTone.attention.foreground)
-                    .frame(width: 3)
-                    .clipShape(RoundedRectangle(cornerRadius: 2))
-                    .padding(.vertical, 10)
-            }
-        }
+        )
     }
 
-    @ViewBuilder
-    private var questionAndBadges: some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            VStack(alignment: .leading, spacing: LedgerVisualSystem.Spacing.rowBadgeGap) {
-                questionText
-                badgeRow
-            }
-        } else {
-            HStack(alignment: .firstTextBaseline, spacing: LedgerVisualSystem.Spacing.rowBadgeGap) {
-                questionText
-
-                Spacer(minLength: 8)
-
-                badgeRow
-            }
+    private var secondaryLines: [LedgerRowLine] {
+        var lines = [
+            LedgerRowLine(text: presentation.suggestedHint, role: .contentPreview, lineLimit: 2)
+        ]
+        if let sourceHint = presentation.sourceHint {
+            lines.append(LedgerRowLine(text: sourceHint, tone: .muted, role: .metadata))
         }
-    }
-
-    private var questionText: some View {
-        Text(presentation.question)
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(.primary)
-            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 4 : 2)
-            .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private var badgeRow: some View {
-        HStack(spacing: 4) {
-            ForEach(presentation.badges) { badge in
-                LedgerBadgePill(badge: badge, size: .micro)
-            }
-        }
+        return lines
     }
 }

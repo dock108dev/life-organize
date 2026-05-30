@@ -30,7 +30,7 @@ extension LedgerContextPanelContent {
         title: "What should resurface",
         body: "Ongoing work and reminders live here, grouped by what needs attention now, soon, or later.",
         chips: ["Now", "Upcoming", "Paused"],
-        tone: .attention
+        tone: .muted
     )
 }
 
@@ -44,11 +44,7 @@ struct LedgerContextPanel: View {
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundStyle(content.tone.foreground)
                 .frame(width: 34, height: 34)
-                .background(content.tone.background, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(content.tone.foreground.opacity(0.18), lineWidth: 1)
-                }
+                .background(content.tone.background.opacity(0.72), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 8) {
@@ -77,15 +73,18 @@ struct LedgerContextPanel: View {
                     Image(systemName: "xmark")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
-                        .frame(width: 28, height: 28)
+                        .frame(
+                            width: LedgerSurfaceContract.minimumInteractiveTarget,
+                            height: LedgerSurfaceContract.minimumInteractiveTarget
+                        )
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Dismiss")
             }
         }
-        .padding(12)
-        .ledgerSurface(cornerRadius: 18, tint: content.tone)
+        .padding(10)
+        .ledgerSurface(cornerRadius: 14)
         .accessibilityElement(children: onDismiss == nil ? .combine : .contain)
     }
 }

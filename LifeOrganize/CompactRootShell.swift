@@ -67,28 +67,37 @@ struct RegularRootShell: View {
     let resetToken: UUID
     let onOpenLog: () -> Void
     let onLocalDataCleared: () -> Void
+    @State private var isAddingThing = false
+    @State private var isAddingRule = false
     @State private var columnVisibility: NavigationSplitViewVisibility = .doubleColumn
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             List {
-                Section("Workspace") {
+                Section {
                     sidebarRow(.timeline)
                     sidebarRow(.things)
                     sidebarRow(.carryForward)
+                } header: {
+                    sidebarHeader("Workspace")
                 }
 
-                Section("Utilities") {
+                Section {
                     sidebarRow(.search)
                     if visibleSections.contains(.review) {
                         sidebarRow(.review)
                     }
+                } header: {
+                    sidebarHeader("Utilities")
                 }
 
-                Section("Preferences") {
+                Section {
                     sidebarRow(.settings)
+                } header: {
+                    sidebarHeader("Preferences")
                 }
             }
+            .listSectionSpacing(.compact)
             .navigationTitle("LifeOrganize")
         } detail: {
             NavigationStack {
@@ -103,15 +112,27 @@ struct RegularRootShell: View {
     }
 
     private func sidebarRow(_ section: AppSection) -> some View {
-        Button {
+        let isSelected = selectedSection == section
+
+        return Button {
             selectedSection = section
         } label: {
-            Label(section.title, systemImage: section.systemImage)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            RegularSidebarSectionRow(section: section, isSelected: isSelected)
         }
         .buttonStyle(.plain)
-        .listRowBackground(selectedSection == section ? LedgerPalette.accent.opacity(0.12) : Color.clear)
+        .listRowInsets(EdgeInsets(top: 3, leading: 10, bottom: 3, trailing: 10))
+        .listRowSeparator(.hidden)
+        .listRowBackground(Color.clear)
         .accessibilityIdentifier(section.accessibilityIdentifier)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func sidebarHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.primary.opacity(0.58))
+            .textCase(.uppercase)
+            .padding(.leading, 2)
     }
 
     @ViewBuilder
@@ -131,22 +152,26 @@ struct RegularRootShell: View {
                 )
             }
         case .things:
-            ThingsSplitView(onOpenLog: onOpenLog)
+            ThingsSplitView(isAddingThing: $isAddingThing, onOpenLog: onOpenLog)
                 .navigationTitle(section.title)
                 .toolbar {
                     RegularToolbarButtons(
                         state: toolbarState,
                         selectedSection: $selectedSection,
+                        screenAction: .addThing,
+                        performScreenAction: performScreenAction,
                         showsSearch: false
                     )
                 }
         case .carryForward:
-            RulesSplitView(onOpenLog: onOpenLog)
+            RulesSplitView(isAddingRule: $isAddingRule, onOpenLog: onOpenLog)
                 .navigationTitle(section.title)
                 .toolbar {
                     RegularToolbarButtons(
                         state: toolbarState,
-                        selectedSection: $selectedSection
+                        selectedSection: $selectedSection,
+                        screenAction: .addReminder,
+                        performScreenAction: performScreenAction
                     )
                 }
         case .search:
@@ -165,6 +190,79 @@ struct RegularRootShell: View {
                 onLocalDataCleared: onLocalDataCleared
             )
         }
+    }
+
+    private func performScreenAction(_ action: AppToolbarScreenAction) {
+        switch action {
+        case .addThing:
+            isAddingThing = true
+        case .addReminder:
+            isAddingRule = true
+        }
+    }
+}
+
+enum AppToolbarScreenAction: Equatable {
+    case addThing
+    case addReminder
+
+    var systemName: String {
+        "plus"
+    }
+
+    var accessibilityLabel: String {
+        switch self {
+        case .addThing:
+            "Add Thing"
+        case .addReminder:
+            "Add Reminder"
+        }
+    }
+
+    var accessibilityIdentifier: String {
+        switch self {
+        case .addThing:
+            "add-thing-button"
+        case .addReminder:
+            "add-reminder-button"
+        }
+    }
+}
+
+struct AppToolbarConfiguration: Equatable {
+    let screenAction: AppToolbarScreenAction?
+    let showsReview: Bool
+    let showsSearch: Bool
+    let showsSettings: Bool
+
+    static func root(
+        state: AppToolbarState,
+        screenAction: AppToolbarScreenAction? = nil,
+        showsSearch: Bool = true
+    ) -> AppToolbarConfiguration {
+        AppToolbarConfiguration(
+            screenAction: screenAction,
+            showsReview: state.showsReviewQueueButton,
+            showsSearch: showsSearch,
+            showsSettings: true
+        )
+    }
+
+    var orderedAccessibilityIdentifiers: [String] {
+        var identifiers: [String] = []
+        if let screenAction {
+            identifiers.append(screenAction.accessibilityIdentifier)
+        }
+        if showsReview {
+            identifiers.append("review-queue-button")
+        }
+        if showsSearch {
+            identifiers.append(AppToolbarSearchEntry.accessibilityIdentifier)
+        }
+        if showsSettings {
+            identifiers.append("settings-entry")
+        }
+        return identifiers
     }
 }
 
@@ -202,10 +300,11 @@ private struct ThingsNavigationRoot: View {
     @Binding var isShowingReviewQueue: Bool
     let toolbarState: AppToolbarState
     let onOpenLog: () -> Void
+    @State private var isAddingThing = false
 
     var body: some View {
         NavigationStack {
-            ThingsListView(onOpenLog: onOpenLog)
+            ThingsListView(isAddingThing: $isAddingThing, onOpenLog: onOpenLog)
                 .navigationTitle(AppTab.things.title)
                 .toolbar {
                     AppToolbarButtons(
@@ -213,9 +312,17 @@ private struct ThingsNavigationRoot: View {
                         isShowingReviewQueue: $isShowingReviewQueue,
                         isShowingSearch: $isShowingSearch,
                         isShowingSettings: $isShowingSettings,
+                        screenAction: .addThing,
+                        performScreenAction: performScreenAction,
                         showsSearch: false
                     )
                 }
+        }
+    }
+
+    private func performScreenAction(_ action: AppToolbarScreenAction) {
+        if action == .addThing {
+            isAddingThing = true
         }
     }
 }
@@ -226,19 +333,28 @@ private struct RulesNavigationRoot: View {
     @Binding var isShowingReviewQueue: Bool
     let toolbarState: AppToolbarState
     let onOpenLog: () -> Void
+    @State private var isAddingRule = false
 
     var body: some View {
         NavigationStack {
-            RulesListView(onOpenLog: onOpenLog)
+            RulesListView(isAddingRule: $isAddingRule, onOpenLog: onOpenLog)
                 .navigationTitle(AppTab.rules.title)
                 .toolbar {
                     AppToolbarButtons(
                         state: toolbarState,
                         isShowingReviewQueue: $isShowingReviewQueue,
                         isShowingSearch: $isShowingSearch,
-                        isShowingSettings: $isShowingSettings
+                        isShowingSettings: $isShowingSettings,
+                        screenAction: .addReminder,
+                        performScreenAction: performScreenAction
                     )
                 }
+        }
+    }
+
+    private func performScreenAction(_ action: AppToolbarScreenAction) {
+        if action == .addReminder {
+            isAddingRule = true
         }
     }
 }
@@ -248,11 +364,17 @@ private struct AppToolbarButtons: ToolbarContent {
     @Binding var isShowingReviewQueue: Bool
     @Binding var isShowingSearch: Bool
     @Binding var isShowingSettings: Bool
+    var screenAction: AppToolbarScreenAction?
+    var performScreenAction: (AppToolbarScreenAction) -> Void = { _ in }
     var showsSearch = true
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .topBarTrailing) {
-            if state.showsReviewQueueButton {
+            if let screenAction = configuration.screenAction {
+                screenActionButton(screenAction)
+            }
+
+            if configuration.showsReview {
                 LedgerToolbarIconButton(
                     systemName: "text.badge.checkmark",
                     accessibilityLabel: "Review Items",
@@ -264,7 +386,7 @@ private struct AppToolbarButtons: ToolbarContent {
                 }
             }
 
-            if showsSearch {
+            if configuration.showsSearch {
                 LedgerToolbarIconButton(
                     systemName: AppToolbarSearchEntry.systemName,
                     accessibilityLabel: AppToolbarSearchEntry.accessibilityLabel,
@@ -274,13 +396,29 @@ private struct AppToolbarButtons: ToolbarContent {
                 }
             }
 
-            LedgerToolbarIconButton(
-                systemName: "gearshape",
-                accessibilityLabel: "Settings",
-                accessibilityIdentifier: "settings-entry"
-            ) {
-                isShowingSettings = true
+            if configuration.showsSettings {
+                LedgerToolbarIconButton(
+                    systemName: "gearshape",
+                    accessibilityLabel: "Settings",
+                    accessibilityIdentifier: "settings-entry"
+                ) {
+                    isShowingSettings = true
+                }
             }
+        }
+    }
+
+    private var configuration: AppToolbarConfiguration {
+        .root(state: state, screenAction: screenAction, showsSearch: showsSearch)
+    }
+
+    private func screenActionButton(_ action: AppToolbarScreenAction) -> some View {
+        LedgerToolbarIconButton(
+            systemName: action.systemName,
+            accessibilityLabel: action.accessibilityLabel,
+            accessibilityIdentifier: action.accessibilityIdentifier
+        ) {
+            performScreenAction(action)
         }
     }
 }
@@ -288,11 +426,17 @@ private struct AppToolbarButtons: ToolbarContent {
 private struct RegularToolbarButtons: ToolbarContent {
     let state: AppToolbarState
     @Binding var selectedSection: AppSection
+    var screenAction: AppToolbarScreenAction?
+    var performScreenAction: (AppToolbarScreenAction) -> Void = { _ in }
     var showsSearch = true
 
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .topBarTrailing) {
-            if state.showsReviewQueueButton {
+            if let screenAction = configuration.screenAction {
+                screenActionButton(screenAction)
+            }
+
+            if configuration.showsReview {
                 LedgerToolbarIconButton(
                     systemName: "text.badge.checkmark",
                     accessibilityLabel: "Review Items",
@@ -304,7 +448,7 @@ private struct RegularToolbarButtons: ToolbarContent {
                 }
             }
 
-            if showsSearch {
+            if configuration.showsSearch {
                 LedgerToolbarIconButton(
                     systemName: AppToolbarSearchEntry.systemName,
                     accessibilityLabel: AppToolbarSearchEntry.accessibilityLabel,
@@ -315,14 +459,30 @@ private struct RegularToolbarButtons: ToolbarContent {
                 }
             }
 
-            LedgerToolbarIconButton(
-                systemName: "gearshape",
-                accessibilityLabel: "Settings",
-                accessibilityIdentifier: "settings-entry",
-                isActive: selectedSection == .settings
-            ) {
-                selectedSection = .settings
+            if configuration.showsSettings {
+                LedgerToolbarIconButton(
+                    systemName: "gearshape",
+                    accessibilityLabel: "Settings",
+                    accessibilityIdentifier: "settings-entry",
+                    isActive: selectedSection == .settings
+                ) {
+                    selectedSection = .settings
+                }
             }
+        }
+    }
+
+    private var configuration: AppToolbarConfiguration {
+        .root(state: state, screenAction: screenAction, showsSearch: showsSearch)
+    }
+
+    private func screenActionButton(_ action: AppToolbarScreenAction) -> some View {
+        LedgerToolbarIconButton(
+            systemName: action.systemName,
+            accessibilityLabel: action.accessibilityLabel,
+            accessibilityIdentifier: action.accessibilityIdentifier
+        ) {
+            performScreenAction(action)
         }
     }
 }

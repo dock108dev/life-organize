@@ -31,6 +31,19 @@ final class DebugSurfaceContainmentTests: XCTestCase {
         XCTAssertTrue(messageSource.contains("LedgerAdaptiveLayout.Width.debugListMax"))
     }
 
+    func testRawExtractionIdentifiersStayBehindDebugGate() throws {
+        let messageSource = try sourceFile("LifeOrganize/Features/Debug/ChatMessageExtractionDebugView.swift")
+        let attemptSource = try sourceFile("LifeOrganize/Features/Debug/ExtractionAttemptDebugView.swift")
+
+        XCTAssertTrue(messageSource.contains("debugAccessPolicy.allowsExtractionDebugScreens"))
+        XCTAssertTrue(messageSource.contains("message.extractionErrorCode?.rawValue"))
+        XCTAssertTrue(attemptSource.contains("debugAccessPolicy.allowsExtractionDebugScreens"))
+        XCTAssertTrue(attemptSource.contains("attempt.status.rawValue"))
+        XCTAssertTrue(attemptSource.contains("attempt.errorCode?.rawValue"))
+        XCTAssertTrue(attemptSource.contains("attempt.sourceMessage?.extractionStatus.rawValue"))
+        XCTAssertTrue(attemptSource.contains("attempt.sourceMessage?.extractionErrorCode?.rawValue"))
+    }
+
     private func sourceFile(_ relativePath: String) throws -> String {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
         return try String(contentsOf: root.appendingPathComponent(relativePath), encoding: .utf8)

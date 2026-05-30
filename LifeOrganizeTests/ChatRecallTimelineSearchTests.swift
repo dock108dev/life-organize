@@ -182,7 +182,7 @@ final class ChatRecallTimelineSearchTests: XCTestCase {
         recall = try ChatRecallResponseService(modelContext: context, now: now).answer(
             for: ChatIntentClassification(intent: .localSearch, targetText: "garage filter")
         )
-        XCTAssertEqual(recall, #"No saved records found for "garage filter"."#)
+        XCTAssertEqual(recall, #"No saved entries found for "garage filter"."#)
     }
 
     private static var newYorkCalendar: Calendar {

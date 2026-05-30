@@ -38,19 +38,19 @@ final class ProductCoherenceScenarioTests: XCTestCase {
             XCTAssertTrue(thing.sourceMessageIDs.contains(workSourceID), "\(name) lost the source capture link")
             let snapshot = snapshot(for: thing, rules: rules, messages: messages, now: now)
             XCTAssertGreaterThan(snapshot.recordCount, 0)
-            XCTAssertFalse(snapshot.listSummaryLine.text.contains("No records yet"))
+            XCTAssertFalse(snapshot.listSummaryLine.text.contains("No entries yet"))
             XCTAssertTrue(snapshot.listSummaryLine.text.contains("Reminder tomorrow"))
         }
 
         let finance = try XCTUnwrap(thing(named: "Finance", in: things))
         let financeSnapshot = snapshot(for: finance, rules: rules, messages: messages, now: now)
         XCTAssertGreaterThan(financeSnapshot.recordCount, 0)
-        XCTAssertFalse(financeSnapshot.listSummaryLine.text.contains("No records yet"))
+        XCTAssertFalse(financeSnapshot.listSummaryLine.text.contains("No entries yet"))
 
         let bogey = try XCTUnwrap(thing(named: "Bogey", in: things))
         let bogeySnapshot = snapshot(for: bogey, rules: rules, messages: messages, now: now)
         XCTAssertGreaterThan(bogeySnapshot.recordCount, 0)
-        XCTAssertFalse(bogeySnapshot.listSummaryLine.text.contains("No records yet"))
+        XCTAssertFalse(bogeySnapshot.listSummaryLine.text.contains("No entries yet"))
         XCTAssertTrue(messages.contains { $0.text.contains("Bogey") && $0.extractionStatus == .partiallySucceeded })
 
         _ = try await service.send("Pause work on Sonar, AWS, Vulns, and monorepo")
@@ -91,7 +91,7 @@ final class ProductCoherenceScenarioTests: XCTestCase {
             let thing = try XCTUnwrap(thing(named: name, in: things))
             let snapshot = snapshot(for: thing, rules: rules, messages: messages, now: now)
             XCTAssertGreaterThan(snapshot.recordCount, 0)
-            XCTAssertFalse(snapshot.listSummaryLine.text.contains("No records yet"))
+            XCTAssertFalse(snapshot.listSummaryLine.text.contains("No entries yet"))
             XCTAssertFalse(snapshot.listSummaryLine.text.contains("Reminder tomorrow"))
         }
     }

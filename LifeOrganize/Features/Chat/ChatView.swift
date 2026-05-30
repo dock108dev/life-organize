@@ -149,6 +149,7 @@ struct ChatView: View {
                                 placeholder: viewModel.inputPlaceholder(hasAIServiceCredential: hasAIServiceCredential),
                                 isCommittingSend: viewModel.isCommittingSend,
                                 isOrganizing: viewModel.isOrganizing,
+                                errorMessage: viewModel.sendError,
                                 isFocused: $isComposerFocused
                             ) {
                                 viewModel.sendDraft(

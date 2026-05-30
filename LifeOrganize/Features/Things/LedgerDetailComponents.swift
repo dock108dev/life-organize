@@ -78,7 +78,7 @@ struct LedgerOperationalMetric: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label.uppercased())
-                .font(.caption2.weight(.semibold))
+                .font(LedgerVisualSystem.Typography.metricLabel)
                 .foregroundStyle(.secondary)
 
             Text(value)
@@ -100,9 +100,9 @@ struct LedgerOperationalMetric: View {
     private var valueFont: Font {
         switch prominence {
         case .primary:
-            return .headline.weight(.semibold)
+            return LedgerVisualSystem.Typography.metricPrimaryValue
         case .secondary:
-            return LedgerVisualSystem.Typography.rowDetailPrimary.weight(.medium)
+            return LedgerVisualSystem.Typography.metricSecondaryValue
         }
     }
 
@@ -124,7 +124,7 @@ struct LedgerInlineActionTray: View {
             ForEach(actions) { action in
                 Button(action: action.handler) {
                     Label(action.title, systemImage: action.systemImage)
-                        .font(.caption.weight(.medium))
+                        .font(LedgerVisualSystem.Typography.sectionFooter.weight(.medium))
                         .foregroundStyle(.primary)
                 }
                 .buttonStyle(.plain)
@@ -193,7 +193,7 @@ struct LedgerDisclosureSection<Content: View>: View {
                 LedgerSectionHeader(title: title)
                 if let summary, !summary.isEmpty {
                     Text(summary)
-                        .font(LedgerVisualSystem.Typography.rowSecondary)
+                        .font(LedgerVisualSystem.Typography.disclosureSummary)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.85)

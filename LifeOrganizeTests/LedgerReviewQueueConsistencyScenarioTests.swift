@@ -34,8 +34,8 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
             targetID: fixture.partialMessage.id,
             confidence: 1,
             title: "Entry needs review",
-            actionTitle: "Open Records",
-            detailContains: ["created 4 records", "Open those records"],
+            actionTitle: "Open",
+            detailContains: ["created 4 saved items", "Open them"],
             evidence: [
                 (sourceType: .chatMessage, sourceID: fixture.partialMessage.id),
                 (sourceType: .thing, sourceID: fixture.partialThing.id),
@@ -71,7 +71,7 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
             confidence: 0.8,
             title: "Possible duplicate Things",
             actionTitle: "Review Things",
-            detailContains: ["share a normalized name or alias", "No records have been merged"],
+            detailContains: ["share a saved name or alias", "No items have been merged"],
             evidence: [
                 (sourceType: .thing, sourceID: fixture.duplicateTarget.id),
                 (sourceType: .thing, sourceID: fixture.duplicateSource.id)
@@ -127,7 +127,7 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
         ])
         XCTAssertEqual(presentations.map(\.nextActionTitle), [
             "Retry Now",
-            "Open Records",
+            "Open",
             "Review Things",
             "Review event",
             "Retry Now"
@@ -324,7 +324,7 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
             dedupeKey: "normalization_candidate|matrix",
             kind: .normalizationCandidate,
             title: "Thing match needs review",
-            detail: "NWS may match North Window Service. No records have been merged.",
+            detail: "NWS may match North Window Service. No items have been merged.",
             actionTitle: "Review Thing",
             targetType: .thing,
             targetID: source.id,

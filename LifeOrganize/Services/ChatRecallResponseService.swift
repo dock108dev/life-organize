@@ -78,7 +78,7 @@ struct ChatRecallResponseService {
         )
         let results = search.search(LocalSearchQuery(rawText: trimmed, limit: 10, now: now), in: records)
         guard !results.isEmpty else {
-            return #"No saved records found for "\#(trimmed)"."#
+            return #"No saved entries found for "\#(trimmed)"."#
         }
 
         return (["Local results:"] + results.map(resultLine))
@@ -130,5 +130,5 @@ struct ChatRecallResponseService {
         }
     }
 
-    private let noMatch = "No saved records found."
+    private let noMatch = "No saved entries found."
 }

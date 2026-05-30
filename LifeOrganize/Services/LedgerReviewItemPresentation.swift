@@ -100,7 +100,7 @@ struct LedgerReviewItemPresentationService {
         case .expired:
             return "Expired \(item.title.lowercasedFirstWord)"
         case .failed:
-            return "Review update failed"
+            return "Review needs attention"
         }
     }
 

@@ -82,6 +82,7 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Extraction Attempts"].exists)
         XCTAssertTrue(app.buttons["Failed Extractions"].exists)
         XCTAssertTrue(app.buttons["Internal QA Lab"].exists)
+        XCTAssertTrue(app.buttons["Lock Developer Mode"].exists)
         assertNoProviderSecretsVisible(in: app)
 
         app.buttons["Internal QA Lab"].tap()
@@ -138,7 +139,7 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
         XCTAssertTrue(deletionApp.descendants(matching: .any)["thing-detail"].waitForFastExistence(timeout: 5))
         deletionApp.buttons["More"].tap()
         deletionApp.buttons["Delete Thing"].tap()
-        deletionApp.buttons["Delete and Unlink Records"].tap()
+        deletionApp.buttons["Delete and Keep Items"].tap()
     }
 
     private func launchOperationalHomeSeedOnThings() -> XCUIApplication {

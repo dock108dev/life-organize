@@ -21,27 +21,43 @@ final class LedgerFeedRowContentTests: XCTestCase {
         XCTAssertEqual(content.secondaryText, "Saving")
         XCTAssertEqual(content.secondaryTone, .muted)
         XCTAssertEqual(content.secondaryBadge?.semantic, .statusSaving)
+        XCTAssertEqual(content.primaryBadge()?.semantic, .statusSaving)
         XCTAssertNil(content.detailText)
     }
 
     func testMessageStatusTextCoversLocalRetryPartialAndFailureStates() {
-        let expectedStatuses: [(ExtractionStatus, String?, LedgerFeedRowContent.SecondaryTone)] = [
-            (.pendingToken, "Saved", .muted),
-            (.pendingRetry, "Retry later", .info),
-            (.partiallySucceeded, "Review", .attention),
-            (.failed, "Failed", .danger),
-            (.failedNeedsReview, "Review", .attention),
-            (.needsReview, "Review", .attention),
-            (.succeeded, nil, .neutral)
+        let expectedStatuses: [(ExtractionStatus, String?, LedgerFeedRowContent.SecondaryTone, LedgerBadgeSemantic)] = [
+            (.pendingToken, "Saved", .muted, .statusSavedLocal),
+            (.pendingRetry, "Retry later", .info, .statusRetryPending),
+            (.partiallySucceeded, "Review", .attention, .actionReview),
+            (.failed, "Needs review", .danger, .statusFailed),
+            (.failedNeedsReview, "Review", .attention, .actionReview),
+            (.needsReview, "Review", .attention, .actionReview),
+            (.succeeded, nil, .neutral, .sourceUser)
         ]
 
-        for (status, expectedText, expectedTone) in expectedStatuses {
+        for (status, expectedText, expectedTone, expectedPrimaryBadge) in expectedStatuses {
             let message = ChatMessage(role: .user, text: "Timeline entry", extractionStatus: status)
             let content = LedgerFeedRowContent(item: .message(message), timeFormatter: Self.timeFormatter)
 
             XCTAssertEqual(content.secondaryText, expectedText, "Unexpected text for \(status.rawValue)")
             XCTAssertEqual(content.secondaryTone, expectedTone, "Unexpected tone for \(status.rawValue)")
+            XCTAssertEqual(
+                content.primaryBadge()?.semantic,
+                expectedPrimaryBadge,
+                "Unexpected primary badge for \(status.rawValue)"
+            )
         }
+    }
+
+    func testReviewBadgeRemainsPrimaryOverCategoryOrSourceBadges() {
+        let event = LedgerEvent(title: "Changed filter", occurredAt: fixedTestNow, rawText: "Changed filter.")
+        let content = LedgerFeedRowContent(item: .event(event), timeFormatter: Self.timeFormatter)
+        let reviewBadge = LedgerBadgePresentation(semantic: .actionReview, tone: .attention, priority: 85)
+
+        XCTAssertEqual(content.primaryBadge()?.semantic, .categoryEvent)
+        XCTAssertEqual(content.primaryBadge(reviewBadge: reviewBadge)?.semantic, .actionReview)
+        XCTAssertEqual(content.primaryBadge(reviewBadge: reviewBadge)?.tone, .attention)
     }
 
     func testAppAndSystemMessagesUseSharedRowLanguage() {

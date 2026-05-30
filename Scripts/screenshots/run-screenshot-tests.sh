@@ -26,6 +26,7 @@ SCREENSHOT_TESTS=(
   "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testCarryForwardScreenshot"
   "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testSearchScreenshot"
   "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testReviewQueueScreenshot"
+  "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testSettingsScreenshot"
   "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testHeavyTimelineScreenshot"
 )
 
@@ -107,6 +108,8 @@ xcodebuild test \
   -scheme "$SCHEME" \
   -destination "platform=iOS Simulator,name=$DEVICE_NAME,OS=$DEVICE_OS" \
   "${ONLY_TESTING_ARGS[@]}" \
+  -test-iterations 2 \
+  -retry-tests-on-failure \
   -resultBundlePath "$RESULT_BUNDLE" \
   CODE_SIGNING_ALLOWED=NO
 

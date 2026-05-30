@@ -384,6 +384,21 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         XCTAssertFalse(productionConfiguration.unlocksDeveloperMode)
     }
 
+    func testAutomationCanDisableDeveloperModeForProductionLikeCoverage() {
+        let configuration = AppRuntimeConfiguration(arguments: [
+            "LifeOrganize",
+            "-ui-testing",
+            "-enable-developer-mode",
+            "-unlock-developer-mode",
+            "-disable-developer-mode"
+        ])
+
+        XCTAssertTrue(configuration.isAutomationRuntime)
+        XCTAssertTrue(configuration.disablesDeveloperMode)
+        XCTAssertFalse(configuration.unlocksDeveloperMode)
+        XCTAssertFalse(configuration.isDeveloperModeAvailable)
+    }
+
     @MainActor
     func testAutomationSeedScenariosLoadIdempotently() throws {
         let container = ModelContainerFactory.make(configuration: .inMemory)

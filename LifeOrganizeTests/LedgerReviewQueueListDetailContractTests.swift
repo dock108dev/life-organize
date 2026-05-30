@@ -35,6 +35,22 @@ final class LedgerReviewQueueListDetailContractTests: XCTestCase {
         XCTAssertEqual(result.lastAppliedFocusedID, focused)
     }
 
+    func testSelectedReviewRemainsSelectedAcrossQueueRefresh() {
+        let first = UUID()
+        let selected = UUID()
+        let last = UUID()
+
+        let result = ReviewQueueSelectionRepair.repairedSelection(
+            selectedID: selected,
+            preferredFocusedID: nil,
+            lastAppliedFocusedID: nil,
+            previousVisibleIDs: [first, selected, last],
+            currentVisibleIDs: [first, selected, last]
+        )
+
+        XCTAssertEqual(result.selectedID, selected)
+    }
+
     func testSelectionAdvancesToNextVisibleReviewAtSameIndex() {
         let first = UUID()
         let removed = UUID()

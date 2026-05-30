@@ -171,6 +171,19 @@ extension XCTestCase {
             line: line
         )
     }
+
+    func assertDeveloperDiagnosticsHidden(
+        in app: XCUIApplication,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertFalse(app.staticTexts["Developer Diagnostics"].exists, file: file, line: line)
+        XCTAssertFalse(app.staticTexts["Developer mode unlocked"].exists, file: file, line: line)
+        XCTAssertFalse(app.buttons["Extraction Attempts"].exists, file: file, line: line)
+        XCTAssertFalse(app.buttons["Failed Extractions"].exists, file: file, line: line)
+        XCTAssertFalse(app.buttons["Internal QA Lab"].exists, file: file, line: line)
+        XCTAssertFalse(app.buttons["Lock Developer Mode"].exists, file: file, line: line)
+    }
 }
 
 extension XCUIElementQuery {

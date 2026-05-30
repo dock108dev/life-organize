@@ -23,6 +23,7 @@ struct AppRuntimeConfiguration {
     var shouldResetDeviceToken: Bool
     var shouldSkipLaunchMaintenance: Bool
     var enablesDeveloperMode: Bool
+    var disablesDeveloperMode: Bool
     var unlocksDeveloperMode: Bool
     var simulatedAIServiceError: AppError?
     var seedScenarioIDs: [String]
@@ -58,7 +59,8 @@ struct AppRuntimeConfiguration {
         shouldResetDeviceToken = arguments.contains("-reset-device-token") || shouldResetFreshInstallState || screenshotMode
         shouldSkipLaunchMaintenance = arguments.contains("-skip-launch-maintenance") || arguments.contains("--skip-launch-maintenance")
         enablesDeveloperMode = arguments.contains("-enable-developer-mode")
-        unlocksDeveloperMode = automationRuntime && arguments.contains("-unlock-developer-mode")
+        disablesDeveloperMode = automationRuntime && arguments.contains("-disable-developer-mode")
+        unlocksDeveloperMode = automationRuntime && !disablesDeveloperMode && arguments.contains("-unlock-developer-mode")
         simulatedAIServiceError = Self.simulatedAIServiceError(from: arguments, isAutomationRuntime: automationRuntime)
         usesInMemoryAutomationStore = arguments.contains("-use-in-memory-store") || arguments.contains("--use-in-memory-store")
         screenshotSeed = Self.screenshotSeed(from: arguments)
@@ -86,6 +88,7 @@ struct AppRuntimeConfiguration {
     }
 
     var isDeveloperModeAvailable: Bool {
+        guard !disablesDeveloperMode else { return false }
         #if DEBUG
             return true
         #elseif INTERNAL_DIAGNOSTICS

@@ -15,7 +15,7 @@ final class LifeOrganizeScenarioUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["timeline-feed"].exists)
         XCTAssertFalse(app.descendants(matching: .any)["device-token-notice"].exists)
         XCTAssertTrue(app.staticTexts["Timeline"].exists)
-        XCTAssertTrue(app.staticTexts["Type anything worth remembering. LifeOrganize will turn it into history, Things, and follow-up reminders."].exists)
+        XCTAssertTrue(app.staticTexts["Capture anything worth remembering. LifeOrganize turns it into history, Things, and follow-up reminders."].exists)
         XCTAssertTrue(app.buttons["Save note"].exists)
         XCTAssertTrue(app.buttons["Ask today"].exists)
         XCTAssertTrue(app.buttons["Set reminder"].exists)
@@ -45,6 +45,8 @@ final class LifeOrganizeScenarioUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Settings"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["AI service"].exists)
         XCTAssertTrue(app.staticTexts["device-token-status"].exists)
+        XCTAssertTrue(app.buttons["settings-export-button"].exists)
+        XCTAssertTrue(app.buttons["settings-clear-data-button"].exists)
         XCTAssertFalse(app.staticTexts["Developer Diagnostics"].exists)
         app.buttons["settings-done-button"].tap()
         XCTAssertTrue(app.navigationBars["Timeline"].waitForFastExistence(timeout: 5))
@@ -70,6 +72,43 @@ final class LifeOrganizeScenarioUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Carry Forward"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Nothing to carry forward yet"].waitForFastExistence(timeout: 5))
         XCTAssertFalse(app.buttons.matching(identifierPrefix: "carry-forward-row-").firstMatch.exists)
+    }
+
+    func testProductionLikeSettingsHidesDiagnosticsDespiteStaleUnlockAndFooterGesture() throws {
+        let unlockedApp = launchUITestApp(
+            extraArguments: [
+                "-enable-developer-mode",
+                "-unlock-developer-mode"
+            ],
+            useInMemoryStore: true
+        )
+        unlockedApp.buttons["settings-entry"].tap()
+        XCTAssertTrue(unlockedApp.navigationBars["Settings"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(unlockedApp.staticTexts["Developer Diagnostics"].waitForFastExistence(timeout: 5))
+        unlockedApp.terminate()
+
+        let productionLikeApp = launchUITestApp(
+            extraArguments: [
+                "-disable-developer-mode"
+            ],
+            useInMemoryStore: true
+        )
+        productionLikeApp.buttons["settings-entry"].tap()
+        XCTAssertTrue(productionLikeApp.navigationBars["Settings"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(productionLikeApp.staticTexts["device-token-status"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(productionLikeApp.buttons["settings-export-button"].exists)
+        XCTAssertTrue(productionLikeApp.buttons["settings-clear-data-button"].exists)
+        assertDeveloperDiagnosticsHidden(in: productionLikeApp)
+
+        let footer = productionLikeApp.staticTexts["settings-version-footer"]
+        if !footer.waitForFastExistence(timeout: 1) {
+            productionLikeApp.swipeUp()
+        }
+        XCTAssertTrue(footer.waitForFastExistence(timeout: 5))
+        footer.tap()
+        footer.press(forDuration: 1.1)
+
+        assertDeveloperDiagnosticsHidden(in: productionLikeApp)
     }
 
     func testTimelineComposerStaysReadableDuringFocusedDraftEntry() throws {

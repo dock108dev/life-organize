@@ -4,11 +4,12 @@ import SwiftUI
 struct RulesListView: View {
     @Query(sort: \LedgerRule.createdAt, order: .reverse) private var rules: [LedgerRule]
     @Query(sort: \LedgerReviewItem.updatedAt, order: .reverse) private var reviewItems: [LedgerReviewItem]
-    @State private var isAddingRule = false
+    @State private var localIsAddingRule = false
     @State private var showsPaused = false
     @State private var activeRuleRoute: RuleDetailRoute?
     @State private var reviewItemErrorMessage: String?
     @AppStorage("ledger.context.rules.dismissed") private var isRulesContextDismissed = false
+    private let isAddingRulePresentation: Binding<Bool>?
     @Binding private var selectedRuleID: UUID?
     private let continuityService = ReminderContinuityPresentationService()
     let presentsSelectionInPlace: Bool
@@ -16,44 +17,54 @@ struct RulesListView: View {
     let onOpenLog: () -> Void
 
     init(
+        isAddingRule: Binding<Bool>? = nil,
         selectedRuleID: Binding<UUID?> = .constant(nil),
         presentsSelectionInPlace: Bool = false,
         onVisibleRuleIDsChange: @escaping ([UUID]) -> Void = { _ in },
         onOpenLog: @escaping () -> Void = {}
     ) {
+        self.isAddingRulePresentation = isAddingRule
         self._selectedRuleID = selectedRuleID
         self.presentsSelectionInPlace = presentsSelectionInPlace
         self.onVisibleRuleIDsChange = onVisibleRuleIDsChange
         self.onOpenLog = onOpenLog
     }
 
+    private var isAddingRule: Binding<Bool> {
+        isAddingRulePresentation ?? $localIsAddingRule
+    }
+
     var body: some View {
         Group {
             if rules.isEmpty {
-                LedgerEmptyStateView(content: .rules) {
-                    HStack(spacing: 12) {
-                        Button("Open Timeline", action: onOpenLog)
-                            .buttonStyle(.borderedProminent)
+                LedgerCenteredEmptyState {
+                    LedgerEmptyStateView(content: .rules) {
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: 12) {
+                                emptyStateActions
+                            }
 
-                        Button("Add Reminder") {
-                            isAddingRule = true
+                            VStack(spacing: 10) {
+                                emptyStateActions
+                            }
                         }
-                        .buttonStyle(.bordered)
                     }
                 }
             } else if visibleRuleIDs.isEmpty && !showsPaused {
-                LedgerEmptyStateView(
-                    content: LedgerEmptyStateContent(
-                        symbolName: "checklist",
-                        title: "Nothing needs attention right now.",
-                        body: "Paused and completed items are hidden from active Carry Forward.",
-                        secondaryBody: "Show paused items when you want to review old follow-ups."
-                    )
-                ) {
-                    Button("Show Paused") {
-                        showsPaused = true
+                LedgerCenteredEmptyState {
+                    LedgerEmptyStateView(
+                        content: LedgerEmptyStateContent(
+                            symbolName: "checklist",
+                            title: "Nothing needs attention right now",
+                            body: "Paused and completed items are hidden from active Carry Forward.",
+                            secondaryBody: "Show paused items when you want to review old follow-ups."
+                        )
+                    ) {
+                        Button("Show Paused") {
+                            showsPaused = true
+                        }
+                        .buttonStyle(.bordered)
                     }
-                    .buttonStyle(.bordered)
                 }
             } else {
                 List {
@@ -95,14 +106,7 @@ struct RulesListView: View {
                 .background(LedgerScreenBackground().ignoresSafeArea())
             }
         }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                LedgerToolbarIconButton(systemName: "plus", accessibilityLabel: "Add Reminder") {
-                    isAddingRule = true
-                }
-            }
-        }
-        .sheet(isPresented: $isAddingRule) {
+        .sheet(isPresented: isAddingRule) {
             NavigationStack {
                 RuleEditView(rule: nil, thing: nil)
             }
@@ -133,6 +137,21 @@ struct RulesListView: View {
         } message: {
             Text(reviewItemErrorMessage ?? "")
         }
+    }
+
+    private func showAddRuleSheet() {
+        isAddingRule.wrappedValue = true
+    }
+
+    @ViewBuilder
+    private var emptyStateActions: some View {
+        Button("Open Timeline", action: onOpenLog)
+            .buttonStyle(.borderedProminent)
+
+        Button("Add Reminder") {
+            showAddRuleSheet()
+        }
+        .buttonStyle(.bordered)
     }
 
     private var selectedRule: LedgerRule? {
@@ -206,6 +225,7 @@ struct RulesListView: View {
 enum RulesUIContract {
     static let listAccessibilityIdentifier = "carry-forward-list"
     static let detailAccessibilityIdentifier = "carry-forward-detail"
+    static let detailPaneAccessibilityIdentifier = "carry-forward-detail-pane"
 
     static func rowAccessibilityIdentifier(for ruleID: UUID) -> String {
         "carry-forward-row-\(ruleID.uuidString)"
@@ -216,7 +236,13 @@ struct RulesSplitView: View {
     @Query(sort: \LedgerRule.createdAt, order: .reverse) private var rules: [LedgerRule]
     @State private var selectedRuleID: UUID?
     @State private var visibleRuleIDs: [UUID] = []
+    private let isAddingRulePresentation: Binding<Bool>?
     let onOpenLog: () -> Void
+
+    init(isAddingRule: Binding<Bool>? = nil, onOpenLog: @escaping () -> Void = {}) {
+        self.isAddingRulePresentation = isAddingRule
+        self.onOpenLog = onOpenLog
+    }
 
     private var selectedRule: LedgerRule? {
         guard let selectedRuleID else { return nil }
@@ -226,18 +252,23 @@ struct RulesSplitView: View {
     var body: some View {
         HStack(spacing: 0) {
             RulesListView(
+                isAddingRule: isAddingRulePresentation,
                 selectedRuleID: $selectedRuleID,
                 presentsSelectionInPlace: true,
                 onVisibleRuleIDsChange: updateVisibleRuleIDs,
                 onOpenLog: onOpenLog
             )
             // layout-guard: allow fixed-size reason="regular-width list column bounds"
-            .frame(minWidth: 300, idealWidth: 340, maxWidth: 390)
+            .frame(
+                minWidth: LedgerAdaptiveLayout.Workspace.listColumnMin,
+                idealWidth: LedgerAdaptiveLayout.Workspace.listColumnIdeal,
+                maxWidth: LedgerAdaptiveLayout.Workspace.listColumnMax
+            )
 
-            Divider()
+            LedgerWorkspaceSplitDivider()
 
             selectedDetail
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ledgerWorkspaceDetailPane(RulesUIContract.detailPaneAccessibilityIdentifier)
         }
         .background(LedgerScreenBackground().ignoresSafeArea())
         .onAppear {
@@ -252,6 +283,10 @@ struct RulesSplitView: View {
     private var selectedDetail: some View {
         if let selectedRule {
             RuleDetailView(rule: selectedRule)
+        } else if rules.isEmpty {
+            CarryForwardEmptyDetailView()
+        } else if visibleRuleIDs.isEmpty {
+            CarryForwardNoVisibleSelectionView()
         } else {
             CarryForwardNoSelectionView()
         }
@@ -294,9 +329,37 @@ enum RuleLaneVisibility {
 
 struct CarryForwardNoSelectionView: View {
     var body: some View {
-        LedgerNoSelectionPlaceholderView("Select a reminder", systemImage: "checklist")
+        LedgerNoSelectionPlaceholderView(
+            "Select a reminder",
+            systemImage: "checklist",
+            description: "Choose a reminder to see its details."
+        )
             .background(LedgerScreenBackground().ignoresSafeArea())
             .accessibilityIdentifier("carry-forward-no-selection")
+    }
+}
+
+struct CarryForwardEmptyDetailView: View {
+    var body: some View {
+        LedgerNoSelectionPlaceholderView(
+            "No reminders yet",
+            systemImage: "checklist",
+            description: "Add a reminder or open Timeline to create one."
+        )
+            .background(LedgerScreenBackground().ignoresSafeArea())
+            .accessibilityIdentifier("carry-forward-no-content")
+    }
+}
+
+struct CarryForwardNoVisibleSelectionView: View {
+    var body: some View {
+        LedgerNoSelectionPlaceholderView(
+            "No visible reminder",
+            systemImage: "checklist",
+            description: "Show paused items to choose an old follow-up."
+        )
+            .background(LedgerScreenBackground().ignoresSafeArea())
+            .accessibilityIdentifier("carry-forward-no-visible-selection")
     }
 }
 

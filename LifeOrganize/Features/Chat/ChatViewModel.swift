@@ -3,10 +3,35 @@ import SwiftData
 
 @MainActor
 final class ChatViewModel: ObservableObject {
+    typealias SendAction = @MainActor (
+        String,
+        ModelContext,
+        any DeviceTokenStore,
+        UUID,
+        @escaping (UUID) -> Bool,
+        @escaping (ChatMessage) -> Void
+    ) async throws -> Void
+
     @Published var draft = ""
     @Published private(set) var isCommittingSend = false
     @Published private(set) var activeOrganizationCount = 0
     @Published private(set) var sendError: String?
+    private let sendAction: SendAction
+
+    init(sendAction: SendAction? = nil) {
+        self.sendAction = sendAction ?? { text, modelContext, deviceTokenStore, dataGeneration, isDataGenerationCurrent,
+            onRawMessagePersisted in
+            let service = ChatSendService(
+                modelContext: modelContext,
+                extractor: AppRuntimeConfiguration.current.messageExtractionClient(deviceTokenStore: deviceTokenStore),
+                webRequestClient: AppRuntimeConfiguration.current.webRequestClient(deviceTokenStore: deviceTokenStore),
+                dateProvider: AppRuntimeConfiguration.current.dateProvider,
+                dataGeneration: dataGeneration,
+                isDataGenerationCurrent: isDataGenerationCurrent
+            )
+            try await service.send(text, onRawMessagePersisted: onRawMessagePersisted)
+        }
+    }
 
     var isOrganizing: Bool {
         activeOrganizationCount > 0
@@ -36,15 +61,13 @@ final class ChatViewModel: ObservableObject {
         Task {
             var didPersistRawMessage = false
             do {
-                let service = ChatSendService(
-                    modelContext: modelContext,
-                    extractor: AppRuntimeConfiguration.current.messageExtractionClient(deviceTokenStore: deviceTokenStore),
-                    webRequestClient: AppRuntimeConfiguration.current.webRequestClient(deviceTokenStore: deviceTokenStore),
-                    dateProvider: AppRuntimeConfiguration.current.dateProvider,
-                    dataGeneration: dataGeneration,
-                    isDataGenerationCurrent: isDataGenerationCurrent
-                )
-                try await service.send(trimmed) { [weak self] message in
+                try await sendAction(
+                    trimmed,
+                    modelContext,
+                    deviceTokenStore,
+                    dataGeneration,
+                    isDataGenerationCurrent
+                ) { [weak self] message in
                     guard let self else { return }
                     didPersistRawMessage = true
                     draft = ""
@@ -53,7 +76,7 @@ final class ChatViewModel: ObservableObject {
                     onRawMessagePersisted(message.id)
                 }
             } catch {
-                sendError = error.localizedDescription
+                sendError = Self.userFacingSendErrorMessage(for: error, didPersistRawMessage: didPersistRawMessage)
             }
             if didPersistRawMessage {
                 activeOrganizationCount = max(0, activeOrganizationCount - 1)
@@ -61,6 +84,26 @@ final class ChatViewModel: ObservableObject {
                 isCommittingSend = false
             }
         }
+    }
+
+    static func userFacingSendErrorMessage(for error: Error, didPersistRawMessage: Bool) -> String {
+        if didPersistRawMessage {
+            if error is AppError {
+                return "Saved locally. Open Settings and reconnect when you want it organized."
+            }
+            return "Saved locally. Some details may need attention in Review."
+        }
+
+        if case AppError.missingServiceToken = error {
+            return "Open Settings and reconnect, then try again."
+        }
+        if case AppError.invalidServiceToken = error {
+            return "Open Settings and reconnect, then try again."
+        }
+        if error is AppError {
+            return "Couldn't save that. Check your connection and try again."
+        }
+        return "Couldn't save that. Try again."
     }
 }
 

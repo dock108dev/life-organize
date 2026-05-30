@@ -44,6 +44,17 @@ struct LedgerFeedRowContent {
     let detailText: String?
     let linkedThingText: String?
 
+    func primaryBadge(reviewBadge: LedgerBadgePresentation? = nil) -> LedgerBadgePresentation? {
+        var badges = [sourceBadge]
+        if let secondaryBadge {
+            badges.append(secondaryBadge)
+        }
+        if let reviewBadge {
+            badges.append(reviewBadge)
+        }
+        return LedgerBadgePresentation.primaryBadges(from: badges).first
+    }
+
     init(
         item: LedgerFeedItem,
         timeFormatter: DateFormatter = DateFormatting.ledgerTime,

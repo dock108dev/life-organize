@@ -54,7 +54,7 @@ struct LedgerTimelineSectionChrome<Rows: View>: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 10)
-        .ledgerSurface(cornerRadius: 14)
+        .ledgerSurface()
     }
 
     @ViewBuilder
@@ -249,6 +249,9 @@ struct LedgerTimelineLinkedThingPill: View {
     var size: LedgerPillSize = .standard
 
     var body: some View {
-        LedgerPill(text: text, tone: .link, size: size)
+        LedgerBadgePill(
+            badge: LedgerBadgePresentation(semantic: .categoryThing, label: text),
+            size: size
+        )
     }
 }

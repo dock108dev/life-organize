@@ -70,7 +70,7 @@ struct LedgerReviewItemGenerationService {
                     inference.nextExpectedDateRange.map { "next date range \(dateOnly($0.start)) to \(dateOnly($0.end))" }
                 ].compactMap { $0 }.joined(separator: "; ")
                 let detail = [
-                    "Saved records show \(intervalText).",
+                    "Saved items show \(intervalText).",
                     nextText.nilIfEmpty,
                     "No reminder has been created or changed."
                 ].compactMap { $0 }.joined(separator: " ")
@@ -105,7 +105,7 @@ struct LedgerReviewItemGenerationService {
                 dedupeKey: key(.overdueReminderReview, [rule.id.uuidString, dateOnly(rule.startsAt)]),
                 kind: .overdueReminderReview,
                 title: "Reminder is in review",
-                detail: "\(rule.title) was due \(dateOnly(rule.startsAt)). Complete, reschedule, pause, or dismiss from the reminder record.",
+                detail: "\(rule.title) was due \(dateOnly(rule.startsAt)). Complete, reschedule, pause, or dismiss from the reminder.",
                 actionTitle: "Review reminder",
                 targetType: .rule,
                 targetID: rule.id,
@@ -137,7 +137,7 @@ struct LedgerReviewItemGenerationService {
             return false
         }
         guard !createdRecordsEvidence(for: message).isEmpty,
-              let envelope = latestEnvelopeForSoftReview(for: message),
+              let envelope = latestExtractionEnvelope(for: message),
               !envelope.warnings.isEmpty else {
             return false
         }
@@ -152,16 +152,6 @@ struct LedgerReviewItemGenerationService {
             .filter { !$0.isEmpty && $0 != "none" }
         guard !reasons.isEmpty else { return true }
         return reasons.allSatisfy { $0 == "low_information_message" }
-    }
-
-    private func latestEnvelopeForSoftReview(for message: ChatMessage) -> ExtractionEnvelope? {
-        message.extractionAttempts
-            .sorted { $0.startedAt > $1.startedAt }
-            .compactMap { attempt -> ExtractionEnvelope? in
-                guard let data = attempt.normalizedJSONText.data(using: .utf8) else { return nil }
-                return try? JSONDecoder().decode(ExtractionEnvelope.self, from: data)
-            }
-            .first
     }
 
     private func recoveryDefinition(for message: ChatMessage) -> ReviewItemDefinition {
@@ -220,19 +210,19 @@ struct LedgerReviewItemGenerationService {
         switch message.extractionStatus {
         case .partiallySucceeded:
             let count = createdRecordEvidence.count
-            let countText = LedgerDisplayFormatting.count(count, singular: "record", plural: "records")
+            let countText = LedgerDisplayFormatting.count(count, singular: "saved item", plural: "saved items")
             detail = count > 0
-                ? "This entry created \(countText). Open those records to check or edit them."
+                ? "This entry created \(countText). Open them to check or edit."
                 : "This entry saved some details but needs review before retrying."
-            actionTitle = count > 0 ? "Open Records" : "Review Entry"
+            actionTitle = count > 0 ? "Open" : "Review Entry"
         case .failed:
             detail = "The original entry is saved locally. Retry this entry or mark the item reviewed."
             actionTitle = "Retry Now"
         case .failedNeedsReview, .needsReview:
             detail = createdRecordEvidence.isEmpty
                 ? "The original entry is saved locally. Retry this entry or review details."
-                : "This entry created records and still needs review. Edit the records instead of retrying."
-            actionTitle = createdRecordEvidence.isEmpty ? "Retry Now" : "Open Records"
+                : "This entry created saved items and still needs review. Edit them instead of retrying."
+            actionTitle = createdRecordEvidence.isEmpty ? "Retry Now" : "Open"
         case .notRequired, .pending, .pendingToken, .pendingRetry, .extracting, .succeeded:
             detail = "The original entry is saved locally and can be reviewed."
             actionTitle = "Review Entry"
@@ -260,7 +250,7 @@ struct LedgerReviewItemGenerationService {
                 dedupeKey: key(.duplicateThing, sorted.map { $0.id.uuidString }),
                 kind: .duplicateThing,
                 title: "Possible duplicate Things",
-                detail: "These Things share a normalized name or alias: \(sorted.map(\.name).joined(separator: ", ")). No records have been merged.",
+                detail: "These Things share a saved name or alias: \(sorted.map(\.name).joined(separator: ", ")). No items have been merged.",
                 actionTitle: "Review Things",
                 targetType: .thing,
                 targetID: sorted.first?.id,
@@ -376,8 +366,23 @@ struct LedgerReviewItemGenerationService {
             sourceType: .chatMessage,
             sourceID: message.id,
             summary: message.text,
-            detail: message.extractionErrorCode?.rawValue ?? message.extractionStatus.rawValue
+            detail: reviewStatusDetail(for: message)
         )
+    }
+
+    private func reviewStatusDetail(for message: ChatMessage) -> String {
+        switch message.extractionStatus {
+        case .pending, .extracting:
+            return "Saving"
+        case .pendingToken:
+            return "Saved locally"
+        case .pendingRetry:
+            return "Retry later"
+        case .partiallySucceeded, .failed, .failedNeedsReview, .needsReview:
+            return "Needs review"
+        case .notRequired, .succeeded:
+            return "Saved"
+        }
     }
 
     private func createdRecordsEvidence(for message: ChatMessage) -> [LedgerReviewItemEvidence] {
@@ -408,50 +413,6 @@ struct LedgerReviewItemGenerationService {
 
     private static func integerText(_ value: Int) -> String {
         LedgerDisplayFormatting.integer(value)
-    }
-}
-
-struct ReviewItemDefinition {
-    let dedupeKey: String
-    let kind: LedgerReviewItemKind
-    let title: String
-    let detail: String
-    let actionTitle: String?
-    let targetType: LedgerReviewItemTargetType
-    let targetID: UUID?
-    let confidence: Double
-    let evidence: [LedgerReviewItemEvidence]
-
-    func makeItem(at date: Date) -> LedgerReviewItem {
-        LedgerReviewItem(
-            dedupeKey: dedupeKey,
-            kind: kind,
-            title: title,
-            detail: detail,
-            actionTitle: actionTitle,
-            targetType: targetType,
-            targetID: targetID,
-            confidence: confidence,
-            evidence: evidence,
-            createdAt: date,
-            updatedAt: date
-        )
-    }
-
-    func apply(to item: LedgerReviewItem, at date: Date) {
-        item.kind = kind
-        item.title = title
-        item.detail = detail
-        item.actionTitle = actionTitle
-        item.targetType = targetType
-        item.targetID = targetID
-        item.confidence = confidence
-        item.evidence = evidence
-        item.failureReason = nil
-        item.resolvedAt = nil
-        item.snoozedUntil = nil
-        item.updatedAt = date
-        item.state = .candidate
     }
 }
 

@@ -34,8 +34,10 @@ enum ReminderContinuityLane: CaseIterable, Hashable {
 
     var rowEmphasis: LedgerRowEmphasis {
         switch self {
-        case .now, .comingUp:
+        case .now:
             .active
+        case .comingUp:
+            .normal
         case .review:
             .attention
         case .paused:

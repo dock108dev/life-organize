@@ -10,6 +10,8 @@ Scripts/screenshots/run-screenshot-tests.sh compare
 
 The script runs selected screenshot methods on `LifeOrganizeUITests/LifeOrganizeScenarioUITests`, writes a target-specific result bundle under `BuildArtifacts/`, extracts `screenshot__*` PNG attachments into `BuildArtifacts/screenshots/actual/<target-key>/<orientation>/<appearance>/`, and compares them with the baseline PNGs under `Tests/ScreenshotBaselines/<target-key>/<orientation>/<appearance>/`.
 
+The current runner captures these PNG names: `first_launch`, `timeline_empty`, `timeline`, `things`, `thing_detail`, `carry_forward`, `search`, `review_queue`, `settings`, and `heavy_timeline`.
+
 Baselines are grouped by target key, orientation, and appearance:
 
 ```text
@@ -27,7 +29,7 @@ The maintained light-appearance matrix is:
 | `iPad_Pro_13-inch_M5` | `iPad Pro 13-inch (M5)`, iOS `26.2` | `portrait` | `Tests/ScreenshotBaselines/iPad_Pro_13-inch_M5/portrait/light/` |
 | `iPad_Pro_13-inch_M5` | `iPad Pro 13-inch (M5)`, iOS `26.2` | `landscape` | `Tests/ScreenshotBaselines/iPad_Pro_13-inch_M5/landscape/light/` |
 
-The static iOS layout guard checks that each maintained light-appearance matrix cell contains the full scenario set.
+The static iOS layout guard checks that each maintained light-appearance matrix cell contains the guard-required scenario set: `first_launch`, `timeline_empty`, `timeline`, `things`, `thing_detail`, `carry_forward`, `search`, `review_queue`, and `heavy_timeline`. The screenshot comparator also fails on unexpected actual PNGs, so `settings.png` is maintained in the current baseline directories even though `Scripts/ios_static_layout_guard.py` does not list it in `REQUIRED_SCREENSHOT_SCENARIOS`.
 
 Generated actual and diff artifacts stay under `BuildArtifacts/`, which is ignored by `.gitignore`. The older `Tests/ScreenshotBaselines/iPhone_16/light/` directory is not part of the required static guard matrix or iOS CI screenshot jobs. To intentionally accept a visual change, run:
 

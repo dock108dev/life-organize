@@ -43,7 +43,7 @@ enum SettingsClearDataCopy {
     static let exportPrompt = "Before clearing, make a local data copy you can save or share yourself. This does not create a cloud backup, sync, or account recovery path."
     static let exportFailedTitle = "Export could not be created"
     static let exportFailedBody = "Your local data is unchanged. You can retry the export, cancel, or continue to the final confirmation without a copy."
-    static let finalWarning = "This permanently clears the local record from this device. It cannot be undone."
+    static let finalWarning = "This permanently clears saved local data from this device. It cannot be undone."
     static let confirmationInstruction = "Type \(SettingsTrustCopy.clearPhrase) to confirm."
 }
 

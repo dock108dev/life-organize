@@ -29,6 +29,20 @@ final class DeveloperModeStateTests: XCTestCase {
         XCTAssertFalse(state.policy.allowsExtractionDebugScreens)
     }
 
+    func testUnavailableStateIgnoresPersistedUnlock() {
+        defaults.set(true, forKey: AppDefaultsKeys.developerModeUnlocked)
+        let state = DeveloperModeState(isAvailable: false, defaults: defaults)
+
+        XCTAssertFalse(state.policy.isDeveloperModeAvailable)
+        XCTAssertFalse(state.policy.isDeveloperModeUnlocked)
+        XCTAssertFalse(state.policy.allowsExtractionDebugScreens)
+
+        state.unlock()
+
+        XCTAssertFalse(state.policy.isDeveloperModeUnlocked)
+        XCTAssertFalse(state.policy.allowsExtractionDebugScreens)
+    }
+
     func testAvailableStateStartsLocked() {
         let state = DeveloperModeState(isAvailable: true, defaults: defaults)
 
@@ -59,9 +73,11 @@ final class DeveloperModeStateTests: XCTestCase {
 
     func testLockedSettingsDoesNotShowDeveloperDiagnostics() {
         let lockedPolicy = DebugAccessPolicy(isDeveloperModeAvailable: true, isDeveloperModeUnlocked: false)
+        let unavailablePolicy = DebugAccessPolicy(isDeveloperModeAvailable: false, isDeveloperModeUnlocked: true)
         let unlockedPolicy = DebugAccessPolicy(isDeveloperModeAvailable: true, isDeveloperModeUnlocked: true)
 
         XCTAssertFalse(SettingsView.showsDeveloperDiagnostics(for: lockedPolicy))
+        XCTAssertFalse(SettingsView.showsDeveloperDiagnostics(for: unavailablePolicy))
         XCTAssertTrue(SettingsView.showsDeveloperDiagnostics(for: unlockedPolicy))
     }
 

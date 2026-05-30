@@ -23,7 +23,7 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
         XCTAssertEqual(entries.filter { $0.correctionClass == .quickReview }.count, 6)
         XCTAssertTrue(entries.contains { $0.title == "Entry recovery is available" && $0.primaryActionTitle == "Retry Now" })
         XCTAssertTrue(entries.contains { $0.detail.contains("Retry this entry") })
-        XCTAssertTrue(entries.contains { $0.detail.contains("Edit the records") || $0.detail.contains("needs review") })
+        XCTAssertTrue(entries.contains { $0.detail.contains("Edit them") || $0.detail.contains("needs review") })
     }
 
     func testPartialEntryLinksCreatedRecordsForEditing() throws {
@@ -53,7 +53,7 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
         let entry = try queueService(context).entry(for: item)
 
         XCTAssertEqual(Set(entry.createdRecords.map(\.subtitle)), ["Thing", "Event", "Reminder", "Note"])
-        XCTAssertTrue(entry.detail.contains("Open those records"))
+        XCTAssertTrue(entry.detail.contains("Open them"))
         XCTAssertEqual(entry.blockedMessage, ManualExtractionRetryBlockedReason.createdRecordsExist.message)
     }
 
@@ -147,7 +147,7 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
             dedupeKey: "normalization_candidate|test",
             kind: .normalizationCandidate,
             title: "Thing match needs review",
-            detail: "NWS may match Nimbus Web Services. No records have been merged.",
+            detail: "NWS may match Nimbus Web Services. No items have been merged.",
             targetType: .thing,
             targetID: source.id,
             evidence: [
@@ -205,7 +205,7 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
             dedupeKey: "interval_reminder|test",
             kind: .intervalReminder,
             title: "Air filter cadence is ready for review",
-            detail: "Saved records show about every 90 days. next date range 2026-05-22 to 2026-05-29. No reminder has been created or changed.",
+            detail: "Saved items show about every 90 days. next date range 2026-05-22 to 2026-05-29. No reminder has been created or changed.",
             actionTitle: "Review reminder setup",
             targetType: .thing,
             targetID: thing.id,
@@ -283,7 +283,7 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
             kind: .duplicateThing,
             state: .accepted,
             title: "Possible duplicate Things",
-            detail: "No records have been merged.",
+            detail: "No items have been merged.",
             targetType: .thing,
             targetID: target.id,
             evidence: [
@@ -312,7 +312,7 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
             dedupeKey: "normalization_candidate|empty",
             kind: .normalizationCandidate,
             title: "Thing match needs review",
-            detail: "No records have been merged.",
+            detail: "No items have been merged.",
             targetType: .thing,
             targetID: source.id,
             evidence: [LedgerReviewItemEvidence(sourceType: .thing, sourceID: target.id, summary: target.name, detail: nil)]

@@ -18,14 +18,14 @@ final class SettingsTrustSurfaceTests: XCTestCase {
     }
 
     func testClearDataCopyDistinguishesDeletedLedgerDataFromSavedToken() {
-        XCTAssertEqual(SettingsTrustCopy.clearTitle, "Reset this device")
-        XCTAssertTrue(SettingsTrustCopy.clearDeletes.contains("timeline history"))
+        XCTAssertEqual(SettingsTrustCopy.clearTitle, "Clear local data")
+        XCTAssertTrue(SettingsTrustCopy.clearBody.contains("saved entries"))
         XCTAssertTrue(SettingsTrustCopy.clearDeletes.contains("Things"))
-        XCTAssertTrue(SettingsTrustCopy.clearDeletes.contains("review items"))
-        XCTAssertTrue(SettingsTrustCopy.clearDeletes.contains("continuity records"))
+        XCTAssertTrue(SettingsTrustCopy.clearDeletes.contains("review tasks"))
+        XCTAssertTrue(SettingsTrustCopy.clearDeletes.contains("timeline history"))
         XCTAssertTrue(SettingsTrustCopy.clearKeeps.contains("service token"))
-        XCTAssertEqual(SettingsTrustCopy.clearPhrase, "DELETE MY LEDGER")
-        XCTAssertEqual(SettingsSafetyRowContent.clearsLocalRecords.title, "Clears local records")
+        XCTAssertEqual(SettingsTrustCopy.clearPhrase, "CLEAR MY DATA")
+        XCTAssertEqual(SettingsSafetyRowContent.clearsLocalRecords.title, "Clears local entries")
         XCTAssertEqual(SettingsSafetyRowContent.clearsLocalRecords.pillText, "Clears")
         XCTAssertEqual(SettingsSafetyRowContent.clearsLocalRecords.tone, .danger)
         XCTAssertEqual(SettingsSafetyRowContent.keepsSavedToken.title, "Keeps service token")
@@ -132,6 +132,32 @@ final class SettingsTrustSurfaceTests: XCTestCase {
         XCTAssertFalse(source.contains("@State private var savedToken: String"))
         XCTAssertFalse(source.contains("Text(token)"))
         XCTAssertFalse(source.contains("LedgerPill(text: token"))
+    }
+
+    func testSettingsViewExposesStableProductionAnchors() throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let source = try String(
+            contentsOf: root.appendingPathComponent("LifeOrganize/Features/Settings/SettingsView.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(source.contains(#""device-token-status""#))
+        XCTAssertTrue(source.contains(#""device-token-save-button""#))
+        XCTAssertTrue(source.contains(#""settings-export-button""#))
+        XCTAssertTrue(source.contains(#""settings-clear-data-button""#))
+        XCTAssertTrue(source.contains(#""settings-version-footer""#))
+    }
+
+    func testDeveloperDestinationsAreGuardedWhenPolicyHidesDiagnostics() throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let source = try String(
+            contentsOf: root.appendingPathComponent("LifeOrganize/Features/Settings/SettingsView.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(source.contains("if Self.showsDeveloperDiagnostics(for: developerModeState.policy)"))
+        XCTAssertTrue(source.contains("activeDeveloperDestination = nil"))
+        XCTAssertTrue(source.contains("EmptyView()"))
     }
 
     func testSettingsShareSurfacesHaveSeparateOwners() throws {

@@ -865,7 +865,7 @@
         "confidence": 0.9,
         "createdAt": "2026-07-05T12:00:00Z",
         "dedupeKey": "interval_reminder|70000000-0000-4000-8000-000000000102|dogFood|70000000-0000-4000-8000-000000000215",
-        "detail": "Saved records show about every 25 days. next date range 2026-06-05 to 2026-06-07 No reminder has been created or changed.",
+        "detail": "Saved items show about every 25 days. next date range 2026-06-05 to 2026-06-07 No reminder has been created or changed.",
         "evidence": [
           {
             "detail": "30 lb · Corner Pet Supply",
@@ -898,7 +898,7 @@
         "confidence": 0.9,
         "createdAt": "2026-07-05T12:00:00Z",
         "dedupeKey": "interval_reminder|70000000-0000-4000-8000-000000000103|oilChange|70000000-0000-4000-8000-000000000223",
-        "detail": "Saved records show about every 86 days and about every 5,000 miles. next mileage 45,000 mi; next date range 2026-09-13 to 2026-10-01 No reminder has been created or changed.",
+        "detail": "Saved items show about every 86 days and about every 5,000 miles. next mileage 45,000 mi; next date range 2026-09-13 to 2026-10-01 No reminder has been created or changed.",
         "evidence": [
           {
             "detail": "30,000 mi · oil_change",

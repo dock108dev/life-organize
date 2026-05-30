@@ -118,11 +118,11 @@ struct ThingDetailView: View {
         }
         .confirmationDialog("Delete \"\(thing.name)\"?", isPresented: $isConfirmingDelete, titleVisibility: .visible) {
             if !deleteReassignmentTargets.isEmpty {
-                Button("Move Records, Then Delete", role: .destructive) {
+                Button("Move Linked Items, Then Delete", role: .destructive) {
                     activeSheet = .deleteWithReassign
                 }
             }
-            Button("Delete and Unlink Records", role: .destructive) {
+            Button("Delete and Keep Items", role: .destructive) {
                 deleteThing(reassigningRecordsTo: nil)
             }
             Button("Cancel", role: .cancel) {}
@@ -212,53 +212,14 @@ struct ThingDetailView: View {
         }
     }
     private var operationalSummarySection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Summary")
-                    .font(.title3.weight(.semibold))
-                Spacer()
-                LedgerPill(text: snapshot.status.rawValue, tone: statusTone)
-            }
-            LedgerOperationalMetric(snapshot.statusSummary, prominence: .primary)
-            if let primaryOperationalSummary = snapshot.primaryOperationalSummary {
-                LedgerOperationalMetric(primaryOperationalSummary)
-            }
-            if let continuitySummary = snapshot.continuitySummary {
-                LedgerOperationalMetric(continuitySummary)
-            }
-            LedgerOperationalMetric(snapshot.reminderSummary)
-            if !snapshot.hasHistory {
-                LedgerOperationalMetric(
-                    label: "Last activity",
-                    value: "No history yet",
-                    detail: "Add an event, reminder, or note to start the record."
-                )
-            }
-            if let reviewPresentation {
-                if reviewPresentation.isHighPriority {
-                    LedgerNoticeBanner(
-                        icon: "text.badge.checkmark",
-                        message: reviewPresentation.bannerMessage,
-                        tone: reviewPresentation.tone,
-                        actionTitle: detailActionTitle(for: reviewPresentation.item.kind),
-                        action: { performDetailAction(for: reviewPresentation.item.kind) }
-                    )
-                }
-                LedgerOperationalMetric(
-                    label: "Review item",
-                    value: reviewPresentation.title,
-                    detail: reviewPresentation.detail
-                )
-            }
-            if let reminderHistorySummary = snapshot.reminderHistorySummary {
-                Text(reminderHistorySummary.value)
-                    .font(LedgerVisualSystem.Typography.rowSecondary)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-        }
-        .padding(.vertical, 4)
-        .accessibilityIdentifier("thing-detail-title")
+        ThingDetailSummarySection(
+            thing: thing,
+            snapshot: snapshot,
+            reviewPresentation: reviewPresentation,
+            statusTone: statusTone,
+            actionTitle: detailActionTitle(for:),
+            onPerformAction: performDetailAction(for:)
+        )
     }
     private var statusTone: LedgerTone {
         switch snapshot.status {
@@ -408,7 +369,7 @@ struct ThingDetailView: View {
     private var relatedContextSection: some View {
         LedgerDisclosureSection(
             title: "Connected Context",
-            summary: LedgerDisplayFormatting.count(relatedContextRecords.count, singular: "record", plural: "records"),
+            summary: LedgerDisplayFormatting.count(relatedContextRecords.count, singular: "linked item", plural: "linked items"),
             isExpanded: $isRelatedContextExpanded
         ) {
             RelatedContextRows(

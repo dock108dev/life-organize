@@ -51,7 +51,7 @@ struct LedgerReviewQueueDetailView: View {
                     .padding(ReviewQueueDetailLayout.outerPadding)
             }
         }
-        .background(Color(.systemGroupedBackground))
+        .background(LedgerScreenBackground().ignoresSafeArea())
         .accessibilityIdentifier("review-queue-detail")
         .navigationTitle("Review")
         .navigationBarTitleDisplayMode(.inline)
@@ -197,14 +197,14 @@ struct LedgerReviewQueueDetailView: View {
                         actionControl(action)
                             .accessibilityIdentifier(action.accessibilityIdentifier)
                             .buttonStyle(.plain)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(LedgerTone.danger.foreground)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(14)
-            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 8))
+            .padding(LedgerSurfaceContract.contentPadding)
+            .ledgerSurface()
         }
     }
 
@@ -222,8 +222,8 @@ struct LedgerReviewQueueDetailView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 8))
+        .padding(LedgerSurfaceContract.contentPadding)
+        .ledgerSurface(tint: .success)
     }
 
     @ViewBuilder
@@ -260,7 +260,7 @@ struct LedgerReviewQueueDetailView: View {
             if let draft = try? service.reminderDraft(for: item) {
                 NavigationLink(action.title) {
                     RuleEditView(rule: nil, thing: targetThing, draft: draft) { _ in
-                        successMessage = "Reminder saved. Mark reviewed when this review can close."
+                        successMessage = "Reminder saved. Mark Reviewed when the timing looks right."
                     }
                 }
             }
@@ -282,7 +282,7 @@ struct LedgerReviewQueueDetailView: View {
                     .font(.subheadline.weight(.medium))
                 if let detail = action.detail {
                     Text(detail)
-                        .font(.caption)
+                        .font(LedgerVisualSystem.Typography.sectionFooter)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -293,7 +293,7 @@ struct LedgerReviewQueueDetailView: View {
     private func reminderTimingControls(for rule: LedgerRule) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Current: \(DateFormatting.fullDate.string(from: rule.startsAt))")
-                .font(.caption)
+                .font(LedgerVisualSystem.Typography.sectionFooter)
                 .foregroundStyle(.secondary)
             DatePicker(reminderDateLabel(for: rule), selection: $reminderDate, displayedComponents: .date)
                 .datePickerStyle(.compact)
@@ -306,7 +306,7 @@ struct LedgerReviewQueueDetailView: View {
                     pendingAction = .applyReminderLifecycle(lifecycleAction.title)
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(.red)
+                .foregroundStyle(LedgerTone.danger.foreground)
             }
         }
         .padding(.vertical, 4)
@@ -384,7 +384,7 @@ struct LedgerReviewQueueDetailView: View {
     private func retry() async {
         do {
             try await service.retryEntry(item)
-            successMessage = "Entry retry finished. Review item updated."
+            successMessage = "Retry finished. Check Review for the latest status."
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -395,7 +395,7 @@ struct LedgerReviewQueueDetailView: View {
             let previousSuccessMessage = successMessage
             try action()
             if successMessage == previousSuccessMessage {
-                successMessage = "Review item updated. No automatic change has been made."
+                successMessage = "Review updated."
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -429,7 +429,7 @@ struct LedgerReviewQueueDetailView: View {
         case .reassignRecords(let targetID, let targetName):
             updateItem {
                 try service.reassignRecords(from: item, to: targetID)
-                successMessage = "Reassigned records to \(targetName)."
+                successMessage = "Reassigned saved items to \(targetName)."
             }
         case .adjustReminderTiming(let date, let title):
             updateItem {

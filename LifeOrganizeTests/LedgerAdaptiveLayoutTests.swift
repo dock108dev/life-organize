@@ -18,6 +18,16 @@ final class LedgerAdaptiveLayoutTests: XCTestCase {
         XCTAssertEqual(LedgerAdaptiveLayout.Width.emptyStateMax, 320)
         XCTAssertEqual(LedgerAdaptiveLayout.EmptyState.contentMaxWidth, 320)
         XCTAssertEqual(LedgerAdaptiveLayout.EmptyState.surfaceMaxWidth, 430)
+        XCTAssertEqual(LedgerAdaptiveLayout.Workspace.settingsContentMax, 680)
+    }
+
+    func testWorkspaceMetricsExposeSharedRegularWidthComposition() {
+        XCTAssertEqual(LedgerAdaptiveLayout.Workspace.listColumnMin, 300)
+        XCTAssertEqual(LedgerAdaptiveLayout.Workspace.listColumnIdeal, 340)
+        XCTAssertEqual(LedgerAdaptiveLayout.Workspace.listColumnMax, 390)
+        XCTAssertEqual(LedgerAdaptiveLayout.Workspace.splitDividerOpacity, 0.38)
+        XCTAssertEqual(LedgerAdaptiveLayout.Workspace.contentVerticalPadding, 18)
+        XCTAssertEqual(LedgerAdaptiveLayout.Workspace.settingsContentMax, LedgerAdaptiveLayout.Width.readableMax)
     }
 
     func testEmptyStateMetricsExposeSharedSurfacePolicy() {
@@ -116,6 +126,7 @@ final class LedgerAdaptiveLayoutTests: XCTestCase {
         XCTAssertTrue(emptyStateSource.contains("LedgerAdaptiveLayout.EmptyState.horizontalPadding"))
         XCTAssertTrue(emptyStateSource.contains("LedgerAdaptiveLayout.EmptyState.verticalPadding"))
         XCTAssertTrue(emptyStateSource.contains("LedgerAdaptiveLayout.EmptyState.cornerRadius"))
+        XCTAssertTrue(emptyStateSource.contains("struct LedgerCenteredEmptyState"))
         let forbiddenFixedMaxWidth = ".frame(maxWidth: " + "320)"
         XCTAssertFalse(searchSource.contains(forbiddenFixedMaxWidth))
         XCTAssertTrue(searchSource.contains("LedgerAdaptiveLayout.EmptyState.contentMaxWidth"))
@@ -125,10 +136,16 @@ final class LedgerAdaptiveLayoutTests: XCTestCase {
         XCTAssertTrue(searchSource.contains("LedgerNoSelectionPlaceholderView("))
         XCTAssertTrue(searchSource.contains("\"Select a result\""))
         XCTAssertTrue(settingsSource.contains("LedgerEmptyStateView(content: .settingsNoDeviceToken)"))
+        XCTAssertTrue(settingsSource.contains(#""settings-workspace""#))
         XCTAssertTrue(reviewSource.contains("LedgerEmptyStateView(content: origin == nil"))
         XCTAssertGreaterThanOrEqual(reviewSource.occurrences(of: "LedgerNoSelectionPlaceholderView("), 1)
-        XCTAssertTrue(thingsSplitSource.contains("LedgerNoSelectionPlaceholderView(\"Select a Thing\""))
-        XCTAssertTrue(rulesSource.contains("LedgerNoSelectionPlaceholderView(\"Select a reminder\""))
+        XCTAssertTrue(reviewSource.contains(#""review-queue-detail""#))
+        XCTAssertTrue(thingsSplitSource.contains(#""things-detail""#))
+        XCTAssertTrue(thingsSplitSource.contains("\"Select a thing\""))
+        XCTAssertTrue(thingsSplitSource.contains("\"No things yet\""))
+        XCTAssertTrue(rulesSource.contains("RulesUIContract.detailPaneAccessibilityIdentifier"))
+        XCTAssertTrue(rulesSource.contains("\"Select a reminder\""))
+        XCTAssertTrue(rulesSource.contains("\"No reminders yet\""))
     }
 
     func testCrossFeatureDestinationBuildersKeepFeatureOwnedLookupContracts() throws {

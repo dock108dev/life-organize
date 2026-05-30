@@ -46,7 +46,7 @@ final class ManualExtractionRetryServiceTests: XCTestCase {
         )
         XCTAssertEqual(
             ManualExtractionRetryBlockedReason.createdRecordsExist.message,
-            "This entry already created saved records. Review or edit those records instead."
+            "This entry already created saved items. Review or edit those items instead."
         )
     }
 

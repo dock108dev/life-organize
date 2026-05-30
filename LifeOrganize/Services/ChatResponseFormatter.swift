@@ -58,7 +58,7 @@ struct ChatResponseFormatter {
     }
 
     func unsupportedBoundary() -> String {
-        "Add to Timeline, search saved records, or check Carry Forward."
+        "Add to Timeline, search saved entries, or check Carry Forward."
     }
 
     func webLookupUnavailable() -> String {
@@ -69,10 +69,11 @@ struct ChatResponseFormatter {
         guard let text, !text.isEmpty else {
             return "Web results:\nNo current web results found."
         }
+        let displayText = text.replacingOccurrences(of: "Source:", with: "Link:")
         if text.hasPrefix("Web results:") {
-            return text
+            return displayText
         }
-        return "Web results:\n\(text)"
+        return "Web results:\n\(displayText)"
     }
 
     func lastLogged(event: LedgerEvent, thing: Thing?) -> String {
@@ -247,7 +248,7 @@ struct ChatResponseFormatter {
     private func recordName(_ value: String) -> String {
         let name = value
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Untitled record" : trimmed
+        return trimmed.isEmpty ? "Untitled entry" : trimmed
     }
 
     private func quoted(_ text: String) -> String {

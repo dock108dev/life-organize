@@ -29,6 +29,16 @@ final class LedgerReviewActionSafetyTests: XCTestCase {
         XCTAssertEqual(LedgerReviewPendingAction.mergeThings(targetID, "Garage").role, .destructive)
         XCTAssertEqual(LedgerReviewPendingAction.applyReminderLifecycle("Mark Done").role, .destructive)
         XCTAssertNil(LedgerReviewPendingAction.saveAsNote.role)
+        XCTAssertEqual(LedgerReviewPendingAction.retry.dialogTitle, "Try Again?")
+        XCTAssertEqual(LedgerReviewPendingAction.markReviewed.confirmTitle, "Mark Reviewed")
+        XCTAssertEqual(
+            LedgerReviewPendingAction.snooze(fixedTestNow).message,
+            "This hides it until tomorrow so you can decide later. Saved items stay as they are."
+        )
+        XCTAssertEqual(
+            LedgerReviewPendingAction.dismiss.message,
+            "This removes it from Review. Choose Dismiss only when you do not need to see it again."
+        )
     }
 
     func testContextMenuGuidanceDoesNotOfferMutationCopy() {

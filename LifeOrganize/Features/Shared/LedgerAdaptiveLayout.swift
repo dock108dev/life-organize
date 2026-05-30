@@ -49,6 +49,15 @@ enum LedgerAdaptiveLayout {
         static let formRegular: CGFloat = 24
     }
 
+    enum Workspace {
+        static let listColumnMin: CGFloat = 300
+        static let listColumnIdeal: CGFloat = 340
+        static let listColumnMax: CGFloat = 390
+        static let splitDividerOpacity: Double = 0.38
+        static let contentVerticalPadding: CGFloat = 18
+        static let settingsContentMax: CGFloat = Width.readableMax
+    }
+
     static func maxWidth(for role: LedgerAdaptiveWidthRole) -> CGFloat? {
         switch role {
         case .readable:

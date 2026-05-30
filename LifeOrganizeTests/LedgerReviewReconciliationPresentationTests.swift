@@ -11,15 +11,15 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
         let item = reviewItem(
             kind: .extractionReview,
             title: "Entry needs review",
-            detail: "This entry created 2 records. Open those records to check or edit them.",
-            actionTitle: "Open Records",
+            detail: "This entry created 2 saved items. Open them to check or edit.",
+            actionTitle: "Open",
             targetType: .chatMessage,
             targetID: message.id,
             evidence: [evidence(.chatMessage, message.id, message.text)]
         )
         let entry = queueEntry(
             for: item,
-            primaryActionTitle: "Open Records",
+            primaryActionTitle: "Open",
             createdRecords: [
                 LedgerReviewCreatedRecord(targetType: .thing, targetID: thingID, title: "Car", subtitle: "Thing"),
                 LedgerReviewCreatedRecord(targetType: .event, targetID: eventID, title: "Changed cabin filter", subtitle: "Event")
@@ -38,9 +38,15 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
 
         XCTAssertEqual(presentation.source.title, "Original Entry")
         XCTAssertEqual(presentation.source.rows.first?.title, "Changed the cabin filter.")
+        XCTAssertEqual(presentation.suggestion.title, "Saved Items")
         XCTAssertEqual(presentation.suggestion.rows.map(\.title), ["Car", "Changed cabin filter"])
-        XCTAssertTrue(presentation.actions.contextual.contains { $0.kind == .openRecord(.thing, thingID) })
+        XCTAssertEqual(presentation.evidence?.title, "Needs Confirmation")
+        XCTAssertEqual(presentation.evidence?.summary, "Check the saved items, edit anything that needs attention, then mark reviewed.")
+        XCTAssertTrue(presentation.actions.contextual.contains { $0.kind == .openRecord(.thing, thingID) && $0.title == "Edit Thing" })
+        XCTAssertTrue(presentation.actions.contextual.contains { $0.kind == .openRecord(.event, eventID) && $0.title == "Edit Event" })
+        XCTAssertEqual(presentation.actions.primary?.title, "Mark Reviewed")
         XCTAssertFalse(presentation.actions.all.contains { $0.kind == .saveAsNote })
+        XCTAssertFalse(Self.visibleText(in: presentation).contains("Suggested Interpretation"))
     }
 
     func testLocalRecoverySupportsRetryAndSaveAsNote() {
@@ -66,8 +72,57 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
         )
 
         XCTAssertEqual(presentation.actions.primary?.kind, .retry)
+        XCTAssertEqual(presentation.actions.reviewState.first?.title, "Mark Reviewed")
+        XCTAssertEqual(presentation.suggestion.title, "Needs Confirmation")
+        XCTAssertEqual(presentation.suggestion.summary, "Try again, save as a note, or mark reviewed if no more follow-up is needed.")
         XCTAssertTrue(presentation.actions.contextual.contains { $0.kind == .saveAsNote })
         XCTAssertTrue(presentation.saveAsNoteBody?.contains("Remember the paint color.") == true)
+        XCTAssertFalse(presentation.saveAsNoteBody?.contains("Suggested interpretation") == true)
+    }
+
+    func testExtractionReviewSanitizesRawEvidenceWithoutChangingStoredEvidence() {
+        let message = ChatMessage(
+            role: .user,
+            text: "Book Bogey haircut in a week or two.",
+            extractionStatus: .needsReview,
+            extractionError: "schema_validation_failed",
+            extractionErrorCode: .partialValidationFailed
+        )
+        let detailID = UUID()
+        let item = reviewItem(
+            kind: .extractionReview,
+            title: "Entry needs review",
+            detail: "The original entry is saved locally. Retry this entry or review details.",
+            targetType: .chatMessage,
+            targetID: message.id,
+            confidence: 0.72,
+            evidence: [
+                evidence(.chatMessage, message.id, message.text, ExtractionErrorCode.partialValidationFailed.rawValue),
+                evidence(.thing, detailID, "Bogey", "source: Bogey; source key: bogey; model confidence: 88%")
+            ]
+        )
+        let originalEvidenceJSON = item.evidenceJSONText
+
+        let presentation = builder.presentation(
+            for: item,
+            entry: queueEntry(for: item),
+            messages: [message],
+            things: [],
+            events: [],
+            rules: [],
+            notes: []
+        )
+        let visibleText = Self.visibleText(in: presentation)
+
+        XCTAssertEqual(item.evidenceJSONText, originalEvidenceJSON)
+        XCTAssertEqual(presentation.source.rows.first?.detail, "Needs review")
+        XCTAssertTrue(visibleText.contains("Needs review"))
+        XCTAssertTrue(visibleText.contains("Needs Confirmation"))
+        XCTAssertFalse(visibleText.contains(ExtractionErrorCode.partialValidationFailed.rawValue))
+        XCTAssertFalse(visibleText.contains(ExtractionStatus.needsReview.rawValue))
+        XCTAssertFalse(visibleText.localizedCaseInsensitiveContains("schema"))
+        XCTAssertFalse(visibleText.localizedCaseInsensitiveContains("model confidence"))
+        XCTAssertEqual(message.extractionErrorCodeRawValue, ExtractionErrorCode.partialValidationFailed.rawValue)
     }
 
     func testDuplicateThingShowsCandidatesWithoutSaveAsNote() {
@@ -76,7 +131,7 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
         let item = reviewItem(
             kind: .duplicateThing,
             title: "Possible duplicate Things",
-            detail: "These Things share a normalized name. No records have been merged.",
+            detail: "These Things share a saved name. No items have been merged.",
             actionTitle: "Review Things",
             targetType: .thing,
             targetID: target.id,
@@ -97,9 +152,11 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
             notes: []
         )
 
-        XCTAssertEqual(presentation.source.title, "Source Records")
+        XCTAssertEqual(presentation.source.title, "Saved Items")
         XCTAssertEqual(presentation.source.rows.map(\.title), ["Printer Paper", "printer paper"])
         XCTAssertTrue(presentation.actions.contextual.contains { $0.kind == .mergeThing(target.id) })
+        XCTAssertEqual(presentation.suggestion.title, "Needs Confirmation")
+        XCTAssertEqual(presentation.suggestion.summary, "Choose the item to keep, or dismiss this if both should stay.")
         XCTAssertNil(presentation.saveAsNoteBody)
     }
 
@@ -127,6 +184,7 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
         )
 
         XCTAssertEqual(presentation.actions.contextual.map(\.kind), [.openRecord(.thing, thing.id)])
+        XCTAssertEqual(presentation.actions.contextual.map(\.title), ["Edit Thing"])
         XCTAssertFalse(presentation.actions.all.contains { action in
             if case .reassignRecords = action.kind { return true }
             return false
@@ -156,8 +214,8 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
             notes: []
         )
 
-        XCTAssertEqual(presentation.source.title, "Saved Event")
-        XCTAssertTrue(presentation.actions.contextual.contains { $0.kind == .openRecord(.event, event.id) })
+        XCTAssertEqual(presentation.source.title, "Saved Items")
+        XCTAssertTrue(presentation.actions.contextual.contains { $0.kind == .openRecord(.event, event.id) && $0.title == "Edit Event" })
         XCTAssertTrue(presentation.actions.contextual.contains { $0.kind == .saveAsNote })
     }
 
@@ -167,7 +225,7 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
         let interval = reviewItem(
             kind: .intervalReminder,
             title: "HVAC cadence is ready for review",
-            detail: "Saved records show about every 90 days. No reminder has been created or changed.",
+            detail: "Saved items show about every 90 days. No reminder has been created or changed.",
             actionTitle: "Review reminder setup",
             targetType: .thing,
             targetID: thing.id,
@@ -204,6 +262,8 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
 
         XCTAssertEqual(intervalPresentation.actions.primary?.kind, .buildReminderDraft)
         XCTAssertEqual(overduePresentation.actions.primary?.kind, .adjustReminderTiming)
+        XCTAssertEqual(intervalPresentation.source.title, "Saved Items")
+        XCTAssertEqual(overduePresentation.actions.contextual.first?.title, "Edit Reminder")
         XCTAssertFalse(intervalPresentation.actions.all.contains { $0.kind == .saveAsNote })
     }
 
@@ -217,7 +277,7 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
             targetID: missingID,
             evidence: [evidence(.rule, missingID, "Renew registration")]
         )
-        let blocked = queueEntry(for: item, primaryActionTitle: "Review Details", blockedMessage: "The saved record could not be found.")
+        let blocked = queueEntry(for: item, primaryActionTitle: "Review Details", blockedMessage: "The saved item could not be found.")
 
         let presentation = builder.presentation(
             for: item,
@@ -232,6 +292,9 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.source.rows.first?.title, "Reminder no longer exists")
         XCTAssertEqual(presentation.actions.primary?.kind, .blocked)
         XCTAssertEqual(presentation.actions.primary?.isEnabled, false)
+        XCTAssertEqual(presentation.actions.primary?.title, "Needs Confirmation")
+        XCTAssertEqual(presentation.actions.primary?.detail, "Update or restore the reminder before closing this review.")
+        XCTAssertFalse(presentation.actions.reviewState.contains { $0.kind == .confirm })
     }
 
     func testEmptyEvidenceStillShowsMinimumReviewShape() {
@@ -257,6 +320,8 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.source.rows.first?.title, "The original entry is saved locally.")
         XCTAssertNil(presentation.evidence)
         XCTAssertEqual(presentation.actions.primary?.kind, .confirm)
+        XCTAssertEqual(presentation.actions.primary?.title, "Mark Reviewed")
+        XCTAssertEqual(presentation.suggestion.title, "Needs Confirmation")
     }
 
     func testDeletedCreatedRecordIsCalledOut() {
@@ -264,7 +329,7 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
         let item = reviewItem(
             kind: .extractionReview,
             title: "Entry needs review",
-            detail: "This entry created records.",
+            detail: "This entry created saved items.",
             targetType: .chatMessage,
             targetID: nil,
             evidence: []
@@ -274,7 +339,7 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
             for: item,
             entry: queueEntry(
                 for: item,
-                primaryActionTitle: "Open Records",
+                primaryActionTitle: "Open",
                 createdRecords: [LedgerReviewCreatedRecord(targetType: .event, targetID: recordID, title: "Changed filter", subtitle: "Event")]
             ),
             messages: [],
@@ -287,6 +352,7 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.suggestion.rows.first?.title, "Changed filter")
         XCTAssertEqual(presentation.suggestion.rows.first?.isMissing, true)
         XCTAssertTrue(presentation.suggestion.rows.first?.detail?.contains("no longer exists") == true)
+        XCTAssertEqual(presentation.evidence?.summary, "Check the saved items, edit anything that needs attention, then mark reviewed.")
     }
 
     func testSaveAsNoteCreatesNoteAndAcceptsReviewItem() throws {
@@ -325,6 +391,22 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
 
     private var builder: LedgerReviewReconciliationPresentationBuilder {
         LedgerReviewReconciliationPresentationBuilder()
+    }
+
+    private static func visibleText(in presentation: LedgerReviewReconciliationPresentation) -> String {
+        var values = [presentation.title]
+        values += panelText(presentation.source)
+        values += panelText(presentation.suggestion)
+        if let evidence = presentation.evidence {
+            values += panelText(evidence)
+        }
+        values += presentation.actions.all.flatMap { [$0.title, $0.detail].compactMap(\.self) }
+        return values.joined(separator: " ")
+    }
+
+    private static func panelText(_ panel: LedgerReviewReconciliationPanel) -> [String] {
+        [panel.title, panel.summary].compactMap(\.self)
+            + panel.rows.flatMap { [$0.title, $0.detail].compactMap(\.self) }
     }
 
     private func queueEntry(

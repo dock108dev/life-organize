@@ -4,7 +4,7 @@ struct RecallService {
     var now: Date = Date()
 
     func answer(query: String) -> RecallResult {
-        RecallResult(query: query, answer: "No saved records found.")
+        RecallResult(query: query, answer: "No saved entries found.")
     }
 
     func answer(
@@ -373,8 +373,8 @@ struct RecallService {
 
     private func recallNoMatchAnswer(topic: String) -> String {
         let trimmed = topic.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return "No saved records found." }
-        return #"No saved records found for "\#(trimmed)"."#
+        guard !trimmed.isEmpty else { return "No saved entries found." }
+        return #"No saved entries found for "\#(trimmed)"."#
     }
 
     private func quoted(_ text: String) -> String {

@@ -84,11 +84,7 @@ class VerifyScriptContractTests(unittest.TestCase):
             build_summary='{"errorCount":0,"errors":[],"status":"succeeded"}',
         )
 
-        self.assertEqual(
-            completed.returncode,
-            0,
-            f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}",
-        )
+        self.assertReturnCode(completed, 0)
         self.assertIn("xcodebuild exited 65", completed.stderr)
 
     def test_ios_script_accepts_clean_counts_when_xcresult_action_is_failed(self):
@@ -97,11 +93,7 @@ class VerifyScriptContractTests(unittest.TestCase):
             build_summary='{"errorCount":0,"errors":[],"status":"succeeded"}',
         )
 
-        self.assertEqual(
-            completed.returncode,
-            0,
-            f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}",
-        )
+        self.assertReturnCode(completed, 0)
         self.assertIn("xcodebuild exited 65", completed.stderr)
 
     def test_ios_script_accepts_retained_xcresult_failure_when_final_log_passes(self):
@@ -115,11 +107,7 @@ class VerifyScriptContractTests(unittest.TestCase):
             ),
         )
 
-        self.assertEqual(
-            completed.returncode,
-            0,
-            f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}",
-        )
+        self.assertReturnCode(completed, 0)
         self.assertIn("retained failure details", completed.stderr)
         self.assertIn("xcodebuild exited 65", completed.stderr)
 
@@ -130,11 +118,7 @@ class VerifyScriptContractTests(unittest.TestCase):
             xcodebuild_log="** TEST FAILED **\\n",
         )
 
-        self.assertEqual(
-            completed.returncode,
-            65,
-            f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}",
-        )
+        self.assertReturnCode(completed, 65)
         self.assertIn("xcresult test summary did not report a clean pass", completed.stderr)
         self.assertIn("failed=1", completed.stderr)
 
@@ -145,10 +129,9 @@ class VerifyScriptContractTests(unittest.TestCase):
             fake_bin.mkdir()
             result_bundle = temp_path / "LifeOrganizeTests.xcresult"
 
-            xcodebuild = fake_bin / "xcodebuild"
-            xcodebuild.write_text(
-                textwrap.dedent(
-                    """\
+            self.write_executable(
+                fake_bin / "xcodebuild",
+                """\
                     #!/usr/bin/env bash
                     set -euo pipefail
                     while [[ "$#" -gt 0 ]]; do
@@ -163,16 +146,12 @@ class VerifyScriptContractTests(unittest.TestCase):
                     touch "$result_bundle/Info.plist"
                     printf '%b' "$XCODEBUILD_FAKE_LOG"
                     exit 65
-                    """
-                ),
-                encoding="utf-8",
+                    """,
             )
-            xcodebuild.chmod(0o755)
 
-            xcrun = fake_bin / "xcrun"
-            xcrun.write_text(
-                textwrap.dedent(
-                    """\
+            self.write_executable(
+                fake_bin / "xcrun",
+                """\
                     #!/usr/bin/env bash
                     set -euo pipefail
                     if [[ "$1" == "xcresulttool" && "$2" == "get" && "$3" == "test-results" ]]; then
@@ -185,11 +164,8 @@ class VerifyScriptContractTests(unittest.TestCase):
                     fi
                     printf 'unexpected xcrun invocation: %s\\n' "$*" >&2
                     exit 1
-                    """
-                ),
-                encoding="utf-8",
+                    """,
             )
-            xcrun.chmod(0o755)
 
             env = os.environ.copy()
             env.update(
@@ -217,9 +193,16 @@ class VerifyScriptContractTests(unittest.TestCase):
                 env=env,
                 check=False,
                 text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             )
+
+    def assertReturnCode(self, completed, expected):
+        output = f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
+        self.assertEqual(completed.returncode, expected, output)
+
+    def write_executable(self, path, body):
+        path.write_text(textwrap.dedent(body), encoding="utf-8")
+        path.chmod(0o755)
 
     def test_ios_static_layout_guard_contract(self):
         text = self.read_script("Scripts/ios_static_layout_guard.py")
@@ -465,6 +448,7 @@ class VerifyScriptContractTests(unittest.TestCase):
         self.assertIn("LifeOrganizeScenarioUITests/testCarryForwardScreenshot", text)
         self.assertIn("LifeOrganizeScenarioUITests/testSearchScreenshot", text)
         self.assertIn("LifeOrganizeScenarioUITests/testReviewQueueScreenshot", text)
+        self.assertIn("LifeOrganizeScenarioUITests/testSettingsScreenshot", text)
         self.assertIn("LifeOrganizeScenarioUITests/testHeavyTimelineScreenshot", text)
         self.assertIn("extract-xcresult-screenshots.sh", text)
         self.assertIn("SCREENSHOT_TARGET_KEY", text)
@@ -475,6 +459,7 @@ class VerifyScriptContractTests(unittest.TestCase):
         self.assertIn("BuildArtifacts/screenshots/actual/$TARGET_KEY/$ORIENTATION/$APPEARANCE", text)
         self.assertIn("Tests/ScreenshotBaselines/$TARGET_KEY/$ORIENTATION/$APPEARANCE", text)
         self.assertIn("LEGACY_BASELINE_DIR", text)
+        self.assertIn("-retry-tests-on-failure", text)
         self.assertIn("simulator-common.sh", text)
         self.assertIn("configure_simulator_for_ui_capture", text)
         self.assertIn("Scripts/screenshots/run-screenshot-tests.sh update", text)

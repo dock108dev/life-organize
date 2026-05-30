@@ -95,7 +95,7 @@ struct ThingEditView: View {
             }
 
             if let existingThing {
-                Section("Record Info") {
+                Section("Saved Info") {
                     MetadataRow(label: "Events", value: "\(existingThing.eventCount)")
                     MetadataRow(label: "Active reminders", value: "\(existingThing.activeRules.count)")
                     MetadataRow(label: "Notes", value: "\(existingThing.notes.count)")

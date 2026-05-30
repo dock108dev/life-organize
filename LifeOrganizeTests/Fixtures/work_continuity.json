@@ -394,7 +394,7 @@
         "confidence": 0.72,
         "createdAt": "2026-05-20T12:00:03Z",
         "dedupeKey": "normalization_candidate|work_continuity|30000000-0000-4000-8000-000000000102",
-        "detail": "NWS may match Nimbus Web Services. No records have been merged.",
+        "detail": "NWS may match Nimbus Web Services. No items have been merged.",
         "evidence": [
           {
             "detail": null,
@@ -409,7 +409,7 @@
             "summary": "Review NWS auth notes"
           },
           {
-            "detail": "Records currently attached to shorthand.",
+            "detail": "Saved items currently attached to shorthand.",
             "sourceId": "30000000-0000-4000-8000-000000000102",
             "sourceType": "thing",
             "summary": "NWS"

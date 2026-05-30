@@ -90,12 +90,16 @@ struct DeveloperModeRequiredView: View {
     let content: DeveloperModeRequiredContent
 
     var body: some View {
-        ContentUnavailableView(
-            content.title,
-            systemImage: content.systemImage,
-            description: Text(content.description)
-        )
-        .ledgerAdaptiveWidth(.form)
+        LedgerCenteredEmptyState {
+            LedgerEmptyStateView(
+                content: LedgerEmptyStateContent(
+                    symbolName: content.systemImage,
+                    title: content.title,
+                    body: content.description
+                )
+            )
+            .ledgerAdaptiveWidth(.form)
+        }
     }
 }
 

@@ -85,6 +85,7 @@ final class ReminderDetailActionTests: XCTestCase {
 
         XCTAssertEqual(RulesUIContract.listAccessibilityIdentifier, "carry-forward-list")
         XCTAssertEqual(RulesUIContract.detailAccessibilityIdentifier, "carry-forward-detail")
+        XCTAssertEqual(RulesUIContract.detailPaneAccessibilityIdentifier, "carry-forward-detail-pane")
         XCTAssertEqual(
             RulesUIContract.rowAccessibilityIdentifier(for: ruleID),
             "carry-forward-row-11111111-1111-1111-1111-111111111111"

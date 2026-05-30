@@ -35,19 +35,32 @@ final class AdaptiveShellUITests: XCTestCase {
 
         assertSidebarExists(in: operationalApp)
         assertRegularSelection(.timeline, in: operationalApp, expectedIdentifier: "timeline-feed")
+        XCTAssertTrue(operationalApp.buttons["root-search-entry"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(operationalApp.buttons["settings-entry"].exists)
+        XCTAssertFalse(operationalApp.buttons["add-thing-button"].exists)
+        XCTAssertFalse(operationalApp.buttons["add-reminder-button"].exists)
         assertRegularSelection(.things, in: operationalApp, expectedIdentifier: "things-list", requiresNavigationTitle: false)
+        XCTAssertTrue(operationalApp.descendants(matching: .any)["things-detail"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(operationalApp.buttons["add-thing-button"].waitForFastExistence(timeout: 5))
+        XCTAssertFalse(operationalApp.buttons["root-search-entry"].exists)
+        XCTAssertTrue(operationalApp.buttons["settings-entry"].exists)
         assertRegularSelection(
             .carryForward,
             in: operationalApp,
             expectedIdentifier: "carry-forward-list",
             requiresNavigationTitle: false
         )
+        XCTAssertTrue(operationalApp.descendants(matching: .any)["carry-forward-detail-pane"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(operationalApp.buttons["add-reminder-button"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(operationalApp.buttons["root-search-entry"].exists)
+        XCTAssertTrue(operationalApp.buttons["settings-entry"].exists)
         assertRegularSelection(.search, in: operationalApp)
         XCTAssertTrue(operationalApp.searchFields.firstMatch.waitForFastExistence(timeout: 5))
         XCTAssertFalse(operationalApp.buttons["search-done-button"].exists)
         assertRegularSelection(.settings, in: operationalApp)
         XCTAssertTrue(operationalApp.staticTexts["device-token-status"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(operationalApp.buttons["device-token-save-button"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(operationalApp.descendants(matching: .any)["settings-workspace"].exists)
         XCTAssertFalse(operationalApp.buttons["settings-done-button"].exists)
         XCTAssertFalse(operationalApp.tabBars.firstMatch.exists)
         operationalApp.terminate()
@@ -61,6 +74,7 @@ final class AdaptiveShellUITests: XCTestCase {
         assertSidebarExists(in: reviewApp)
         XCTAssertTrue(reviewApp.buttons["sidebar-section-review"].waitForFastExistence(timeout: 5))
         assertRegularSelection(.review, in: reviewApp, expectedIdentifier: "review-queue-list")
+        XCTAssertTrue(reviewApp.descendants(matching: .any)["review-queue-detail"].waitForFastExistence(timeout: 5))
         XCTAssertFalse(reviewApp.buttons["review-queue-close-button"].exists)
         XCTAssertFalse(reviewApp.tabBars.firstMatch.exists)
     }
@@ -80,6 +94,10 @@ final class AdaptiveShellUITests: XCTestCase {
         XCTAssertTrue(app.tabBars.buttons["Things"].exists)
         XCTAssertTrue(app.tabBars.buttons["Carry Forward"].exists)
         XCTAssertFalse(app.buttons["sidebar-section-timeline"].exists)
+        XCTAssertTrue(app.buttons["root-search-entry"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["settings-entry"].waitForFastExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["add-thing-button"].exists)
+        XCTAssertFalse(app.buttons["add-reminder-button"].exists)
 
         app.buttons["root-search-entry"].tap()
         XCTAssertTrue(app.navigationBars["Search"].waitForFastExistence(timeout: 5))
@@ -174,6 +192,7 @@ final class AdaptiveShellUITests: XCTestCase {
         XCTAssertTrue(settingsApp.navigationBars["Settings"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(settingsApp.staticTexts["device-token-status"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(settingsApp.buttons["device-token-save-button"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(settingsApp.descendants(matching: .any)["settings-workspace"].exists)
         XCTAssertFalse(settingsApp.buttons["settings-done-button"].exists)
         XCTAssertFalse(settingsApp.tabBars.firstMatch.exists)
         settingsApp.terminate()
@@ -183,6 +202,7 @@ final class AdaptiveShellUITests: XCTestCase {
         assertSidebarExists(in: reviewApp)
         XCTAssertTrue(reviewApp.navigationBars["Review"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(reviewApp.descendants(matching: .any)["review-queue-list"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(reviewApp.descendants(matching: .any)["review-queue-detail"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(reviewApp.buttons["sidebar-section-review"].exists)
         XCTAssertFalse(reviewApp.buttons["review-queue-close-button"].exists)
         XCTAssertFalse(reviewApp.tabBars.firstMatch.exists)

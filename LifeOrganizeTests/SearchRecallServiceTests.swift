@@ -312,7 +312,7 @@ final class SearchRecallServiceTests: XCTestCase {
         XCTAssertEqual(LedgerEmptyStateContent.searchLanding.body, "Look up a detail, date, place, or note.")
         XCTAssertEqual(
             LedgerEmptyStateContent.noSearchResults.body,
-            "Try a shorter phrase or a different detail from the entry."
+            "Try a shorter phrase or a different detail."
         )
         XCTAssertNil(LedgerEmptyStateContent.noSearchResults.secondaryBody)
     }

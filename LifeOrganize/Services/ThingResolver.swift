@@ -173,7 +173,7 @@ struct ThingResolver {
             dedupeKey: dedupeKey,
             kind: .normalizationCandidate,
             title: "Thing match needs review",
-            detail: "\(sourceName) may match \(candidate.targetName). No records have been merged.",
+            detail: "\(sourceName) may match \(candidate.targetName). No items have been merged.",
             actionTitle: "Review Thing",
             targetType: .thing,
             targetID: thing.id,

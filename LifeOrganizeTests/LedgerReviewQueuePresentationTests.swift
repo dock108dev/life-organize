@@ -12,8 +12,8 @@ final class LedgerReviewQueuePresentationTests: XCTestCase {
             dedupeKey: "queue-presentation-\(UUID().uuidString)",
             kind: .extractionReview,
             title: "Entry needs review",
-            detail: "Open the saved records to check the entry.",
-            actionTitle: "Open Records",
+            detail: "Open the saved items to check the entry.",
+            actionTitle: "Open",
             targetType: .chatMessage,
             targetID: messageID,
             evidence: [
@@ -30,7 +30,7 @@ final class LedgerReviewQueuePresentationTests: XCTestCase {
             title: item.title,
             detail: item.detail,
             correctionClass: .quickReview,
-            primaryActionTitle: "Open Records",
+            primaryActionTitle: "Open",
             blockedMessage: nil,
             createdRecords: [
                 LedgerReviewCreatedRecord(targetType: .thing, targetID: thingID, title: "Car", subtitle: "Thing"),
@@ -47,12 +47,14 @@ final class LedgerReviewQueuePresentationTests: XCTestCase {
         let presentation = LedgerReviewQueueRowPresentation(item: item, entry: entry, now: fixedTestNow)
 
         XCTAssertEqual(presentation.question, "Entry needs review")
-        XCTAssertEqual(presentation.sourceHint, "Source: Changed cabin filter.")
-        XCTAssertEqual(presentation.suggestedHint, "Suggested: Car, Cabin filter")
-        XCTAssertEqual(presentation.urgencyText, "Needs decision")
-        XCTAssertEqual(presentation.nextActionTitle, "Open Records")
-        XCTAssertEqual(presentation.badges.map(\.semantic), [.actionReview, .categoryMessage])
-        XCTAssertEqual(presentation.badges.map(\.role), [.action, .category])
+        XCTAssertEqual(presentation.sourceHint, "Changed cabin filter.")
+        XCTAssertEqual(presentation.suggestedHint, "Saved items include Car, Cabin filter")
+        XCTAssertEqual(presentation.urgencyText, "Ready for decision")
+        XCTAssertEqual(presentation.nextActionTitle, "Open")
+        XCTAssertEqual(presentation.badges.map(\.semantic), [.actionReview])
+        XCTAssertEqual(presentation.badges.map(\.role), [.action])
+        XCTAssertEqual(presentation.hiddenBadgeAccessibilityText, "Context: Message")
+        XCTAssertTrue(presentation.accessibilityLabel.contains("Context: Message"))
     }
 
     func testPendingTokenRecoveryKeepsRetryActionForDetailRouting() throws {
@@ -87,7 +89,7 @@ final class LedgerReviewQueuePresentationTests: XCTestCase {
         XCTAssertEqual(entry.primaryActionTitle, "Retry Now")
         XCTAssertNil(entry.blockedMessage)
         XCTAssertEqual(row.nextActionTitle, "Retry Now")
-        XCTAssertEqual(row.urgencyText, "Needs decision")
+        XCTAssertEqual(row.urgencyText, "Ready for decision")
         XCTAssertEqual(detail.actions.primary?.kind, .retry)
     }
 }

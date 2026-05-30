@@ -24,6 +24,45 @@ final class LedgerBadgeSemanticsTests: XCTestCase {
         XCTAssertEqual(window.label, "Window")
     }
 
+    func testBadgeDefaultsReserveProductionColorRoles() {
+        let attentionSemantics: [LedgerBadgeSemantic] = [.statusNow]
+        let temporalSemantics: [LedgerBadgeSemantic] = [.statusUpcoming, .collectionUpcoming]
+        let annotationSemantics: [LedgerBadgeSemantic] = [.categoryNote]
+        let criticalSemantics: [LedgerBadgeSemantic] = [.statusFailed]
+        let mutedSemantics: [LedgerBadgeSemantic] = [
+            .categoryThing,
+            .categoryEvent,
+            .categoryReminder,
+            .categoryMessage,
+            .categoryTimeline,
+            .sourceUser,
+            .sourceApp,
+            .sourceLog,
+            .statusSaved,
+            .statusSaving,
+            .statusSavedLocal,
+            .statusRetryPending,
+            .statusPaused,
+            .statusReviewed,
+            .statusDismissed,
+            .statusSnoozed,
+            .statusExpired,
+            .statusUpdated,
+            .actionReview,
+            .collectionReview,
+            .reminderDueDate,
+            .reminderWindow,
+            .reminderOngoing,
+            .reminderRepeating
+        ]
+
+        XCTAssertEqual(attentionSemantics.map { $0.defaultTone.semanticColorRole }, [.attention])
+        XCTAssertEqual(temporalSemantics.map { $0.defaultTone.semanticColorRole }, [.temporal, .temporal])
+        XCTAssertEqual(annotationSemantics.map { $0.defaultTone.semanticColorRole }, [.annotation])
+        XCTAssertEqual(criticalSemantics.map { $0.defaultTone.semanticColorRole }, [.critical])
+        XCTAssertTrue(mutedSemantics.allSatisfy { $0.defaultTone.semanticColorRole == .muted })
+    }
+
     func testVisibleBadgesCapCountAndOrderByPriorityThenRole() {
         let category = LedgerBadgePresentation(semantic: .categoryThing, priority: 50)
         let source = LedgerBadgePresentation(semantic: .sourceLog, priority: 50)
@@ -39,6 +78,24 @@ final class LedgerBadgeSemanticsTests: XCTestCase {
         XCTAssertEqual(visible.map(\.semantic), [.actionReview, .statusSaved, .reminderRepeating])
         XCTAssertEqual(visible.map(\.role), [.action, .status, .timing])
         XCTAssertEqual(LedgerBadgePresentation.visibleBadges(from: [action], maxCount: 0), [])
+    }
+
+    func testPrimaryBadgesEnforceSingleSemanticRowBadge() {
+        let category = LedgerBadgePresentation(semantic: .categoryThing, label: "Home")
+        let review = LedgerBadgePresentation(semantic: .actionReview, tone: .attention, priority: 85)
+        let repeating = LedgerBadgePresentation(semantic: .reminderRepeating)
+        let duplicateReview = LedgerBadgePresentation(semantic: .actionReview, tone: .attention, priority: 85)
+        let upcoming = LedgerBadgePresentation(semantic: .statusUpcoming, priority: 75)
+
+        XCTAssertEqual(LedgerBadgePresentation.primaryBadges(from: [category, review]).map(\.semantic), [.actionReview])
+        XCTAssertEqual(
+            LedgerBadgePresentation.primaryBadges(from: [repeating, duplicateReview, review]).map(\.semantic),
+            [.actionReview]
+        )
+        XCTAssertEqual(
+            LedgerBadgePresentation.hiddenBadges(from: [upcoming, category], visibleBadges: [upcoming]).map(\.semantic),
+            [.categoryThing]
+        )
     }
 
     func testSearchReminderAndRelatedContextBadgesUseMutedSemanticRoles() {
@@ -67,9 +124,10 @@ final class LedgerBadgeSemanticsTests: XCTestCase {
             records: RelationshipTraversalRecords(events: [event])
         )
 
-        XCTAssertLessThanOrEqual(searchPresentation.badges.count, 2)
-        XCTAssertEqual(searchPresentation.badges.map(\.role), [.status, .category])
-        XCTAssertEqual(searchPresentation.badges.map(\.semantic), [.statusNow, .categoryReminder])
+        XCTAssertEqual(searchPresentation.badges.count, 1)
+        XCTAssertEqual(searchPresentation.badges.map(\.role), [.status])
+        XCTAssertEqual(searchPresentation.badges.map(\.semantic), [.statusNow])
+        XCTAssertTrue(searchPresentation.accessibilityLabel.contains("Reminder"))
         XCTAssertEqual(reminderPresentation.badges.map(\.role), [.status, .timing])
         XCTAssertEqual(reminderPresentation.badges.map(\.tone), [.info, .muted])
         XCTAssertEqual(related.badge.role, .category)
@@ -88,7 +146,7 @@ final class LedgerBadgeSemanticsTests: XCTestCase {
         XCTAssertEqual(urgent.tone, .attention)
         XCTAssertEqual(reviewed.label, "Reviewed")
         XCTAssertEqual(reviewed.tone, .muted)
-        XCTAssertEqual(failed.label, "Failed")
+        XCTAssertEqual(failed.label, "Needs review")
         XCTAssertEqual(failed.tone, .danger)
     }
 

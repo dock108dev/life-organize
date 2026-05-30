@@ -22,7 +22,7 @@ struct ThingDeleteReassignmentView: View {
 
     var body: some View {
         Form {
-            Section("Move Records") {
+            Section("Move Linked Items") {
                 Text("Events, reminders, and notes linked to \(source.name) will move to the selected Thing before \(source.name) is removed.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)

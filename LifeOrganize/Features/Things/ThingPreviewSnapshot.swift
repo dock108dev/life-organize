@@ -23,6 +23,7 @@ struct ThingPreviewSnapshot {
     let continuityLines: [ContinuityLine]
     let recordCount: Int
     let listSummaryLine: LedgerRowLine
+    let savedItemSummaryLine: LedgerRowLine?
 
     enum UpcomingReminderKind: Equatable {
         case starts
@@ -175,6 +176,7 @@ struct ThingPreviewSnapshot {
             now: now,
             calendar: calendar
         )
+        savedItemSummaryLine = Self.savedItemSummaryLine(recordCount: recordCount)
     }
 
     var footerItems: [String] {
@@ -335,12 +337,12 @@ struct ThingPreviewSnapshot {
             let latestSourceDate = sourceMessages.map(\.createdAt).max()
             lines.append(ContinuityLine(
                 label: "History",
-                value: LedgerDisplayFormatting.count(recordCount, singular: "record", plural: "records"),
+                value: LedgerDisplayFormatting.count(recordCount, singular: "entry", plural: "entries"),
                 detail: latestSourceDate.map { "Captured \(DateFormatting.shortDate.string(from: $0))" },
                 tone: .info
             ))
         } else if lines.isEmpty {
-            lines.append(ContinuityLine(label: "History", value: "No records yet", detail: nil, tone: .muted))
+            lines.append(ContinuityLine(label: "History", value: "No entries yet", detail: nil, tone: .muted))
         }
 
         return lines
@@ -359,34 +361,42 @@ struct ThingPreviewSnapshot {
         now: Date,
         calendar: Calendar
     ) -> LedgerRowLine {
-        let recordText = LedgerDisplayFormatting.count(recordCount, singular: "record", plural: "records")
         if activeReminderCount > 0, let state = primaryActiveReminderState {
-            return LedgerRowLine(text: "\(recordText) · Reminder \(state.lowercased())", tone: .attention, role: .contentPreview)
+            return LedgerRowLine(text: "Reminder \(state.lowercased())", tone: .attention, role: .contentPreview)
         }
         if let upcomingReminderRelativeDueText {
-            return LedgerRowLine(text: "\(recordText) · Reminder \(upcomingReminderRelativeDueText)", tone: .attention, role: .contentPreview)
+            return LedgerRowLine(text: "Reminder \(upcomingReminderRelativeDueText)", tone: .attention, role: .contentPreview)
         }
         if let latestEventTitle {
             let detail = latestEventDate.map { DateFormatting.ledgerDateSummary($0, calendar: calendar, now: now) }
             return LedgerRowLine(
-                text: [recordText, detail, latestEventTitle].compactMap { $0 }.joined(separator: " · "),
+                text: [detail, latestEventTitle].compactMap { $0 }.joined(separator: " · "),
                 tone: .success,
                 role: .contentPreview
             )
         }
         if latestNoteSnippet != nil {
-            return LedgerRowLine(text: "\(recordText) · Recent note", tone: .note, role: .contentPreview)
+            return LedgerRowLine(text: "Recent note", tone: .note, role: .contentPreview)
         }
         if recordCount > 0 {
             let latestSourceDate = sourceMessages.map(\.createdAt).max()
             let detail = latestSourceDate.map { "Last touched \(DateFormatting.shortDate.string(from: $0))" }
             return LedgerRowLine(
-                text: [recordText, detail].compactMap { $0 }.joined(separator: " · "),
+                text: detail ?? "Saved items",
                 tone: .info,
                 role: .contentPreview
             )
         }
-        return LedgerRowLine(text: "History: No records yet", tone: .muted, role: .contentPreview)
+        return LedgerRowLine(text: "No saved items yet", tone: .muted, role: .contentPreview)
+    }
+
+    private static func savedItemSummaryLine(recordCount: Int) -> LedgerRowLine? {
+        guard recordCount > 0 else { return nil }
+        return LedgerRowLine(
+            text: LedgerDisplayFormatting.count(recordCount, singular: "saved item", plural: "saved items"),
+            tone: .muted,
+            role: .metadata
+        )
     }
 
     private static func recordCount(

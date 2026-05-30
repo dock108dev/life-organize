@@ -14,7 +14,7 @@ enum LedgerReviewCorrectionClass: String, Codable, CaseIterable {
         case .mergeDuplicateThings:
             "Merge Duplicate Things"
         case .reassignRecordsToThing:
-            "Reassign Records"
+            "Reassign Items"
         case .adjustReminderTiming:
             "Adjust Reminder Timing"
         }
@@ -269,7 +269,7 @@ struct LedgerReviewQueueService {
         }
         switch correctionClass {
         case .quickReview:
-            return "Mark Reviewed"
+            return "Mark reviewed"
         case .mergeDuplicateThings:
             return "Merge Things"
         case .reassignRecordsToThing:
@@ -408,9 +408,9 @@ enum LedgerReviewQueueError: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .missingTarget:
-            "The saved record could not be found."
+            "The saved item could not be found."
         case .noActionableRecords:
-            "There are no records available for this review action."
+            "There are no saved items available for this review action."
         case .actionUnavailable:
             "This review item has already been updated."
         case .unsupportedAction:

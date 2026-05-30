@@ -78,6 +78,8 @@ struct LedgerRuleRow: View {
 
     var body: some View {
         let presentation = continuityService.presentation(for: rule)
+        let candidateBadges = presentation.badges + [reviewPresentation?.badge].compactMap(\.self)
+        let visibleBadges = LedgerBadgePresentation.primaryBadges(from: candidateBadges)
 
         LedgerRow(
             primary: rule.title,
@@ -85,13 +87,11 @@ struct LedgerRuleRow: View {
             density: density,
             emphasis: emphasis
         ) {
-            ForEach(presentation.badges) { badge in
+            ForEach(visibleBadges) { badge in
                 LedgerBadgePill(badge: badge, size: .small)
             }
-            if let reviewPresentation {
-                LedgerBadgePill(badge: reviewPresentation.badge, size: .small)
-            }
         }
+        .accessibilityLabel(accessibilityLabel(for: presentation, candidateBadges: candidateBadges, visibleBadges: visibleBadges))
     }
 
     private func rowLines(for presentation: ReminderContinuityPresentation) -> [LedgerRowLine] {
@@ -100,6 +100,17 @@ struct LedgerRuleRow: View {
             lines.append(reviewPresentation.rowLine)
         }
         return lines
+    }
+
+    private func accessibilityLabel(
+        for presentation: ReminderContinuityPresentation,
+        candidateBadges: [LedgerBadgePresentation],
+        visibleBadges: [LedgerBadgePresentation]
+    ) -> String {
+        let hiddenBadges = LedgerBadgePresentation.hiddenBadges(from: candidateBadges, visibleBadges: visibleBadges)
+        return ([rule.title] + visibleBadges.map(\.label) + hiddenBadges.map(\.label) + rowLines(for: presentation).map(\.text))
+            .filter { !$0.isEmpty }
+            .joined(separator: ". ")
     }
 }
 

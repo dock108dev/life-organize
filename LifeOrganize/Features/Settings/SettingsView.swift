@@ -48,32 +48,28 @@ struct SettingsView: View {
 
     private var settingsContent: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: LedgerVisualSystem.Spacing.surfaceStack) {
                 header
                 feedbackNotice
                 missingTokenNotice
 
-                settingsDivider
                 deviceTokenSection
-                settingsDivider
                 exportSection
-                settingsDivider
                 clearDataSection
 
                 if Self.showsDeveloperDiagnostics(for: developerModeState.policy) {
-                    settingsDivider
                     developerDiagnosticsSection
                 }
 
-                settingsDivider
                 versionFooter
             }
-            .frame(maxWidth: LedgerAdaptiveLayout.Width.formMax, alignment: .leading)
+            .frame(maxWidth: LedgerAdaptiveLayout.Workspace.settingsContentMax, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .center)
             .padding(.horizontal, LedgerAdaptiveLayout.Gutter.regular)
-            .padding(.vertical, 18)
+            .padding(.vertical, LedgerAdaptiveLayout.Workspace.contentVerticalPadding)
         }
         .background(LedgerScreenBackground().ignoresSafeArea())
+        .accessibilityIdentifier("settings-workspace")
         .navigationTitle("Settings")
         .toolbar {
             if showsDoneButton {
@@ -89,7 +85,16 @@ struct SettingsView: View {
             reloadSavedTokenState()
         }
         .navigationDestination(item: $activeDeveloperDestination) { destination in
-            developerDestinationView(for: destination)
+            if Self.showsDeveloperDiagnostics(for: developerModeState.policy) {
+                developerDestinationView(for: destination)
+            } else {
+                EmptyView()
+            }
+        }
+        .onChange(of: developerModeState.policy) { _, policy in
+            if !Self.showsDeveloperDiagnostics(for: policy) {
+                activeDeveloperDestination = nil
+            }
         }
         .confirmationDialog(
             "Reset service token?",
@@ -174,14 +179,9 @@ struct SettingsView: View {
         }
     }
 
-    private var settingsDivider: some View {
-        Divider()
-            .overlay(Color(.separator).opacity(0.35))
-    }
-
     private var deviceTokenSection: some View {
         VStack(alignment: .leading, spacing: LedgerVisualSystem.Spacing.section) {
-            sectionHeader(
+            LedgerSectionTitle(
                 title: SettingsTrustCopy.deviceTokenTitle,
                 icon: "server.rack",
                 tone: savedTokenDescription == nil ? .neutral : .success
@@ -194,14 +194,14 @@ struct SettingsView: View {
             }
 
             Text(SettingsTrustCopy.deviceTokenBody)
-                .font(.footnote)
+                .font(LedgerVisualSystem.Typography.sectionBody)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             Text(savedTokenDescription == nil
                 ? SettingsTrustCopy.noTokenDetail
                 : SettingsTrustCopy.savedTokenDetail)
-                .font(.caption)
+                .font(LedgerVisualSystem.Typography.sectionFooter)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("device-token-status")
@@ -214,16 +214,17 @@ struct SettingsView: View {
                 .accessibilityIdentifier("device-token-save-button")
             }
         }
+        .settingsSurface(tint: savedTokenDescription == nil ? nil : .success)
     }
 
     private var exportSection: some View {
         VStack(alignment: .leading, spacing: LedgerVisualSystem.Spacing.section) {
-            sectionHeader(title: SettingsTrustCopy.exportTitle, icon: "square.and.arrow.up", tone: .info) {
+            LedgerSectionTitle(title: SettingsTrustCopy.exportTitle, icon: "square.and.arrow.up", tone: .info) {
                 LedgerPill(text: "Portable copy", tone: .info, size: .small)
             }
 
             Text(SettingsTrustCopy.exportBody)
-                .font(.footnote)
+                .font(LedgerVisualSystem.Typography.sectionBody)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -231,17 +232,19 @@ struct SettingsView: View {
                 exportLocalJSON()
             }
             .buttonStyle(.bordered)
+            .accessibilityIdentifier("settings-export-button")
         }
+        .settingsSurface(tint: .info)
     }
 
     private var clearDataSection: some View {
         VStack(alignment: .leading, spacing: LedgerVisualSystem.Spacing.section) {
-            sectionHeader(title: SettingsTrustCopy.clearTitle, icon: "trash", tone: .danger) {
+            LedgerSectionTitle(title: SettingsTrustCopy.clearTitle, icon: "trash", tone: .danger) {
                 LedgerPill(text: "Strong confirmation", tone: .danger, size: .small)
             }
 
             Text(SettingsTrustCopy.clearBody)
-                .font(.footnote)
+                .font(LedgerVisualSystem.Typography.sectionBody)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -254,79 +257,67 @@ struct SettingsView: View {
                 isShowingClearDataConfirmation = true
             }
             .buttonStyle(.bordered)
+            .accessibilityIdentifier("settings-clear-data-button")
         }
+        .settingsSurface(tint: .danger)
     }
 
     private var developerDiagnosticsSection: some View {
         VStack(alignment: .leading, spacing: LedgerVisualSystem.Spacing.section) {
-            sectionHeader(title: "Developer Diagnostics", icon: "wrench.and.screwdriver", tone: .attention) {
+            LedgerSectionTitle(title: "Developer Diagnostics", icon: "wrench.and.screwdriver", tone: .attention) {
                 LedgerPill(text: "Unlocked", tone: .attention, size: .small)
             }
 
             Text("Local troubleshooting and QA tools.")
-                .font(.footnote)
+                .font(LedgerVisualSystem.Typography.sectionBody)
                 .foregroundStyle(.secondary)
 
             Text("Developer mode unlocked")
-                .font(.caption)
+                .font(LedgerVisualSystem.Typography.sectionFooter)
                 .foregroundStyle(.secondary)
 
             VStack(alignment: .leading, spacing: 8) {
-                Button {
-                    activeDeveloperDestination = .extractionAttempts
-                } label: {
-                    Label("Extraction Attempts", systemImage: "list.bullet.rectangle")
+                ForEach(SettingsDeveloperDestination.allCases) { destination in
+                    Button {
+                        activeDeveloperDestination = destination
+                    } label: {
+                        LedgerRow(
+                            primary: destination.title,
+                            secondary: [
+                                LedgerRowLine(
+                                    text: destination.detail,
+                                    tone: .muted,
+                                    role: .contentPreview,
+                                    lineLimit: 1
+                                )
+                            ],
+                            surfaceDensity: .searchResultRow,
+                            badges: {
+                                EmptyView()
+                            },
+                            accessory: {
+                                LedgerIcon(systemName: destination.systemImage, context: .cardList, tone: destination.tone)
+                            }
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(destination.title)
                 }
-                .buttonStyle(.plain)
-
-                Button {
-                    activeDeveloperDestination = .failedExtractions
-                } label: {
-                    Label("Failed Extractions", systemImage: "exclamationmark.triangle")
-                }
-                .buttonStyle(.plain)
-
-                Button {
-                    activeDeveloperDestination = .internalQALab
-                } label: {
-                    Label("Internal QA Lab", systemImage: "testtube.2")
-                }
-                .buttonStyle(.plain)
             }
 
             Button("Lock Developer Mode") {
                 developerModeState.lock()
             }
-            .font(.footnote.weight(.medium))
+            .font(LedgerVisualSystem.Typography.sectionBody.weight(.medium))
         }
-    }
-
-    private func sectionHeader<Accessory: View>(
-        title: String,
-        icon: String,
-        tone: LedgerTone,
-        @ViewBuilder accessory: () -> Accessory
-    ) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Image(systemName: icon)
-                .foregroundStyle(tone.foreground)
-                .accessibilityHidden(true)
-
-            Text(title)
-                .font(.headline)
-
-            Spacer(minLength: 8)
-
-            accessory()
-        }
-        .accessibilityElement(children: .combine)
+        .settingsSurface(tint: .attention)
     }
 
     private var versionFooter: some View {
         VStack(spacing: 10) {
             VStack(spacing: 4) {
                 Text("LifeOrganize \(appVersionDescription)")
-                    .font(.footnote)
+                    .font(LedgerVisualSystem.Typography.sectionBody)
                     .contentShape(Rectangle())
                     .accessibilityIdentifier("settings-version-footer")
                     .onTapGesture {
@@ -445,24 +436,9 @@ extension SettingsView {
     }
 }
 
-private enum SettingsDeveloperDestination: Identifiable {
-    case extractionAttempts
-    case failedExtractions
-    case internalQALab
-
-    var id: Self { self }
-}
-
-private extension SettingsView {
-    @ViewBuilder
-    func developerDestinationView(for destination: SettingsDeveloperDestination) -> some View {
-        switch destination {
-        case .extractionAttempts:
-            ExtractionDebugListView(deviceTokenStore: deviceTokenStore)
-        case .failedExtractions:
-            ExtractionDebugListView(deviceTokenStore: deviceTokenStore, initialFilter: .failed)
-        case .internalQALab:
-            InternalQALabView(deviceTokenStore: deviceTokenStore)
-        }
+private extension View {
+    func settingsSurface(tint: LedgerTone? = nil) -> some View {
+        padding(LedgerSurfaceContract.contentPadding)
+            .ledgerSurface(tint: tint)
     }
 }

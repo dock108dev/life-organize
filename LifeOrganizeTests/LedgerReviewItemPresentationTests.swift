@@ -41,7 +41,7 @@ final class LedgerReviewItemPresentationTests: XCTestCase {
         let evidenceMatched = item(
             kind: .duplicateThing,
             title: "Possible duplicate Things",
-            detail: "These Things share the same normalized name. No records have been merged.",
+            detail: "These Things share the same saved name. No items have been merged.",
             targetType: .thing,
             targetID: UUID(),
             evidence: [evidence(.thing, thingID, "Garage remote")],
@@ -80,7 +80,7 @@ final class LedgerReviewItemPresentationTests: XCTestCase {
         let lowerPriority = item(
             kind: .intervalReminder,
             title: "Service cadence is ready for review",
-            detail: "Saved records show a cadence.",
+            detail: "Saved items show a cadence.",
             targetType: .thing,
             targetID: thingID,
             updatedAt: fixedTestNow.addingTimeInterval(day)
@@ -100,7 +100,7 @@ final class LedgerReviewItemPresentationTests: XCTestCase {
         let reviewItem = item(
             kind: .overdueReminderReview,
             title: "Reminder is in review",
-            detail: "Complete, reschedule, pause, or dismiss from the reminder record.",
+            detail: "Complete, reschedule, pause, or dismiss from the reminder.",
             targetType: .rule,
             targetID: ruleID
         )
@@ -127,11 +127,11 @@ final class LedgerReviewItemPresentationTests: XCTestCase {
         snoozed.snoozedUntil = fixedTestNow.addingTimeInterval(day)
         let expired = item(state: .expired, targetID: targetID)
         let failed = item(state: .failed, targetID: targetID)
-        failed.fail(reason: "The saved record could not be updated.", at: fixedTestNow)
+        failed.fail(reason: "The saved item could not be updated.", at: fixedTestNow)
 
         let presentations = [accepted, dismissed, snoozed, expired, failed].map(service.presentation(for:))
 
-        XCTAssertEqual(presentations.map(\.pillText), ["Reviewed", "Dismissed", "Snoozed", "Expired", "Failed"])
+        XCTAssertEqual(presentations.map(\.pillText), ["Reviewed", "Dismissed", "Snoozed", "Expired", "Needs review"])
         XCTAssertEqual(presentations.map(\.tone), [.muted, .muted, .muted, .muted, .danger])
         XCTAssertEqual(presentations.map(\.badge.semantic), [
             .statusReviewed,
@@ -141,7 +141,7 @@ final class LedgerReviewItemPresentationTests: XCTestCase {
             .statusFailed
         ])
         XCTAssertTrue(presentations[2].detail?.contains("Returns") == true)
-        XCTAssertEqual(presentations[4].detail, "The saved record could not be updated.")
+        XCTAssertEqual(presentations[4].detail, "The saved item could not be updated.")
     }
 
     private var lowerPriorityPresentation: LedgerReviewItemPresentation {

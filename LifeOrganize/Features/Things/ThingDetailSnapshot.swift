@@ -98,11 +98,12 @@ struct ThingDetailSnapshot {
     }
 
     var countSummary: String {
-        [
-            LedgerDisplayFormatting.count(events.count, singular: "event", plural: "events"),
-            LedgerDisplayFormatting.count(notes.count, singular: "note", plural: "notes"),
-            LedgerDisplayFormatting.count(activeReminders.count, singular: "active reminder", plural: "active reminders")
-        ].joined(separator: " · ")
+        let parts = [
+            events.isEmpty ? nil : LedgerDisplayFormatting.count(events.count, singular: "event", plural: "events"),
+            notes.isEmpty ? nil : LedgerDisplayFormatting.count(notes.count, singular: "note", plural: "notes"),
+            activeReminders.isEmpty ? nil : LedgerDisplayFormatting.count(activeReminders.count, singular: "active reminder", plural: "active reminders")
+        ].compactMap(\.self)
+        return parts.isEmpty ? "No saved activity" : parts.joined(separator: " · ")
     }
 
     var hasHistory: Bool {

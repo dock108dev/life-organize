@@ -52,7 +52,7 @@ final class ThingDetailSnapshotTests: XCTestCase {
             "Renew inspection"
         ])
         XCTAssertEqual(snapshot.nextReminder?.title, "Keep registration in glove box")
-        XCTAssertEqual(snapshot.countSummary, "0 events · 0 notes · 3 active reminders")
+        XCTAssertEqual(snapshot.countSummary, "3 active reminders")
     }
 
     @MainActor
@@ -237,7 +237,8 @@ final class ThingDetailSnapshotTests: XCTestCase {
         XCTAssertEqual(sourceSnapshot.countSummary, targetSnapshot.countSummary)
         XCTAssertEqual(targetSnapshot.countSummary, "1 event · 1 note · 1 active reminder")
         XCTAssertEqual(targetSnapshot.identityRows.first { $0.label == "Aliases" }?.value, "Nimbus, NWS")
-        XCTAssertEqual(targetPreview.listSummaryLine.text, "3 records · Reminder due today")
+        XCTAssertEqual(targetPreview.listSummaryLine.text, "Reminder due today")
+        XCTAssertEqual(targetPreview.savedItemSummaryLine?.text, "3 saved items")
         XCTAssertEqual(targetPreview.footerItems, ["1 event", "1 note"])
         XCTAssertEqual(Set(relatedTargets.map(\.target)), [.event(event.id), .rule(reminder.id), .note(note.id)])
     }

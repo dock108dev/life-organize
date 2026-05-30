@@ -36,16 +36,21 @@ Then launch the app with:
 -ai-service-base-url=http://127.0.0.1:8787
 ```
 
+See [Local development](docs/local-development.md) for backend setup details, device-token enrollment, and verification commands.
+
 ## Deployment
 
 The backend lives in `Backend/`, runs as a FastAPI service with Postgres, and owns provider credentials. Production deployment is backend-only: GitHub Actions builds and publishes the API image, runs Alembic migrations, recreates the API container, and verifies `https://life.dock108.dev/healthz`. The iOS workflow builds, tests, checks coverage, and compares screenshots; it does not sign, archive, upload, or deploy the app.
 
 ## Docs
 
-- [Current app state](docs/current-app-state.md)
+- [Architecture](docs/architecture.md)
+- [Data models](docs/data-models.md)
 - [Backend](docs/backend.md)
+- [Environment and runtime configuration](docs/env-and-config.md)
+- [Local development](docs/local-development.md)
+- [Testing and CI](docs/testing-and-ci.md)
 - [Backend deployment](docs/ops/deployment.md)
 - [Branch protection checks](docs/ops/branch-protection.md)
 - [Screenshot baselines](docs/screenshot-baselines.md)
-- [Production visual polish notes](docs/planning/production-visual-polish.md)
 - [Large-file follow-up list](docs/maintenance/large-files.md)

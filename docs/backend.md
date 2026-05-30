@@ -1,13 +1,23 @@
 # Backend
 
-The backend is a private FastAPI gateway for LifeOrganize AI features. The iOS app sends extraction and web requests with a per-device service token; the backend owns `OPENAI_API_KEY`, builds OpenAI Responses API requests, rate-limits device tokens, and records request metadata in Postgres.
+The backend is a private FastAPI gateway for LifeOrganize AI features. The iOS app sends extraction and web requests with a per-device service token; the backend owns `OPENAI_API_KEY`, builds OpenAI Responses API requests, enforces known active device tokens, rate-limits device tokens, and records request metadata in Postgres.
 
-The app routes to:
+## Public App API
 
-- `POST /api/v1/extractions`
-- `POST /api/v1/web-requests`
+`POST /api/v1/extractions` accepts extraction requests and returns raw provider response text, provider request JSON, and model name.
 
-Admin and operations surfaces are:
+`POST /api/v1/web-requests` accepts web lookup or web import requests. Answer mode returns assistant text and model name. Import mode returns the same extraction response shape used by `/api/v1/extractions`.
+
+Both routes require:
+
+- `X-LifeOrganize-Device-Token`
+- JSON request bodies
+- A token hash present in `device_clients` with `status='active'`
+- Per-token, per-endpoint rate limit headroom
+
+Unknown, revoked, or short tokens are rejected before provider calls. Request logs store token hashes, endpoint, status, latency, model, provider request ID, and error code. They do not store raw device tokens.
+
+## Admin and Operations API
 
 - `GET /healthz`
 - `GET /api/admin/usage`
@@ -19,16 +29,30 @@ Admin and operations surfaces are:
 - `POST /api/admin/logs/logout`
 - `GET /admin/logs`, the HTML log panel shell that connects to the authenticated admin API routes.
 
+`GET /` returns a small service/ok payload. FastAPI docs, ReDoc, and OpenAPI JSON are available only outside production/staging.
+
+The log panel uses `LIFE_ORGANIZE_ADMIN_API_KEY` to create an HTTP-only admin session cookie. In production and staging, that cookie is marked secure.
+
+## Middleware and Hardening
+
+`RequestSizeLimitMiddleware` rejects request bodies above `MAX_REQUEST_BYTES` with `413` and code `request_too_large`.
+
+`SecurityHeadersMiddleware` adds default security headers to HTTP responses except OPTIONS responses:
+
+- `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'`
+- `Strict-Transport-Security`
+- `X-Frame-Options: DENY`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: no-referrer`
+- `Permissions-Policy` disabling camera, microphone, and geolocation
+
+`/admin/logs` provides its own page-specific CSP that allows inline script/style needed by the static HTML shell, sets `Cache-Control: no-store`, and sets `X-Robots-Tag: noindex, nofollow`.
+
 ## Local Run
 
-The backend supports Python `>=3.13`. Create the virtual environment from the repo root:
+See [Local development](local-development.md) for Docker, direct Python, and local device-token enrollment steps.
 
-```sh
-python3 -m venv Backend/.venv
-Backend/.venv/bin/pip install -r Backend/requirements.txt
-```
-
-Run the API from `Backend/` with the environment required by `Backend/app/config.py`:
+Minimal direct run shape:
 
 ```sh
 cd Backend
@@ -38,28 +62,6 @@ OPENAI_API_KEY=sk-... \
 LIFE_ORGANIZE_ADMIN_API_KEY=dev-admin \
 .venv/bin/python -m uvicorn main:app --reload --port 8787
 ```
-
-Or run the local Docker stack from the repo root:
-
-```sh
-docker compose -f Backend/infra/docker-compose.yml --profile dev up --build
-```
-
-The Compose stack binds Postgres to `127.0.0.1:5433` by default and the API to `127.0.0.1:8787`, proxying to Uvicorn on container port `8000`.
-
-Point the iOS app at the local backend with:
-
-```sh
--ai-service-base-url=http://127.0.0.1:8787
-```
-
-Open the local backend log/control panel at:
-
-```text
-http://127.0.0.1:8787/admin/logs
-```
-
-Use `LIFE_ORGANIZE_ADMIN_API_KEY` to open an admin session from the log panel. The panel connects to the authenticated admin API routes with the `x-admin-api-key` header, then uses the admin session cookie for subsequent log reads and streaming. The admin key stays in the current page session and is not persisted to browser storage. The page streams request, OpenAI gateway, and security events, including status, latency, model, OpenAI request IDs, and sanitized auth/rate-limit decisions. The logged event metadata includes request text length, not raw user text, API keys, device tokens, provider request JSON, or raw model response bodies.
 
 ## Production
 

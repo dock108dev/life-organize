@@ -100,8 +100,10 @@ The command runs the maintained iPhone 17 Pro portrait and landscape screenshot 
 
 The command reports that Stage Manager or narrow iPad window sizing is not covered because CoreSimulator command-line tooling does not reliably create that window class for XCTest. Use `update` instead of `compare` only when intentionally refreshing the screenshot baseline cells owned by the matrix.
 
-## CI Artifacts
+## CI Behavior
 
-The required iOS CI screenshot job runs the iPhone portrait light target. Main pushes run the job unconditionally; pull requests run it when iOS rendering code, assets, localization, UI tests, screenshot scripts, baselines, Fastlane screenshot lanes, or screenshot documentation changes. Manual workflow dispatch can run the iPad portrait light target with `screenshot_profile=ipad_portrait` or both CI light targets, iPhone portrait and iPad portrait, with `screenshot_profile=all_light`.
+The required iOS CI screenshot job runs the iPhone 17 Pro portrait light target. Main pushes run the iOS workflow unconditionally; pull requests run it when app, test, asset, screenshot, Fastlane, iOS script, screenshot baseline, screenshot documentation, or iOS workflow paths change.
+
+Manual workflow dispatch can run the required target, the iPad portrait light target with `screenshot_profile=ipad_portrait`, or both CI light targets with `screenshot_profile=all_light`.
 
 On failure, CI uploads the target-specific `BuildArtifacts/ScreenshotTests-*.xcresult`, actual PNGs, diff PNGs when present, and `BuildArtifacts/screenshots/compare.log`. Baselines are not refreshed by CI. Intentional visual changes still require a local `Scripts/screenshots/run-screenshot-tests.sh update` run and a commit of the changed PNGs under `Tests/ScreenshotBaselines/`.

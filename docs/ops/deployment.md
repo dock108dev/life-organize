@@ -61,9 +61,9 @@ The deploy workflow checks `sudo -n true` before updating the active Caddy confi
 ## Manual Deploy
 
 Deploy an existing image from GitHub Actions with `Deploy Recent Backend Image`.
-Leave `run_migrations=false` for rollback-style image changes. Set
-`run_migrations=true` only for normal manual deploys or after schema
-compatibility has been checked.
+That workflow refreshes the Caddy site block, pulls the selected image, optionally runs migrations, recreates Postgres/API services, waits for container health, and verifies public `/healthz`.
+
+Leave `run_migrations=false` for rollback-style image changes. Set `run_migrations=true` only for normal manual deploys or after schema compatibility has been checked.
 
 To deploy manually on the server with migrations:
 

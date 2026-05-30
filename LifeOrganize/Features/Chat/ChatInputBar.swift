@@ -68,6 +68,22 @@ struct ChatInputBar: View {
                         }
                     }
 
+                if isFocused {
+                    Button {
+                        isFocused = false
+                    } label: {
+                        Image(systemName: "keyboard.chevron.compact.down")
+                            .font(.system(size: 16, weight: .semibold))
+                            .frame(width: 32, height: 32)
+                            .foregroundStyle(Color.secondary)
+                            .background(Color(.tertiarySystemFill), in: Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Dismiss Keyboard")
+                    .accessibilityIdentifier("timeline-keyboard-dismiss-button")
+                    .padding(.vertical, 4)
+                }
+
                 Button(action: onSend) {
                     Image(systemName: "plus")
                         .font(.system(size: 17, weight: .semibold))

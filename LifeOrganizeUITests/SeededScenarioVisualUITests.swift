@@ -48,14 +48,14 @@ extension LifeOrganizeScenarioUITests {
 
     private func launchOperationalHomeSeed(resetStore: Bool, initialTab: String?) -> XCUIApplication {
         var arguments = [
-            "--seed-scenario=operational_home",
+            "-seed-scenario=operational_home",
             "-fixed-now=2026-07-05T08:00:00-04:00"
         ]
         if resetStore {
-            arguments.append("--reset-db")
+            arguments.append("-reset-store")
         }
         if let initialTab {
-            arguments.append("--initial-tab=\(initialTab)")
+            arguments.append("-initial-tab=\(initialTab)")
         }
         return launchUITestApp(extraArguments: arguments, useInMemoryStore: true)
     }

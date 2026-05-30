@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from collections.abc import AsyncIterator
 from typing import Any
@@ -61,6 +62,19 @@ def test_admin_event_bus_retains_fixed_buffer_without_resetting_ids() -> None:
         bus.emit("info", "admin", f"event-{index}")
 
     assert [event.id for event in bus.recent(500)] == [3, 4, 5]
+
+
+def test_admin_event_bus_drops_backpressured_subscriber_without_raising() -> None:
+    bus = AdminEventBus()
+    subscriber: asyncio.Queue = asyncio.Queue(maxsize=1)
+    subscriber.put_nowait(bus.emit("info", "admin", "fills subscriber"))
+    bus._subscribers.add(subscriber)
+
+    event = bus.emit("warning", "security", "request path should keep running")
+
+    assert event.message == "request path should keep running"
+    assert bus.recent(1) == [event]
+    assert subscriber not in bus._subscribers
 
 
 def test_admin_log_routes_use_header_and_session_auth(client, admin_headers: dict[str, str]) -> None:
@@ -144,14 +158,14 @@ def test_admin_log_stream_uses_cookie_session_and_rest_event_shape(
 def test_request_admin_logs_expose_metadata_without_sensitive_values(
     db_client,
     admin_headers: dict[str, str],
-    device_headers: dict[str, str],
+    enrolled_device_headers: dict[str, str],
     install_gateway_stub,
     settings_override,
 ) -> None:
     raw_user_text = "Private cardiology appointment notes and personal reminder."
     raw_provider_body = '{"events":[{"title":"private extracted event"}]}'
     raw_request_json = '{"input":[{"content":"Private cardiology appointment notes"}]}'
-    raw_device_token = device_headers["x-lifeorganize-device-token"]
+    raw_device_token = enrolled_device_headers["x-lifeorganize-device-token"]
     install_gateway_stub(
         extraction_result=GatewayResult(
             output_text=raw_provider_body,
@@ -164,7 +178,7 @@ def test_request_admin_logs_expose_metadata_without_sensitive_values(
 
     response = db_client.post(
         "/api/v1/extractions",
-        headers=device_headers,
+        headers=enrolled_device_headers,
         json={
             "text": raw_user_text,
             "currentDate": "2027-01-15",

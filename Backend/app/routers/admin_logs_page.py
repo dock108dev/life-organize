@@ -223,6 +223,7 @@ LOGS_PAGE_HTML = """<!doctype html>
           <option value="request">request</option>
           <option value="openai">openai</option>
           <option value="admin">admin</option>
+          <option value="security">security</option>
         </select>
       </div>
       <div>
@@ -257,7 +258,6 @@ const requestsMetric = document.getElementById("requests");
 
 let source = null;
 let events = [];
-keyInput.value = localStorage.getItem("lifeorganize-admin-key") || "";
 
 function key() {
   return keyInput.value.trim();
@@ -359,7 +359,6 @@ function connect() {
     alert("Enter the admin key first.");
     return;
   }
-  localStorage.setItem("lifeorganize-admin-key", key());
   if (source) source.close();
   fetch("/api/admin/logs/session", {
     method: "POST",
@@ -389,6 +388,10 @@ function disconnect() {
   if (source) source.close();
   source = null;
   setState(false);
+  fetch("/api/admin/logs/logout", {
+    method: "POST",
+    headers: authHeaders(),
+  }).catch(() => {});
 }
 
 async function postJSON(url, body) {
@@ -416,7 +419,6 @@ filterInput.addEventListener("input", render);
 categoryInput.addEventListener("change", render);
 levelInput.addEventListener("change", render);
 
-if (key()) connect();
 </script>
 </body>
 </html>

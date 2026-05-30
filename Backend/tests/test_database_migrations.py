@@ -25,7 +25,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
-ALEMBIC_REVISION = "20260522_000001"
+ALEMBIC_REVISION = "20260530_000002"
 EXPECTED_TABLES = {"ai_request_logs", "alembic_version", "device_clients"}
 EXPECTED_DEVICE_CLIENT_COLUMNS = {
     "id",
@@ -33,6 +33,8 @@ EXPECTED_DEVICE_CLIENT_COLUMNS = {
     "first_seen_at",
     "last_seen_at",
     "request_count",
+    "status",
+    "revoked_at",
 }
 EXPECTED_AI_REQUEST_LOG_COLUMNS = {
     "id",
@@ -124,6 +126,16 @@ async def test_request_route_persists_metadata_without_sensitive_fields(
     )
 
     try:
+        async with session_factory() as session:
+            session.add(
+                DeviceClient(
+                    token_hash=auth.hash_device_token(raw_device_token),
+                    request_count=0,
+                    status=auth.ACTIVE_DEVICE_STATUS,
+                )
+            )
+            await session.commit()
+
         response = await async_client.post(
             "/api/v1/extractions",
             headers=device_headers,

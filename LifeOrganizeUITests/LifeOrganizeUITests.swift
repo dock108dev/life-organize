@@ -75,7 +75,7 @@ final class LifeOrganizeUITests: XCTestCase {
         XCTAssertFalse(timelineApp.buttons["add-reminder-button"].exists)
         timelineApp.terminate()
 
-        let thingsApp = launchApp(resetStore: true, extraArguments: ["--initial-tab=things"])
+        let thingsApp = launchApp(resetStore: true, extraArguments: ["-initial-tab=things"])
         XCTAssertTrue(thingsApp.navigationBars["Things"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(thingsApp.buttons["add-thing-button"].waitForFastExistence(timeout: 5))
         XCTAssertFalse(thingsApp.buttons["root-search-entry"].exists)
@@ -86,7 +86,7 @@ final class LifeOrganizeUITests: XCTestCase {
         thingsApp.buttons["Cancel"].tap()
         thingsApp.terminate()
 
-        let carryForwardApp = launchApp(resetStore: true, extraArguments: ["--initial-tab=carry_forward"])
+        let carryForwardApp = launchApp(resetStore: true, extraArguments: ["-initial-tab=carry_forward"])
         XCTAssertTrue(carryForwardApp.navigationBars["Carry Forward"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(carryForwardApp.buttons["add-reminder-button"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(carryForwardApp.buttons["root-search-entry"].waitForFastExistence(timeout: 5))
@@ -176,10 +176,10 @@ final class LifeOrganizeUITests: XCTestCase {
         let app = launchApp(
             resetStore: false,
             extraArguments: [
-                "--reset-db",
+                "-reset-store",
                 "-reset-device-token",
                 "-fixed-now=2026-05-20T08:00:00-04:00",
-                "--seed-scenario=ambiguous_dog_grooming"
+                "-seed-scenario=ambiguous_dog_grooming"
             ]
         )
 
@@ -192,14 +192,18 @@ final class LifeOrganizeUITests: XCTestCase {
         XCTAssertTrue(
             app.staticTexts.matching(labelContaining: "May 27 to June 3, 2026").firstMatch.waitForFastExistence(timeout: 5)
         )
-        XCTAssertTrue(app.staticTexts.matching(labelContaining: "Choose Date").firstMatch.waitForFastExistence(timeout: 5))
+        let reviewRow = app.buttons.matching(identifierPrefix: "review-queue-row-").firstMatch
+        XCTAssertTrue(reviewRow.waitForFastExistence(timeout: 5))
+        reviewRow.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["review-queue-detail"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["review-queue-accept-button"].waitForFastExistence(timeout: 5))
         attachScreenshot(named: "review_queue", from: app)
     }
 
     func testDeterministicSimulatorWalkthroughCoversPrimarySurfaces() throws {
         let app = launchApp(
             resetStore: true,
-            extraArguments: ["--seed-scenario=first-run-empty"],
+            extraArguments: ["-seed-scenario=first-run-empty"],
             useInMemoryStore: false
         )
 

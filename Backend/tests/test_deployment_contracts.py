@@ -225,3 +225,12 @@ def test_compose_keeps_runtime_migrations_out_of_api_startup() -> None:
     assert "RUN_MIGRATIONS: ${RUN_MIGRATIONS:-false}" in compose
     assert 'command: ["alembic", "-c", "/app/alembic.ini", "upgrade", "head"]' in compose
     assert 'RUN_MIGRATIONS: "false"' in compose
+
+
+def test_docker_smoke_checks_current_alembic_head() -> None:
+    smoke = read_repo_file("Backend/infra/scripts/docker_smoke.sh")
+    migration = read_repo_file("Backend/alembic/versions/20260530_000002_device_token_lifecycle.py")
+
+    assert 'revision = "20260530_000002"' in migration
+    assert 'EXPECTED_ALEMBIC_REVISION="20260530_000002"' in smoke
+    assert 'test "$version" = "$EXPECTED_ALEMBIC_REVISION"' in smoke

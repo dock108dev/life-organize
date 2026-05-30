@@ -29,7 +29,6 @@ def test_extraction_route_logs_success(
     assert token_hash_override == "test-token-hash"
     assert route_session.commits == 1
     assert [type(item).__name__ for item in route_session.added] == [
-        "DeviceClient",
         "AIRequestLog",
     ]
     assert route_session.added[-1].status_code == 200

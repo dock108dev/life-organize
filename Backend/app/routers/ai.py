@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin_events import admin_events
 from app.auth import (
+    enforce_active_device_token,
     enforce_device_rate_limit,
-    record_device_seen,
     require_admin_key,
     require_device_token,
 )
@@ -28,7 +28,7 @@ async def extract(
     token_hash: str = Depends(require_device_token),
     session: AsyncSession = Depends(get_session),
 ) -> ExtractionResponse:
-    await record_device_seen(session, token_hash)
+    await enforce_active_device_token(session, token_hash)
     await enforce_device_rate_limit(session, token_hash, "/api/v1/extractions")
     started = time.perf_counter()
     model_name: str | None = None
@@ -107,7 +107,7 @@ async def web_request(
     token_hash: str = Depends(require_device_token),
     session: AsyncSession = Depends(get_session),
 ) -> ExtractionResponse | WebAnswerResponse:
-    await record_device_seen(session, token_hash)
+    await enforce_active_device_token(session, token_hash)
     await enforce_device_rate_limit(session, token_hash, "/api/v1/web-requests")
     started = time.perf_counter()
     model_name: str | None = None

@@ -9,7 +9,7 @@ from conftest import SyncRouteSession
 from fastapi.testclient import TestClient
 
 import app.auth as auth
-from app.admin_events import admin_events
+from app.admin_events import admin_events, event_payload
 from app.config import settings
 from app.models import AIRequestLog, DeviceClient
 from app.services.openai_gateway import GatewayResult
@@ -89,10 +89,10 @@ def test_extractions_accept_valid_device_token_and_redact_persistence(
     db_client: TestClient,
     sqlite_route_session: SyncRouteSession,
     install_gateway_stub,
-    device_headers: dict[str, str],
+    enrolled_device_headers: dict[str, str],
     admin_headers: dict[str, str],
 ) -> None:
-    raw_token = device_headers["x-lifeorganize-device-token"]
+    raw_token = enrolled_device_headers["x-lifeorganize-device-token"]
     install_gateway_stub(
         extraction_result=GatewayResult(
             output_text='{"events":[]}',
@@ -105,7 +105,7 @@ def test_extractions_accept_valid_device_token_and_redact_persistence(
 
     response = db_client.post(
         "/api/v1/extractions",
-        headers=device_headers,
+        headers=enrolled_device_headers,
         json=extraction_body(),
     )
     logs_response = db_client.get("/api/admin/logs", headers=admin_headers)
@@ -128,6 +128,54 @@ def test_extractions_accept_valid_device_token_and_redact_persistence(
     assert raw_token not in devices[0].token_hash
     assert raw_token not in request_logs[0].token_hash
     assert raw_token not in json.dumps(logs_response.json(), sort_keys=True)
+
+
+def test_device_routes_reject_unknown_tokens(
+    db_client: TestClient,
+    sqlite_route_session: SyncRouteSession,
+    install_gateway_stub,
+    device_headers: dict[str, str],
+) -> None:
+    gateway = install_gateway_stub()
+
+    response = db_client.post(
+        "/api/v1/extractions",
+        headers=device_headers,
+        json=extraction_body(),
+    )
+
+    assert response.status_code == 401
+    assert response.json()["detail"]["code"] == "unknown_device_token"
+    assert gateway.extraction_requests == []
+    assert sqlite_route_session.count(DeviceClient) == 0
+    security_events = [event for event in admin_events.recent(50) if event.category == "security"]
+    assert security_events[-1].message == "Unknown device token rejected"
+
+
+def test_device_routes_reject_revoked_tokens(
+    db_client: TestClient,
+    sqlite_route_session: SyncRouteSession,
+    install_gateway_stub,
+    device_headers: dict[str, str],
+) -> None:
+    raw_token = device_headers["x-lifeorganize-device-token"]
+    sqlite_route_session.session.add(
+        DeviceClient(token_hash=auth.hash_device_token(raw_token), request_count=1, status="revoked")
+    )
+    sqlite_route_session.session.commit()
+    gateway = install_gateway_stub()
+
+    response = db_client.post(
+        "/api/v1/extractions",
+        headers=device_headers,
+        json=extraction_body(),
+    )
+
+    assert response.status_code == 401
+    assert response.json()["detail"]["code"] == "revoked_device_token"
+    assert gateway.extraction_requests == []
+    request_logs = sqlite_route_session.all(AIRequestLog)
+    assert request_logs == []
 
 
 @pytest.mark.parametrize(
@@ -153,7 +201,7 @@ def test_web_requests_accept_valid_device_token_modes(
     db_client: TestClient,
     sqlite_route_session: SyncRouteSession,
     install_gateway_stub,
-    device_headers: dict[str, str],
+    enrolled_device_headers: dict[str, str],
     body: dict[str, Any],
     output_text: str,
     expected: dict[str, Any],
@@ -168,7 +216,7 @@ def test_web_requests_accept_valid_device_token_modes(
         )
     )
 
-    response = db_client.post("/api/v1/web-requests", headers=device_headers, json=body)
+    response = db_client.post("/api/v1/web-requests", headers=enrolled_device_headers, json=body)
 
     assert response.status_code == 200
     assert response.json() == expected
@@ -195,6 +243,7 @@ def test_web_requests_accept_valid_device_token_modes(
         ("GET", "/api/admin/logs/stream", None),
         ("POST", "/api/admin/logs/mark", {"label": "Deploy check"}),
         ("POST", "/api/admin/logs/clear", None),
+        ("POST", "/api/admin/logs/logout", None),
     ],
 )
 def test_admin_routes_reject_invalid_admin_keys(
@@ -256,6 +305,20 @@ def test_logs_session_accepts_exact_admin_key_and_sets_cookie(
     assert "HttpOnly" in set_cookie
     assert "SameSite=strict" in set_cookie
     assert "Max-Age=28800" in set_cookie
+    assert "Secure" not in set_cookie
+
+
+def test_logs_session_cookie_is_secure_in_production(
+    db_client: TestClient,
+    admin_headers: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "environment", "production")
+
+    response = db_client.post("/api/admin/logs/session", headers=admin_headers)
+
+    assert response.status_code == 200
+    assert "Secure" in response.headers["set-cookie"]
 
 
 @pytest.mark.parametrize(
@@ -307,6 +370,44 @@ def test_logs_routes_accept_admin_session_cookie(
     assert response.status_code == 200
 
 
+def test_logs_logout_clears_admin_session_cookie(
+    db_client: TestClient,
+    admin_headers: dict[str, str],
+) -> None:
+    session_response = db_client.post("/api/admin/logs/session", headers=admin_headers)
+    assert session_response.status_code == 200
+
+    logout_response = db_client.post("/api/admin/logs/logout")
+    logs_response = db_client.get("/api/admin/logs")
+
+    assert logout_response.status_code == 200
+    assert logout_response.json() == {"ok": True}
+    assert "lifeorganize_admin_session" in logout_response.headers["set-cookie"]
+    assert logs_response.status_code == 401
+
+
+def test_auth_failures_emit_sanitized_security_events(
+    db_client: TestClient,
+) -> None:
+    raw_admin_key = "wrong-admin-key"
+    raw_device_token = "short-token"
+
+    admin_response = db_client.get("/api/admin/usage", headers={"x-admin-api-key": raw_admin_key})
+    device_response = db_client.post(
+        "/api/v1/extractions",
+        headers={"x-lifeorganize-device-token": raw_device_token},
+        json=extraction_body(),
+    )
+    assert admin_response.status_code == 401
+    assert device_response.status_code == 401
+    security_events = [event for event in admin_events.recent(50) if event.category == "security"]
+    serialized = json.dumps([event_payload(event) for event in security_events], sort_keys=True)
+    assert "Admin key rejected" in serialized
+    assert "Device token rejected" in serialized
+    assert raw_admin_key not in serialized
+    assert raw_device_token not in serialized
+
+
 def test_stream_logs_accepts_admin_header_and_session_cookie(
     db_client: TestClient,
     admin_headers: dict[str, str],
@@ -336,4 +437,8 @@ def test_logs_page_is_public_shell_without_admin_key(db_client: TestClient) -> N
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
     assert "content-security-policy" in response.headers
+    assert response.headers["cache-control"] == "no-store"
+    assert response.headers["x-robots-tag"] == "noindex, nofollow"
     assert "Backend Logs" in response.text
+    assert "localStorage" not in response.text
+    assert "/api/admin/logs/logout" in response.text

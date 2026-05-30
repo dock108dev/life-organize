@@ -42,7 +42,6 @@ async def test_route_harness_stubs_gateway_success_without_sensitive_logs(
     assert gateway.extraction_requests[0].text == extraction_request_body["text"]
     assert route_session.commits == 1
     assert [type(item).__name__ for item in route_session.added] == [
-        "DeviceClient",
         "AIRequestLog",
     ]
 

@@ -161,6 +161,11 @@ extension XCTestCase {
 
     func dismissKeyboardIfVisible(in app: XCUIApplication) {
         guard app.keyboards.firstMatch.exists else { return }
+        let timelineDismissButton = app.buttons["timeline-keyboard-dismiss-button"]
+        if timelineDismissButton.waitForFastExistence(timeout: 0.5) {
+            timelineDismissButton.tap()
+            return
+        }
         app.swipeDown()
     }
 

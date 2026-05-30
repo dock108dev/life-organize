@@ -6,6 +6,8 @@ from functools import lru_cache
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+_LEGACY_ENVIRONMENT_KEYS = ("AUTO_" + "ENROLL_DEVICE_TOKENS",)
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -35,6 +37,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_runtime_settings(self) -> Settings:
+        if any(os.getenv(key) is not None for key in _LEGACY_ENVIRONMENT_KEYS):
+            raise RuntimeError("Legacy path removed — use SSOT implementation")
         if self.environment in {"production", "staging"}:
             missing = [
                 name

@@ -102,7 +102,6 @@ struct LocalJSONExportService {
         let successfulAttemptIDs = attempts
             .filter { $0.status == .succeeded || $0.status == .partiallySucceeded }
             .map(\.id)
-        let compatibilityAttemptID = successfulAttemptIDs.last ?? latestAttemptID
         let thingIDs = things
             .filter { $0.sourceMessageIDs.contains(message.id) }
             .map(\.id)
@@ -119,7 +118,6 @@ struct LocalJSONExportService {
             text: safe(message.text),
             createdAt: timestamp(message.createdAt),
             linkedEntityIds: linkedIDs.map(\.uuidString).sorted(),
-            extractionRunId: compatibilityAttemptID?.uuidString,
             extractionRunIds: attempts.map { $0.id.uuidString },
             latestExtractionRunId: latestAttemptID?.uuidString,
             successfulExtractionRunIds: successfulAttemptIDs.map(\.uuidString),

@@ -4,8 +4,8 @@ Production deployment covers only the FastAPI backend and Postgres. iOS GitHub A
 
 The backend deployment flow is:
 
-1. `Backend CI/CD` runs backend tests, Ruff, and Python compilation.
-2. Backend coverage, Docker Compose smoke, and Python 3.11 compatibility checks run before image publishing.
+1. `Backend CI/CD` runs backend tests, Ruff, dependency audit, committed-secret scanning, and Python compilation.
+2. Backend coverage and Docker Compose smoke run before image publishing.
 3. On `main` pushes for backend paths, or manual dispatch with `full_deploy=true`, it builds and pushes `ghcr.io/dock108dev/life-organize-api:<short-sha>` and `latest`.
 4. The deploy job SSHes to the server, resets the checkout in `DEPLOY_PATH` to the target branch, updates the `life.dock108.dev` Caddy site block when needed, pulls the image, runs Alembic migrations, starts Compose, waits for `lifeorganize-api` to become healthy, verifies the running image, and smokes `https://life.dock108.dev/healthz`.
 5. A separate `prod / healthz smoke` job repeats the public `/healthz` check after deploy. While DNS is being created or propagated, both smoke checks fall back to `curl -k --resolve life.dock108.dev:443:$DEPLOY_HOST`.
@@ -44,6 +44,7 @@ DEVICE_RATE_LIMIT_WINDOW_SECONDS=3600
 ```
 
 The Compose file uses the internal database URL automatically, so `DATABASE_URL` is optional for Docker deploys.
+Device token auto-enrollment is no longer supported. Populate expected device token hashes in `device_clients` with `status='active'`; unknown tokens are rejected.
 
 ## Caddy
 
@@ -60,9 +61,9 @@ The deploy workflow checks `sudo -n true` before updating the active Caddy confi
 ## Manual Deploy
 
 Deploy an existing image from GitHub Actions with `Deploy Recent Backend Image`.
-Leave `run_migrations=false` for rollback-style image changes. Set
-`run_migrations=true` only for normal manual deploys or after schema
-compatibility has been checked.
+That workflow refreshes the Caddy site block, pulls the selected image, optionally runs migrations, recreates Postgres/API services, waits for container health, and verifies public `/healthz`.
+
+Leave `run_migrations=false` for rollback-style image changes. Set `run_migrations=true` only for normal manual deploys or after schema compatibility has been checked.
 
 To deploy manually on the server with migrations:
 

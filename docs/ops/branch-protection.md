@@ -12,10 +12,10 @@ Require only checks that run on pull requests for the protected branch. Do not r
 | --- | --- | --- | --- |
 | `backend / tests` | `Backend CI/CD` | `test-backend` | Backend pytest suite with Postgres-enabled integration tests. |
 | `backend / lint` | `Backend CI/CD` | `lint-ruff` | Ruff lint gate for backend app, tests, and deploy helpers. |
+| `backend / security audit` | `Backend CI/CD` | `security-audit` | Python dependency advisory audit and committed-secret scan. |
 | `backend / compile` | `Backend CI/CD` | `compile` | Python bytecode compilation after backend test and lint gates. |
 | `backend / coverage >= 80` | `Backend CI/CD` | `coverage` | Backend pytest coverage gate. |
 | `backend / docker build` | `Backend CI/CD` | `docker-build` | Backend Docker Compose smoke before image publish. |
-| `Python 3.11 Compatibility` | `Backend CI/CD` | `python-lower-bound` | Lower-bound Python compile and pytest check. |
 | `ios / build` | `iOS CI` | `build-ios` | Unsigned simulator build for testing. |
 | `ios / unit and ui tests` | `iOS CI` | `test-ios` | Simulator unit and UI tests with code coverage collection. |
 | `ios / coverage >= 80` | `iOS CI` | `coverage-ios` | App-target coverage gate from the test result bundle. |
@@ -35,7 +35,7 @@ Only promote `ios / screenshots / iPad portrait` to required checks after the wo
 
 `backend / docker publish`, `backend / deploy`, and `prod / healthz smoke` are deploy-path checks from `Backend CI/CD`. They run on `main` pushes for backend paths and manual full-deploy dispatches. The production smoke check is deploy-only. Keep it out of pull request required checks.
 
-Backend deploy remains GitHub Actions to Hetzner through the configured SSH host. The image publish job depends on `backend / docker build` and `Python 3.11 Compatibility`; `backend / docker build` depends on the backend test, lint, compile, and coverage gates. The deploy job depends on image publish, and `prod / healthz smoke` depends on deploy.
+Backend deploy remains GitHub Actions to Hetzner through the configured SSH host. The image publish job depends on `backend / docker build`; `backend / docker build` depends on the backend test, lint, security audit, compile, and coverage gates. The deploy job depends on image publish, and `prod / healthz smoke` depends on deploy.
 
 ## Renaming Checks
 

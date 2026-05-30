@@ -10,8 +10,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 import app.auth as auth
+from app.admin_events import admin_events
 from app.config import settings
-from app.models import AIRequestLog
+from app.models import AIRequestLog, DeviceClient
 from app.services.openai_gateway import GatewayResult
 
 
@@ -38,7 +39,7 @@ def test_rate_limited_response_includes_retry_after_and_skips_gateway_log(
     db_client: TestClient,
     sqlite_route_session: SyncRouteSession,
     install_gateway_stub,
-    device_headers: dict[str, str],
+    enrolled_device_headers: dict[str, str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(settings, "device_rate_limit_requests", 1)
@@ -55,12 +56,12 @@ def test_rate_limited_response_includes_retry_after_and_skips_gateway_log(
 
     first_response = db_client.post(
         "/api/v1/web-requests",
-        headers=device_headers,
+        headers=enrolled_device_headers,
         json=web_answer_body(),
     )
     second_response = db_client.post(
         "/api/v1/web-requests",
-        headers=device_headers,
+        headers=enrolled_device_headers,
         json=web_answer_body(),
     )
 
@@ -76,12 +77,19 @@ def test_rate_limited_response_includes_retry_after_and_skips_gateway_log(
     assert gateway.web_requests is not None
     assert len(gateway.web_requests) == 1
     assert sqlite_route_session.count(AIRequestLog) == 1
+    security_events = [event for event in admin_events.recent(50) if event.category == "security"]
+    assert security_events[-1].message == "Device rate limit exceeded"
+    assert security_events[-1].details == {
+        "endpoint": "/api/v1/web-requests",
+        "window_seconds": 37,
+        "limit": 1,
+    }
 
 
 def test_rate_limit_keeps_separate_endpoint_quotas(
     db_client: TestClient,
     install_gateway_stub,
-    device_headers: dict[str, str],
+    enrolled_device_headers: dict[str, str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(settings, "device_rate_limit_requests", 1)
@@ -90,17 +98,17 @@ def test_rate_limit_keeps_separate_endpoint_quotas(
 
     extraction_response = db_client.post(
         "/api/v1/extractions",
-        headers=device_headers,
+        headers=enrolled_device_headers,
         json=extraction_body(),
     )
     web_response = db_client.post(
         "/api/v1/web-requests",
-        headers=device_headers,
+        headers=enrolled_device_headers,
         json=web_answer_body(),
     )
     blocked_response = db_client.post(
         "/api/v1/extractions",
-        headers=device_headers,
+        headers=enrolled_device_headers,
         json=extraction_body(),
     )
 
@@ -111,6 +119,7 @@ def test_rate_limit_keeps_separate_endpoint_quotas(
 
 def test_rate_limit_does_not_share_quota_by_client_ip(
     db_client: TestClient,
+    sqlite_route_session: SyncRouteSession,
     install_gateway_stub,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -119,6 +128,16 @@ def test_rate_limit_does_not_share_quota_by_client_ip(
     install_gateway_stub()
     device_a_headers = {"x-lifeorganize-device-token": "device-token-aaaaaaaa"}
     device_b_headers = {"x-lifeorganize-device-token": "device-token-bbbbbbbb"}
+    for headers in (device_a_headers, device_b_headers):
+        raw_token = headers["x-lifeorganize-device-token"]
+        sqlite_route_session.session.add(
+            DeviceClient(
+                token_hash=auth.hash_device_token(raw_token),
+                request_count=0,
+                status=auth.ACTIVE_DEVICE_STATUS,
+            )
+        )
+    sqlite_route_session.session.commit()
 
     first_a = db_client.post(
         "/api/v1/extractions",

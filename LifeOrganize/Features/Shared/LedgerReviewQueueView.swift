@@ -37,8 +37,18 @@ struct LedgerReviewQueueView: View {
         self.onClose = onClose
     }
 
+    private var queueState: LedgerReviewQueueLoadState {
+        LedgerReviewQueueLoadState.load {
+            try queueService.entries(from: reviewItems, origin: origin)
+        }
+    }
+
     private var queueEntries: [LedgerReviewQueueEntry] {
-        (try? queueService.entries(from: reviewItems, origin: origin)) ?? []
+        queueState.entries
+    }
+
+    private var queueLoadErrorMessage: String? {
+        queueState.errorMessage
     }
 
     private var visibleEntries: [LedgerReviewQueueEntry] {
@@ -123,7 +133,12 @@ struct LedgerReviewQueueView: View {
 
     @ViewBuilder
     private var regularQueueList: some View {
-        if visibleEntries.isEmpty {
+        if let queueLoadErrorMessage {
+            reviewLoadFailureState(queueLoadErrorMessage)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(LedgerScreenBackground().ignoresSafeArea())
+                .accessibilityIdentifier("review-queue-list")
+        } else if visibleEntries.isEmpty {
             emptyState
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(LedgerScreenBackground().ignoresSafeArea())
@@ -165,6 +180,10 @@ struct LedgerReviewQueueView: View {
             if let selectedReview {
                 detailView(item: selectedReview.item, entry: selectedReview.entry)
                     .id(selectedReview.item.id)
+            } else if let queueLoadErrorMessage {
+                reviewLoadFailureState(queueLoadErrorMessage)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(LedgerScreenBackground().ignoresSafeArea())
             } else if visibleEntries.isEmpty {
                 emptyState
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -183,7 +202,11 @@ struct LedgerReviewQueueView: View {
 
     private var compactQueueView: some View {
         Group {
-            if visibleEntries.isEmpty {
+            if let queueLoadErrorMessage {
+                LedgerCenteredEmptyState {
+                    reviewLoadFailureState(queueLoadErrorMessage)
+                }
+            } else if visibleEntries.isEmpty {
                 LedgerCenteredEmptyState {
                     emptyState
                 }
@@ -216,6 +239,15 @@ struct LedgerReviewQueueView: View {
 
     private var emptyState: some View {
         LedgerEmptyStateView(content: origin == nil ? .reviewAllCaughtUp : .reviewContextEmpty)
+    }
+
+    private func reviewLoadFailureState(_ message: String) -> some View {
+        LedgerNoSelectionPlaceholderView(
+            "Review could not load",
+            systemImage: "exclamationmark.triangle",
+            description: message
+        )
+        .accessibilityIdentifier("review-queue-load-error")
     }
 
     private func detailView(item: LedgerReviewItem, entry: LedgerReviewQueueEntry) -> some View {

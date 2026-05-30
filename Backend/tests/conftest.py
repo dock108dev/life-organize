@@ -37,6 +37,7 @@ from app import auth  # noqa: E402
 from app.admin_events import admin_events  # noqa: E402
 from app.config import settings  # noqa: E402
 from app.db import Base, get_session  # noqa: E402
+from app.models import DeviceClient  # noqa: E402
 from app.routers import admin, ai  # noqa: E402
 from app.services.openai_gateway import GatewayResult, OpenAIGatewayError  # noqa: E402
 from main import app as fastapi_app  # noqa: E402
@@ -194,7 +195,17 @@ def settings_override() -> Any:
 
 @pytest.fixture
 def route_session(backend_app: FastAPI) -> Iterator[RouteSession]:
-    session = RouteSession(scalar_values=[None, 0], added=[])
+    session = RouteSession(
+        scalar_values=[
+            DeviceClient(
+                token_hash=auth.hash_device_token(VALID_DEVICE_TOKEN),
+                request_count=0,
+                status=auth.ACTIVE_DEVICE_STATUS,
+            ),
+            0,
+        ],
+        added=[],
+    )
 
     async def fake_get_session() -> AsyncIterator[RouteSession]:
         yield session
@@ -271,6 +282,23 @@ def install_gateway_stub(
 @pytest.fixture
 def device_headers() -> dict[str, str]:
     return {"x-lifeorganize-device-token": VALID_DEVICE_TOKEN}
+
+
+@pytest.fixture
+def enrolled_device_headers(
+    sqlite_route_session: SyncRouteSession,
+    device_headers: dict[str, str],
+) -> dict[str, str]:
+    raw_token = device_headers["x-lifeorganize-device-token"]
+    sqlite_route_session.session.add(
+        DeviceClient(
+            token_hash=auth.hash_device_token(raw_token),
+            request_count=0,
+            status=auth.ACTIVE_DEVICE_STATUS,
+        )
+    )
+    sqlite_route_session.session.commit()
+    return device_headers
 
 
 @pytest.fixture

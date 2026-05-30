@@ -31,7 +31,7 @@ The maintained light-appearance matrix is:
 
 The static iOS layout guard checks that each maintained light-appearance matrix cell contains the guard-required scenario set: `first_launch`, `timeline_empty`, `timeline`, `things`, `thing_detail`, `carry_forward`, `search`, `review_queue`, and `heavy_timeline`. The screenshot comparator also fails on unexpected actual PNGs, so `settings.png` is maintained in the current baseline directories even though `Scripts/ios_static_layout_guard.py` does not list it in `REQUIRED_SCREENSHOT_SCENARIOS`.
 
-Generated actual and diff artifacts stay under `BuildArtifacts/`, which is ignored by `.gitignore`. The older `Tests/ScreenshotBaselines/iPhone_16/light/` directory is not part of the required static guard matrix or iOS CI screenshot jobs. To intentionally accept a visual change, run:
+Generated actual and diff artifacts stay under `BuildArtifacts/`, which is ignored by `.gitignore`. Baselines are resolved only from the target, orientation, and appearance path shown above. To intentionally accept a visual change, run:
 
 ```sh
 Scripts/screenshots/run-screenshot-tests.sh update
@@ -75,7 +75,7 @@ SCREENSHOT_APPEARANCE=light \
 Scripts/screenshots/run-screenshot-tests.sh compare
 ```
 
-Replace `compare` with `update` in the same commands to refresh that one baseline cell. The runner still accepts a legacy `Tests/ScreenshotBaselines/<target-key>/<appearance>/` directory only for default portrait comparisons when no explicit target key or orientation override is provided.
+Replace `compare` with `update` in the same commands to refresh that one baseline cell.
 
 The default comparison thresholds are:
 
@@ -100,8 +100,10 @@ The command runs the maintained iPhone 17 Pro portrait and landscape screenshot 
 
 The command reports that Stage Manager or narrow iPad window sizing is not covered because CoreSimulator command-line tooling does not reliably create that window class for XCTest. Use `update` instead of `compare` only when intentionally refreshing the screenshot baseline cells owned by the matrix.
 
-## CI Artifacts
+## CI Behavior
 
-The required iOS CI screenshot job runs the iPhone portrait light target. Main pushes run the job unconditionally; pull requests run it when iOS rendering code, assets, localization, UI tests, screenshot scripts, baselines, Fastlane screenshot lanes, or screenshot documentation changes. Manual workflow dispatch can run the iPad portrait light target with `screenshot_profile=ipad_portrait` or both CI light targets, iPhone portrait and iPad portrait, with `screenshot_profile=all_light`.
+The required iOS CI screenshot job runs the iPhone 17 Pro portrait light target. Main pushes run the iOS workflow unconditionally; pull requests run it when app, test, asset, screenshot, Fastlane, iOS script, screenshot baseline, screenshot documentation, or iOS workflow paths change.
+
+Manual workflow dispatch can run the required target, the iPad portrait light target with `screenshot_profile=ipad_portrait`, or both CI light targets with `screenshot_profile=all_light`.
 
 On failure, CI uploads the target-specific `BuildArtifacts/ScreenshotTests-*.xcresult`, actual PNGs, diff PNGs when present, and `BuildArtifacts/screenshots/compare.log`. Baselines are not refreshed by CI. Intentional visual changes still require a local `Scripts/screenshots/run-screenshot-tests.sh update` run and a commit of the changed PNGs under `Tests/ScreenshotBaselines/`.

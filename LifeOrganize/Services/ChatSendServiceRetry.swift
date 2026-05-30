@@ -27,6 +27,13 @@ extension ChatSendService {
             guard canWriteResults(for: dataGeneration) else {
                 return nil
             }
+            LocalDiagnosticEventStore().record(
+                severity: .warning,
+                category: "extraction",
+                operation: "retry_extraction",
+                error: error,
+                affectedRecordID: message.id
+            )
             try fail(message: message, attempt: attempt, error: error)
         }
 

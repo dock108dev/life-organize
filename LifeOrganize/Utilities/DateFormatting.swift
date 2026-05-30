@@ -32,30 +32,6 @@ enum DateFormatting {
         calendar.date(bySettingHour: 12, minute: 0, second: 0, of: date) ?? date
     }
 
-    static func normalizedLegacyUTCDateOnlyForDisplay(_ date: Date, calendar: Calendar = .current) -> Date {
-        let utcComponents = utcGregorianCalendar.dateComponents([.year, .month, .day, .hour, .minute, .second, .nanosecond], from: date)
-        guard utcComponents.hour == 0,
-              utcComponents.minute == 0,
-              utcComponents.second == 0,
-              utcComponents.nanosecond == 0,
-              let year = utcComponents.year,
-              let month = utcComponents.month,
-              let day = utcComponents.day else {
-            return date
-        }
-
-        var localComponents = DateComponents()
-        localComponents.calendar = calendar
-        localComponents.timeZone = calendar.timeZone
-        localComponents.year = year
-        localComponents.month = month
-        localComponents.day = day
-        localComponents.hour = 12
-        localComponents.minute = 0
-        localComponents.second = 0
-        return calendar.date(from: localComponents) ?? date
-    }
-
     static func normalizedUndatedExtractionDateForDisplay(
         _ date: Date,
         sourceDate: Date,

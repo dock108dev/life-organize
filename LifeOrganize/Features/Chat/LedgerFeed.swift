@@ -246,12 +246,11 @@ enum LedgerFeedItem: Identifiable {
         case .message(let message):
             return message.createdAt
         case .event(let event):
-            let legacyNormalized = DateFormatting.normalizedLegacyUTCDateOnlyForDisplay(event.occurredAt, calendar: calendar)
             guard let sourceMessage = event.sourceMessage else {
-                return legacyNormalized
+                return event.occurredAt
             }
             return DateFormatting.normalizedUndatedExtractionDateForDisplay(
-                legacyNormalized,
+                event.occurredAt,
                 sourceDate: sourceMessage.createdAt,
                 contextText: [event.rawText, event.title].compactMap { $0?.nilIfEmpty }.joined(separator: " "),
                 calendar: calendar
@@ -260,12 +259,11 @@ enum LedgerFeedItem: Identifiable {
             if let manuallyDeactivatedAt = reminder.manuallyDeactivatedAt {
                 return manuallyDeactivatedAt
             }
-            let legacyNormalized = DateFormatting.normalizedLegacyUTCDateOnlyForDisplay(reminder.startsAt, calendar: calendar)
             guard let sourceMessage = reminder.sourceMessage else {
-                return legacyNormalized
+                return reminder.startsAt
             }
             return DateFormatting.normalizedUndatedExtractionDateForDisplay(
-                legacyNormalized,
+                reminder.startsAt,
                 sourceDate: sourceMessage.createdAt,
                 contextText: [reminder.rawText, reminder.title].compactMap { $0?.nilIfEmpty }.joined(separator: " "),
                 calendar: calendar

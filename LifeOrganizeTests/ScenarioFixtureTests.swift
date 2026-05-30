@@ -183,7 +183,6 @@ final class ScenarioFixtureTests: XCTestCase {
             "chatMessages": [
               {
                 "createdAt": "2026-05-20T12:00:00Z",
-                "extractionRunId": null,
                 "extractionRunIds": [],
                 "extractionState": {
                   "attemptCount": 0,

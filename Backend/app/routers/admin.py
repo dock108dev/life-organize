@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import secrets
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Request, Response
 from fastapi.responses import HTMLResponse, StreamingResponse
@@ -12,7 +14,19 @@ from app.routers.admin_logs_page import LOGS_PAGE_HTML
 
 router = APIRouter()
 _ADMIN_SESSION_COOKIE = "lifeorganize_admin_session"
-_admin_sessions: set[str] = set()
+_ADMIN_SESSION_TTL = timedelta(hours=8)
+_MAX_ADMIN_SESSIONS = 32
+
+
+@dataclass
+class AdminSession:
+    created_at: datetime
+    expires_at: datetime
+
+
+# Admin log sessions are intentionally process-local. The production Compose
+# service runs one API process, so shared session storage is not required today.
+_admin_sessions: dict[str, AdminSession] = {}
 
 
 def _admin_key_from(request: Request) -> str | None:
@@ -21,22 +35,49 @@ def _admin_key_from(request: Request) -> str | None:
 
 def _require_admin(request: Request) -> None:
     session = request.cookies.get(_ADMIN_SESSION_COOKIE)
-    if session in _admin_sessions:
+    if _is_active_session(session):
         return
     validate_admin_key(_admin_key_from(request))
+
+
+def _is_active_session(session: str | None) -> bool:
+    if not session:
+        return False
+    _prune_expired_sessions()
+    return session in _admin_sessions
+
+
+def _prune_expired_sessions(now: datetime | None = None) -> None:
+    current_time = now or datetime.now(UTC)
+    expired = [
+        session_id
+        for session_id, session in _admin_sessions.items()
+        if session.expires_at <= current_time
+    ]
+    for session_id in expired:
+        _admin_sessions.pop(session_id, None)
+
+
+def _store_admin_session(session_id: str) -> None:
+    now = datetime.now(UTC)
+    _prune_expired_sessions(now)
+    _admin_sessions[session_id] = AdminSession(created_at=now, expires_at=now + _ADMIN_SESSION_TTL)
+    while len(_admin_sessions) > _MAX_ADMIN_SESSIONS:
+        oldest_session_id = min(_admin_sessions, key=lambda item: _admin_sessions[item].created_at)
+        _admin_sessions.pop(oldest_session_id, None)
 
 
 @router.post("/api/admin/logs/session")
 async def create_logs_session(request: Request, response: Response) -> dict:
     validate_admin_key(_admin_key_from(request))
     session = secrets.token_urlsafe(32)
-    _admin_sessions.add(session)
+    _store_admin_session(session)
     response.set_cookie(
         _ADMIN_SESSION_COOKIE,
         session,
         httponly=True,
         samesite="strict",
-        secure=False,
+        secure=settings.environment in {"production", "staging"},
         max_age=60 * 60 * 8,
     )
     admin_events.emit(
@@ -82,7 +123,9 @@ async def logs_page() -> HTMLResponse:
                 "connect-src 'self'; "
                 "img-src 'self' data:; "
                 "frame-ancestors 'none'"
-            )
+            ),
+            "Cache-Control": "no-store",
+            "X-Robots-Tag": "noindex, nofollow",
         },
     )
 
@@ -113,3 +156,23 @@ async def clear_logs(request: Request) -> dict:
         source="logs_page",
     )
     return {"event": event_payload(event)}
+
+
+@router.post("/api/admin/logs/logout")
+async def logout_logs(request: Request, response: Response) -> dict:
+    session = request.cookies.get(_ADMIN_SESSION_COOKIE)
+    _require_admin(request)
+    if session:
+        _admin_sessions.pop(session, None)
+    response.delete_cookie(
+        _ADMIN_SESSION_COOKIE,
+        secure=settings.environment in {"production", "staging"},
+        samesite="strict",
+    )
+    admin_events.emit(
+        "info",
+        "admin",
+        "Admin logs session closed",
+        source="logs_page",
+    )
+    return {"ok": True}

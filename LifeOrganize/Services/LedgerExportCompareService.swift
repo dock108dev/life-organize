@@ -157,7 +157,6 @@ struct LedgerExportCanonicalizer {
             text: message.text,
             createdAt: message.createdAt,
             linkedEntityIds: sortedIDs(message.linkedEntityIds),
-            extractionRunId: policy.kind == .uiFacingScenarioEquality ? nil : message.extractionRunId,
             extractionRunIds: policy.kind == .uiFacingScenarioEquality ? [] : sortRunIDs(message.extractionRunIds, runOrder: runOrder),
             latestExtractionRunId: policy.kind == .uiFacingScenarioEquality ? nil : message.latestExtractionRunId,
             successfulExtractionRunIds: policy.kind == .uiFacingScenarioEquality

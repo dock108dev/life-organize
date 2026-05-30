@@ -15,35 +15,35 @@ final class LedgerFeedProjectionTests: XCTestCase {
         XCTAssertEqual(grouping.group(for: try Self.date(2026, 6, 1, 12, calendar: calendar)), .upcoming)
     }
 
-    func testProjectionDisplaysLegacyUTCMidnightDateOnlyRecordsOnIntendedLocalDay() throws {
+    func testProjectionDisplaysLocalNoonDateOnlyRecordsOnIntendedLocalDay() throws {
         let calendar = Self.newYorkCalendar
         let now = try Self.date(2026, 5, 26, 21, calendar: calendar)
-        let legacyHotKnife = LedgerRule(
+        let hotKnife = LedgerRule(
             title: "Get hot knife",
             ruleType: .reminder,
             rawText: "Get hot knife",
-            startsAt: try Self.utcDate(2026, 5, 26, 0),
+            startsAt: DateFormatting.normalizedDateOnly(try Self.date(2026, 5, 26, 8, calendar: calendar), calendar: calendar),
             createdAt: now
         )
-        let legacyMonaco = LedgerEvent(
+        let monaco = LedgerEvent(
             title: "Monaco next weekend",
-            occurredAt: try Self.utcDate(2026, 5, 30, 0),
+            occurredAt: DateFormatting.normalizedDateOnly(try Self.date(2026, 5, 30, 8, calendar: calendar), calendar: calendar),
             rawText: "Monaco next weekend",
             createdAt: now
         )
 
         let sections = LedgerFeedProjection(calendar: calendar, now: now).sections(
             messages: [],
-            events: [legacyMonaco],
-            reminders: [legacyHotKnife],
+            events: [monaco],
+            reminders: [hotKnife],
             notes: []
         )
 
         XCTAssertEqual(sections.map(\.title), ["Today", "May 30"])
         XCTAssertEqual(sections.map(\.subtitle), ["Tue, May 26", "Upcoming · Saturday"])
         XCTAssertEqual(sections.map(\.summary.timeRangeText), ["12:00 PM", "12:00 PM"])
-        XCTAssertEqual(sections[0].items.map(\.id), ["reminder-\(legacyHotKnife.id.uuidString)"])
-        XCTAssertEqual(sections[1].items.map(\.id), ["event-\(legacyMonaco.id.uuidString)"])
+        XCTAssertEqual(sections[0].items.map(\.id), ["reminder-\(hotKnife.id.uuidString)"])
+        XCTAssertEqual(sections[1].items.map(\.id), ["event-\(monaco.id.uuidString)"])
     }
 
     func testProjectionDisplaysUndatedLegacyReminderOnSourceMessageDay() throws {
@@ -138,7 +138,7 @@ final class LedgerFeedProjectionTests: XCTestCase {
         XCTAssertEqual(sections[3].items.map(\.id), [
             LedgerFeedItem.messageID(for: olderMessage.id),
             LedgerFeedItem.messageID(for: newerMessage.id),
-            "event-\(todayEvent.id.uuidString)",
+            "event-\(todayEvent.id.uuidString)"
         ])
         XCTAssertEqual(sections[4].items.map(\.id), [
             "reminder-\(reminder.id.uuidString)"

@@ -38,7 +38,12 @@
             "type": "event"
           }
         ],
-        "requiredText": ["monorepo", "quality gate", "vulns", "auth"],
+        "requiredText": [
+          "monorepo",
+          "quality gate",
+          "vulns",
+          "auth"
+        ],
         "sourceId": "30000000-0000-4000-8000-000000000301",
         "sourceType": "rule"
       }
@@ -82,7 +87,9 @@
     ],
     "searchExpectations": [
       {
-        "disallowedText": ["grooming"],
+        "disallowedText": [
+          "grooming"
+        ],
         "expectedTargets": [
           {
             "id": "30000000-0000-4000-8000-000000000301",
@@ -96,7 +103,9 @@
         "query": "quality gate monorepo"
       },
       {
-        "disallowedText": ["grooming"],
+        "disallowedText": [
+          "grooming"
+        ],
         "expectedTargets": [
           {
             "id": "30000000-0000-4000-8000-000000000202",
@@ -114,8 +123,9 @@
     "chatMessages": [
       {
         "createdAt": "2026-05-20T12:00:00Z",
-        "extractionRunId": "30000000-0000-4000-8000-000000000011",
-        "extractionRunIds": ["30000000-0000-4000-8000-000000000011"],
+        "extractionRunIds": [
+          "30000000-0000-4000-8000-000000000011"
+        ],
         "extractionState": {
           "attemptCount": 1,
           "errorCode": null,
@@ -144,7 +154,9 @@
           "30000000-0000-4000-8000-000000000602"
         ],
         "role": "user",
-        "successfulExtractionRunIds": ["30000000-0000-4000-8000-000000000011"],
+        "successfulExtractionRunIds": [
+          "30000000-0000-4000-8000-000000000011"
+        ],
         "text": "NWS migration prep: ACF quality gate found vulns in auth before the monorepo move."
       }
     ],
@@ -457,7 +469,9 @@
       {
         "createdAt": "2026-05-20T12:00:01Z",
         "id": "30000000-0000-4000-8000-000000000602",
-        "linkedThingIds": ["30000000-0000-4000-8000-000000000102"],
+        "linkedThingIds": [
+          "30000000-0000-4000-8000-000000000102"
+        ],
         "source": {
           "chatMessageId": "30000000-0000-4000-8000-000000000001",
           "extractionRunId": "30000000-0000-4000-8000-000000000011",
@@ -516,7 +530,9 @@
     ],
     "things": [
       {
-        "aliases": ["Nimbus infra"],
+        "aliases": [
+          "Nimbus infra"
+        ],
         "category": "work",
         "createdAt": "2026-05-20T11:55:00Z",
         "eventCount": 0,
@@ -548,7 +564,11 @@
         "updatedAt": "2026-05-20T12:00:01Z"
       },
       {
-        "aliases": ["ACF", "cloud functions", "functions runtime"],
+        "aliases": [
+          "ACF",
+          "cloud functions",
+          "functions runtime"
+        ],
         "category": "work",
         "createdAt": "2026-05-20T12:00:01Z",
         "eventCount": 0,
@@ -564,7 +584,10 @@
         "updatedAt": "2026-05-20T12:00:01Z"
       },
       {
-        "aliases": ["migration", "repo move"],
+        "aliases": [
+          "migration",
+          "repo move"
+        ],
         "category": "work",
         "createdAt": "2026-05-20T12:00:01Z",
         "eventCount": 0,
@@ -580,7 +603,11 @@
         "updatedAt": "2026-05-20T12:00:01Z"
       },
       {
-        "aliases": ["scanner", "static scan", "quality gate"],
+        "aliases": [
+          "scanner",
+          "static scan",
+          "quality gate"
+        ],
         "category": "work",
         "createdAt": "2026-05-20T12:00:01Z",
         "eventCount": 0,
@@ -596,7 +623,10 @@
         "updatedAt": "2026-05-20T12:00:01Z"
       },
       {
-        "aliases": ["security issues", "findings"],
+        "aliases": [
+          "security issues",
+          "findings"
+        ],
         "category": "work",
         "createdAt": "2026-05-20T12:00:01Z",
         "eventCount": 1,

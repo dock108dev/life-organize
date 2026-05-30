@@ -9,7 +9,7 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
         let app = launchUITestApp(
             extraArguments: [
                 "-simulate-ai-service-error=network-unavailable",
-                "--reset-db"
+                "-reset-store"
             ],
             useInMemoryStore: true
         )
@@ -40,7 +40,7 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
         let app = launchUITestApp(
             extraArguments: [
                 "-simulate-ai-service-error=missing-token",
-                "--reset-db"
+                "-reset-store"
             ],
             useInMemoryStore: true
         )
@@ -69,8 +69,8 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
             extraArguments: [
                 "-enable-developer-mode",
                 "-unlock-developer-mode",
-                "--reset-db",
-                "--seed-scenario=ambiguous_dog_grooming"
+                "-reset-store",
+                "-seed-scenario=ambiguous_dog_grooming"
             ],
             useInMemoryStore: true
         )
@@ -145,10 +145,10 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
     private func launchOperationalHomeSeedOnThings() -> XCUIApplication {
         launchUITestApp(
             extraArguments: [
-                "--reset-db",
-                "--seed-scenario=operational_home",
+                "-reset-store",
+                "-seed-scenario=operational_home",
                 "-fixed-now=2026-07-05T08:00:00-04:00",
-                "--initial-tab=things"
+                "-initial-tab=things"
             ],
             useInMemoryStore: true
         )

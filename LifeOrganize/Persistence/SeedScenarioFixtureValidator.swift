@@ -56,7 +56,6 @@ struct SeedScenarioFixtureValidator {
             try validateUUID(message.id, field: "chatMessages.id")
             try validateEnum(message.role, allowed: ChatRole.allCases.map(\.rawValue), field: "chatMessages.role")
             _ = try SeedScenarioDateParser.timestamp(message.createdAt, field: "chatMessages.createdAt")
-            try validateOptionalReference(message.extractionRunId, in: ids.extractionRuns, field: "chatMessages.extractionRunId")
             try validateOptionalReference(message.latestExtractionRunId, in: ids.extractionRuns, field: "chatMessages.latestExtractionRunId")
             for runID in message.extractionRunIds + message.successfulExtractionRunIds {
                 try validateReference(runID, in: ids.extractionRuns, field: "chatMessages.extractionRunIds")

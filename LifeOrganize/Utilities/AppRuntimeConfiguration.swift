@@ -39,7 +39,6 @@ struct AppRuntimeConfiguration {
     var disablesAnimations: Bool
     var aiServiceBaseURL: URL
     var configurationWarnings: [String]
-    private var shouldResetFreshInstallState: Bool
     private var usesInMemoryAutomationStore: Bool
     var fixedNow: Date?
 
@@ -55,15 +54,14 @@ struct AppRuntimeConfiguration {
         isScreenshotMode = screenshotMode
         isUITesting = automationRuntime
         usesDeterministicExtractor = arguments.contains("-use-fake-extractor") || screenshotMode
-        shouldResetFreshInstallState = arguments.contains("--reset-db")
-        shouldResetStore = arguments.contains("-reset-store") || shouldResetFreshInstallState || screenshotMode
-        shouldResetDeviceToken = arguments.contains("-reset-device-token") || shouldResetFreshInstallState || screenshotMode
-        shouldSkipLaunchMaintenance = arguments.contains("-skip-launch-maintenance") || arguments.contains("--skip-launch-maintenance")
+        shouldResetStore = arguments.contains("-reset-store") || screenshotMode
+        shouldResetDeviceToken = arguments.contains("-reset-device-token") || screenshotMode
+        shouldSkipLaunchMaintenance = arguments.contains("-skip-launch-maintenance")
         enablesDeveloperMode = arguments.contains("-enable-developer-mode")
         disablesDeveloperMode = automationRuntime && arguments.contains("-disable-developer-mode")
         unlocksDeveloperMode = automationRuntime && !disablesDeveloperMode && arguments.contains("-unlock-developer-mode")
         simulatedAIServiceError = Self.simulatedAIServiceError(from: arguments, isAutomationRuntime: automationRuntime)
-        usesInMemoryAutomationStore = arguments.contains("-use-in-memory-store") || arguments.contains("--use-in-memory-store")
+        usesInMemoryAutomationStore = arguments.contains("-use-in-memory-store")
         screenshotSeed = Self.screenshotSeed(from: arguments)
         screenshotSearchQuery = Self.argumentValue(from: arguments, prefixes: ["-screenshot-search-query="])
         screenshotLocale = Self.screenshotLocale(from: arguments)
@@ -95,10 +93,6 @@ struct AppRuntimeConfiguration {
 
     var isAutomationRuntime: Bool {
         isUITesting || isScreenshotMode
-    }
-
-    var requestsFreshInstallReset: Bool {
-        shouldResetFreshInstallState
     }
 
     var isDeveloperModeAvailable: Bool {
@@ -154,20 +148,11 @@ struct AppRuntimeConfiguration {
     func resetLaunchStateIfNeeded(defaults: UserDefaults) {
         guard isAutomationRuntime else { return }
 
-        if requestsFreshInstallReset {
-            let locations = Self.automationStorageLocations()
-            Self.resetDirectory(at: locations.applicationSupportRoot)
-            Self.resetDirectory(at: locations.cachesRoot)
-            Self.resetDirectory(at: locations.temporaryRoot)
-            defaults.removePersistentDomain(forName: "LifeOrganize.Automation")
-            Self.resetURLLoadingState()
-        } else {
-            if shouldResetStore {
-                Self.removeStore(at: Self.uiTestingStoreURL())
-            }
-            if shouldResetDeviceToken {
-                Self.resetAppDefaults(in: defaults)
-            }
+        if shouldResetStore {
+            Self.removeStore(at: Self.uiTestingStoreURL())
+        }
+        if shouldResetDeviceToken {
+            Self.resetAppDefaults(in: defaults)
         }
 
         if isScreenshotMode {
@@ -215,10 +200,7 @@ struct AppRuntimeConfiguration {
         screenshotSeed: ScreenshotSeed?,
         isScreenshotMode: Bool
     ) -> [String] {
-        let supportedPrefixes = [
-            "-seed-scenario=",
-            "--seed-scenario="
-        ]
+        let supportedPrefixes = ["-seed-scenario="]
         let explicitIDs: [String] = arguments.compactMap { argument in
             guard let prefix = supportedPrefixes.first(where: { argument.hasPrefix($0) }) else {
                 return nil
@@ -236,7 +218,7 @@ struct AppRuntimeConfiguration {
     }
 
     private static func initialTab(from arguments: [String], screenshotStart: ScreenshotStart?) -> AppTab? {
-        if let rawValue = argumentValue(from: arguments, prefixes: ["-initial-tab=", "--initial-tab="]),
+        if let rawValue = argumentValue(from: arguments, prefixes: ["-initial-tab="]),
            let tab = AppTab(argumentValue: rawValue) {
             return tab
         }
@@ -286,7 +268,7 @@ struct AppRuntimeConfiguration {
     }
 
     private static func aiServiceBaseURL(from arguments: [String], isAutomationRuntime: Bool) -> URL {
-        guard let value = argumentValue(from: arguments, prefixes: ["-ai-service-base-url=", "--ai-service-base-url="]),
+        guard let value = argumentValue(from: arguments, prefixes: ["-ai-service-base-url="]),
               let url = URL(string: value),
               let scheme = url.scheme?.lowercased() else {
             return defaultAIServiceBaseURL
@@ -380,9 +362,9 @@ struct AppRuntimeConfiguration {
         simulatedAIServiceError: AppError?
     ) -> [String] {
         var warnings: [String] = []
-        if containsArgument(from: arguments, prefixes: ["-ai-service-base-url=", "--ai-service-base-url="]),
+        if containsArgument(from: arguments, prefixes: ["-ai-service-base-url="]),
            aiServiceBaseURL == defaultAIServiceBaseURL,
-           argumentValue(from: arguments, prefixes: ["-ai-service-base-url=", "--ai-service-base-url="]) != defaultAIServiceBaseURL.absoluteString {
+           argumentValue(from: arguments, prefixes: ["-ai-service-base-url="]) != defaultAIServiceBaseURL.absoluteString {
             warnings.append("ai_service_base_url_ignored")
         }
         if containsArgument(from: arguments, prefixes: ["-fixed-now="]), fixedNow == nil {
@@ -415,7 +397,7 @@ struct AppRuntimeConfiguration {
     }
 
     private static func uiTestingStoreURL() -> URL {
-        let baseURL = automationStorageLocations().applicationSupportRoot
+        let baseURL = uiTestingStoreRoot()
         do {
             try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
         } catch {
@@ -451,44 +433,9 @@ struct AppRuntimeConfiguration {
         defaults.set(true, forKey: AppDefaultsKeys.thingsContextDismissed)
     }
 
-    private static func resetDirectory(at url: URL) {
-        let fileManager = FileManager.default
-        if fileManager.fileExists(atPath: url.path) {
-            do {
-                try fileManager.removeItem(at: url)
-            } catch {
-                preconditionFailure("Unable to reset automation directory: \(error)")
-            }
-        }
-        do {
-            try fileManager.createDirectory(at: url, withIntermediateDirectories: true)
-        } catch {
-            preconditionFailure("Unable to create automation directory: \(error)")
-        }
-    }
-
-    private static func resetURLLoadingState() {
-        URLCache.shared.removeAllCachedResponses()
-        HTTPCookieStorage.shared.cookies?.forEach {
-            HTTPCookieStorage.shared.deleteCookie($0)
-        }
-    }
-
-    private static func automationStorageLocations() -> AppStorageLocations {
-        let fileManager = FileManager.default
-        let applicationSupportRoot = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+    private static func uiTestingStoreRoot() -> URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("UITesting", isDirectory: true)
-        let cachesRoot = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("LifeOrganize", isDirectory: true)
-            .appendingPathComponent("UITesting", isDirectory: true)
-        let temporaryRoot = fileManager.temporaryDirectory
-            .appendingPathComponent("LifeOrganize", isDirectory: true)
-            .appendingPathComponent("UITesting", isDirectory: true)
-        return AppStorageLocations(
-            applicationSupportRoot: applicationSupportRoot,
-            cachesRoot: cachesRoot,
-            temporaryRoot: temporaryRoot
-        )
     }
 
     private static let defaultScreenshotNow: Date = {
@@ -498,11 +445,6 @@ struct AppRuntimeConfiguration {
     }()
 }
 
-private struct AppStorageLocations {
-    var applicationSupportRoot: URL
-    var cachesRoot: URL
-    var temporaryRoot: URL
-}
 
 private struct FixedDateProvider: DateProvider {
     var now: Date

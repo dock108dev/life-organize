@@ -478,7 +478,7 @@ Where prod is more permissive than non-prod:
 Where prod may fail open:
 
 - No confirmed production fail-open auth path was found in this audit.
-- `AUTO_ENROLL_DEVICE_TOKENS` remains a security/product posture setting; it is not an error suppression, but production should explicitly decide whether unknown device tokens should auto-enroll.
+- Device-token auto-enrollment was removed after this audit. Production now requires known active device token hashes and rejects unknown tokens.
 
 Where prod may hide actionable errors:
 
@@ -528,7 +528,7 @@ Most environment differences are reasonable. The main exception is observability
   - `|| true` allowed for cleanup/log capture only
   - production quieting must be covered by tests
 - Document release validation commands including `Scripts/verify-backend.sh --with-smoke` and deploy smoke behavior.
-- Document `AUTO_ENROLL_DEVICE_TOKENS` as a production posture decision.
+- Document that device-token auto-enrollment is no longer supported; known active device token hashes are required.
 
 #### Test gaps
 

@@ -158,14 +158,14 @@ def test_admin_log_stream_uses_cookie_session_and_rest_event_shape(
 def test_request_admin_logs_expose_metadata_without_sensitive_values(
     db_client,
     admin_headers: dict[str, str],
-    device_headers: dict[str, str],
+    enrolled_device_headers: dict[str, str],
     install_gateway_stub,
     settings_override,
 ) -> None:
     raw_user_text = "Private cardiology appointment notes and personal reminder."
     raw_provider_body = '{"events":[{"title":"private extracted event"}]}'
     raw_request_json = '{"input":[{"content":"Private cardiology appointment notes"}]}'
-    raw_device_token = device_headers["x-lifeorganize-device-token"]
+    raw_device_token = enrolled_device_headers["x-lifeorganize-device-token"]
     install_gateway_stub(
         extraction_result=GatewayResult(
             output_text=raw_provider_body,
@@ -178,7 +178,7 @@ def test_request_admin_logs_expose_metadata_without_sensitive_values(
 
     response = db_client.post(
         "/api/v1/extractions",
-        headers=device_headers,
+        headers=enrolled_device_headers,
         json={
             "text": raw_user_text,
             "currentDate": "2027-01-15",

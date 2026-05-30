@@ -17,7 +17,6 @@ RESULT_BUNDLE="${SCREENSHOT_RESULT_BUNDLE:-BuildArtifacts/ScreenshotTests-$TARGE
 ACTUAL_DIR="${SCREENSHOT_ACTUAL_DIR:-BuildArtifacts/screenshots/actual/$TARGET_KEY/$ORIENTATION/$APPEARANCE}"
 DIFF_DIR="${SCREENSHOT_DIFF_DIR:-BuildArtifacts/screenshots/diff/$TARGET_KEY/$ORIENTATION/$APPEARANCE}"
 BASELINE_DIR="${SCREENSHOT_BASELINE_DIR:-Tests/ScreenshotBaselines/$TARGET_KEY/$ORIENTATION/$APPEARANCE}"
-LEGACY_BASELINE_DIR="Tests/ScreenshotBaselines/$TARGET_KEY/$APPEARANCE"
 ORIENTATION_CONFIG="$ROOT_DIR/BuildArtifacts/screenshots/orientation.txt"
 SCREENSHOT_TESTS=(
   "LifeOrganizeUITests/LifeOrganizeScenarioUITests/testFirstLaunchAndEmptyTimelineScreenshots"
@@ -69,10 +68,6 @@ cleanup_orientation_config() {
 trap cleanup_orientation_config EXIT
 
 cd "$ROOT_DIR"
-
-if [[ "$MODE" == "compare" && ! -d "$BASELINE_DIR" && -z "${SCREENSHOT_TARGET_KEY:-}" && -z "${SCREENSHOT_ORIENTATION:-}" && -d "$LEGACY_BASELINE_DIR" ]]; then
-  BASELINE_DIR="$LEGACY_BASELINE_DIR"
-fi
 
 if [[ "$MODE" == "compare" && ! -d "$BASELINE_DIR" ]]; then
   cat >&2 <<EOF

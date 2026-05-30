@@ -84,17 +84,15 @@ async def record_device_seen(session: AsyncSession, token_hash: str) -> None:
         select(DeviceClient).where(DeviceClient.token_hash == token_hash)
     )
     if existing is None:
-        if not settings.auto_enroll_device_tokens:
-            admin_events.emit(
-                "warning",
-                "security",
-                "Unknown device token rejected",
-            )
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail={"code": "unknown_device_token", "detail": "Unknown device token."},
-            )
-        session.add(DeviceClient(token_hash=token_hash, request_count=1))
+        admin_events.emit(
+            "warning",
+            "security",
+            "Unknown device token rejected",
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"code": "unknown_device_token", "detail": "Unknown device token."},
+        )
     elif existing.status != ACTIVE_DEVICE_STATUS:
         admin_events.emit(
             "warning",

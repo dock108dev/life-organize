@@ -15,8 +15,6 @@ final class AppRuntimeConfigurationTests: XCTestCase {
             ["LifeOrganize", "-ui-testing"],
             ["LifeOrganize", "-screenshot-mode"],
             ["LifeOrganize", "-ui-testing", "-use-in-memory-store"],
-            ["LifeOrganize", "-ui-testing", "--reset-db"],
-            ["LifeOrganize", "-screenshot-mode", "--reset-db"],
             ["LifeOrganize", "-ui-testing", "-use-fake-extractor"],
             ["LifeOrganize", "-ui-testing", "-skip-launch-maintenance"],
             ["LifeOrganize", "-ui-testing", "-enable-developer-mode"],
@@ -39,14 +37,6 @@ final class AppRuntimeConfigurationTests: XCTestCase {
             (
                 ["LifeOrganize", "-ai-service-base-url=http://127.0.0.1:8787"],
                 try XCTUnwrap(URL(string: "http://127.0.0.1:8787"))
-            ),
-            (
-                ["LifeOrganize", "--ai-service-base-url=http://localhost:8787"],
-                try XCTUnwrap(URL(string: "http://localhost:8787"))
-            ),
-            (
-                ["LifeOrganize", "--ai-service-base-url=https://staging.example.invalid"],
-                try XCTUnwrap(URL(string: "https://staging.example.invalid"))
             )
         ]
 
@@ -82,7 +72,6 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         let configuration = AppRuntimeConfiguration(arguments: [
             "LifeOrganize",
             "-ui-testing",
-            "--reset-db",
             "-use-in-memory-store",
             "-ai-service-base-url=\(overrideURL.absoluteString)"
         ])
@@ -94,7 +83,6 @@ final class AppRuntimeConfigurationTests: XCTestCase {
     func testInvalidAIServiceBaseURLLaunchArgumentsFallBackToProduction() {
         let launchArgumentSets = [
             ["LifeOrganize", "-ai-service-base-url="],
-            ["LifeOrganize", "--ai-service-base-url="],
             ["LifeOrganize", "-ai-service-base-url=localhost:8787"],
             ["LifeOrganize", "-ai-service-base-url=ftp://127.0.0.1:8787"],
             ["LifeOrganize", "-ai-service-base-url=file:///tmp/backend"],
@@ -206,9 +194,9 @@ final class AppRuntimeConfigurationTests: XCTestCase {
             "-use-fake-extractor",
             "-fixed-now=2027-01-15T08:00:00-05:00",
             "-screenshot-mode",
-            "--initial-tab=things",
+            "-initial-tab=things",
             "-seed-scenario=first_launch_empty",
-            "--seed-scenario=car_maintenance"
+            "-seed-scenario=car_maintenance"
         ])
 
         XCTAssertTrue(configuration.isUITesting)
@@ -222,16 +210,48 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         XCTAssertEqual(configuration.seedScenarioIDs, ["first_launch_empty", "car_maintenance"])
     }
 
-    func testResetDatabaseAliasRequestsFreshInstallStateWithoutRequiringLegacyResetFlags() {
+    func testResetStoreAndDeviceTokenUseCurrentAutomationFlags() {
         let configuration = AppRuntimeConfiguration(arguments: [
             "LifeOrganize",
             "-ui-testing",
-            "--reset-db"
+            "-reset-store",
+            "-reset-device-token"
         ])
 
         XCTAssertTrue(configuration.shouldResetStore)
         XCTAssertTrue(configuration.shouldResetDeviceToken)
-        XCTAssertTrue(configuration.requestsFreshInstallReset)
+    }
+
+    func testLegacyRuntimeAliasesAreAbsentFromRuntimeConfiguration() throws {
+        let legacyArguments = [
+            "--" + "reset-db",
+            "--" + "use-in-memory-store",
+            "--" + "skip-launch-maintenance",
+            "--" + "initial-tab=things",
+            "--" + "seed-scenario=car_maintenance",
+            "--" + "ai-service-base-url=https://staging.example.invalid"
+        ]
+        let configuration = AppRuntimeConfiguration(arguments: ["LifeOrganize", "-ui-testing"] + legacyArguments)
+
+        XCTAssertFalse(configuration.shouldResetStore)
+        XCTAssertFalse(configuration.shouldResetDeviceToken)
+        XCTAssertFalse(configuration.shouldSkipLaunchMaintenance)
+        XCTAssertEqual(configuration.initialTab, nil)
+        XCTAssertEqual(configuration.seedScenarioIDs, [])
+        XCTAssertEqual(configuration.aiServiceBaseURL, AppRuntimeConfiguration.defaultAIServiceBaseURL)
+        if case .store = configuration.modelContainer() {
+        } else {
+            XCTFail("Legacy in-memory alias must not select the in-memory automation store.")
+        }
+
+        let sourceURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("LifeOrganize/Utilities/AppRuntimeConfiguration.swift")
+        let source = try String(contentsOf: sourceURL)
+        for legacyArgument in legacyArguments.map({ $0.components(separatedBy: "=")[0] }) {
+            XCTAssertFalse(source.contains("\"\(legacyArgument)"))
+        }
     }
 
     func testDogContinuitySeedAliasSelectsOperationalHomeScenario() throws {
@@ -243,8 +263,8 @@ final class AppRuntimeConfigurationTests: XCTestCase {
     func testDestructiveResetArgumentsDoNotSelectProductionStoreWithoutUITesting() {
         let configuration = AppRuntimeConfiguration(arguments: [
             "LifeOrganize",
-            "--reset-db",
-            "--seed-scenario=first-run-empty"
+            "-reset-store",
+            "-seed-scenario=first-run-empty"
         ])
 
         if case .standard = configuration.modelContainer() {
@@ -257,13 +277,12 @@ final class AppRuntimeConfigurationTests: XCTestCase {
     func testScreenshotModeUsesAutomationStoreWithoutLegacyUITestingFlag() {
         let configuration = AppRuntimeConfiguration(arguments: [
             "LifeOrganize",
-            "-screenshot-mode",
-            "--reset-db"
+            "-screenshot-mode"
         ])
 
         XCTAssertTrue(configuration.isAutomationRuntime)
         if case .store = configuration.modelContainer() {
-            XCTAssertTrue(configuration.requestsFreshInstallReset)
+            XCTAssertTrue(configuration.shouldResetStore)
         } else {
             XCTFail("Screenshot mode must use isolated automation storage.")
         }
@@ -338,7 +357,7 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         let configuration = AppRuntimeConfiguration(arguments: [
             "LifeOrganize",
             "-screenshot-mode",
-            "--initial-tab=things",
+            "-initial-tab=things",
             "-screenshot-start=search"
         ])
 
@@ -372,11 +391,11 @@ final class AppRuntimeConfigurationTests: XCTestCase {
         }
     }
 
-    func testFreshInstallResetClearsAutomationDefaults() {
+    func testResetDeviceTokenClearsAutomationDefaults() {
         let configuration = AppRuntimeConfiguration(arguments: [
             "LifeOrganize",
             "-ui-testing",
-            "--reset-db"
+            "-reset-device-token"
         ])
         let defaults = configuration.userDefaults()
         defaults.set(true, forKey: AppDefaultsKeys.developerModeUnlocked)

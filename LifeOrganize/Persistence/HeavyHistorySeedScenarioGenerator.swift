@@ -313,7 +313,6 @@ private extension HeavyHistorySeedScenarioGenerator {
                 text: text,
                 createdAt: timestamp(date),
                 linkedEntityIds: [],
-                extractionRunId: nil,
                 extractionRunIds: [],
                 latestExtractionRunId: nil,
                 successfulExtractionRunIds: [],

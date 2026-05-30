@@ -89,10 +89,10 @@ def test_extractions_accept_valid_device_token_and_redact_persistence(
     db_client: TestClient,
     sqlite_route_session: SyncRouteSession,
     install_gateway_stub,
-    device_headers: dict[str, str],
+    enrolled_device_headers: dict[str, str],
     admin_headers: dict[str, str],
 ) -> None:
-    raw_token = device_headers["x-lifeorganize-device-token"]
+    raw_token = enrolled_device_headers["x-lifeorganize-device-token"]
     install_gateway_stub(
         extraction_result=GatewayResult(
             output_text='{"events":[]}',
@@ -105,7 +105,7 @@ def test_extractions_accept_valid_device_token_and_redact_persistence(
 
     response = db_client.post(
         "/api/v1/extractions",
-        headers=device_headers,
+        headers=enrolled_device_headers,
         json=extraction_body(),
     )
     logs_response = db_client.get("/api/admin/logs", headers=admin_headers)
@@ -130,14 +130,12 @@ def test_extractions_accept_valid_device_token_and_redact_persistence(
     assert raw_token not in json.dumps(logs_response.json(), sort_keys=True)
 
 
-def test_device_routes_reject_unknown_tokens_when_auto_enrollment_is_disabled(
+def test_device_routes_reject_unknown_tokens(
     db_client: TestClient,
     sqlite_route_session: SyncRouteSession,
     install_gateway_stub,
     device_headers: dict[str, str],
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(settings, "auto_enroll_device_tokens", False)
     gateway = install_gateway_stub()
 
     response = db_client.post(
@@ -203,7 +201,7 @@ def test_web_requests_accept_valid_device_token_modes(
     db_client: TestClient,
     sqlite_route_session: SyncRouteSession,
     install_gateway_stub,
-    device_headers: dict[str, str],
+    enrolled_device_headers: dict[str, str],
     body: dict[str, Any],
     output_text: str,
     expected: dict[str, Any],
@@ -218,7 +216,7 @@ def test_web_requests_accept_valid_device_token_modes(
         )
     )
 
-    response = db_client.post("/api/v1/web-requests", headers=device_headers, json=body)
+    response = db_client.post("/api/v1/web-requests", headers=enrolled_device_headers, json=body)
 
     assert response.status_code == 200
     assert response.json() == expected

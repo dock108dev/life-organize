@@ -50,7 +50,6 @@ struct ChatMessageExport: Codable, Equatable {
     let text: String
     let createdAt: String
     let linkedEntityIds: [String]
-    let extractionRunId: String?
     let extractionRunIds: [String]
     let latestExtractionRunId: String?
     let successfulExtractionRunIds: [String]

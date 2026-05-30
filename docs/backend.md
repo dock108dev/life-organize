@@ -21,7 +21,7 @@ Admin and operations surfaces are:
 
 ## Local Run
 
-The backend supports Python `>=3.11`. Create the virtual environment from the repo root:
+The backend supports Python `>=3.13`. Create the virtual environment from the repo root:
 
 ```sh
 python3 -m venv Backend/.venv
@@ -36,7 +36,6 @@ DATABASE_URL=postgresql+asyncpg://lifeorganize:lifeorganize@localhost:5433/lifeo
 DEVICE_TOKEN_SIGNING_SECRET=dev-secret \
 OPENAI_API_KEY=sk-... \
 LIFE_ORGANIZE_ADMIN_API_KEY=dev-admin \
-AUTO_ENROLL_DEVICE_TOKENS=true \
 .venv/bin/python -m uvicorn main:app --reload --port 8787
 ```
 
@@ -67,7 +66,7 @@ Use `LIFE_ORGANIZE_ADMIN_API_KEY` to open an admin session from the log panel. T
 - Store the OpenAI key only in backend environment/secrets.
 - `OPENAI_MODEL` defaults to `gpt-5.5` in `Backend/app/config.py` and `Backend/infra/docker-compose.yml`.
 - Set `DEVICE_TOKEN_SIGNING_SECRET` to a stable private value.
-- Keep `AUTO_ENROLL_DEVICE_TOKENS=true` during compatibility rollout. Set it to `false` only after known active device tokens have been enrolled; unknown tokens will then receive `unknown_device_token`.
+- Device token auto-enrollment is no longer supported. Known device token hashes must exist in `device_clients` with `status='active'`; unknown tokens receive `unknown_device_token`.
 - Set `LIFE_ORGANIZE_ADMIN_API_KEY` to a stable private value for admin routes and the log panel.
 - Run Alembic migrations before replacing the API container. The GitHub deploy workflow and manual runbook use the Compose `migrate` service; the API entrypoint also honors `RUN_MIGRATIONS=true` when that path is used.
 - Route `life.dock108.dev` to the API container through the Caddy example in `Backend/infra/`.

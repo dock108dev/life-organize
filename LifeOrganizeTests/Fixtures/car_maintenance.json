@@ -34,7 +34,11 @@
             "type": "rule"
           }
         ],
-        "requiredText": ["oil", "mileage", "reminder"],
+        "requiredText": [
+          "oil",
+          "mileage",
+          "reminder"
+        ],
         "sourceId": "10000000-0000-4000-8000-000000000101",
         "sourceType": "thing"
       }
@@ -51,18 +55,25 @@
     },
     "requiredVisibleSurfaces": [
       {
-        "requiredRecordIds": ["10000000-0000-4000-8000-000000000201"],
+        "requiredRecordIds": [
+          "10000000-0000-4000-8000-000000000201"
+        ],
         "surface": "log"
       },
       {
-        "requiredRecordIds": ["10000000-0000-4000-8000-000000000301"],
+        "requiredRecordIds": [
+          "10000000-0000-4000-8000-000000000301"
+        ],
         "surface": "reminders"
       }
     ],
     "reviewQueueExpectations": [],
     "searchExpectations": [
       {
-        "disallowedText": ["dog", "grooming"],
+        "disallowedText": [
+          "dog",
+          "grooming"
+        ],
         "expectedTargets": [
           {
             "id": "10000000-0000-4000-8000-000000000201",
@@ -80,8 +91,9 @@
     "chatMessages": [
       {
         "createdAt": "2026-05-19T14:30:00Z",
-        "extractionRunId": "10000000-0000-4000-8000-000000000002",
-        "extractionRunIds": ["10000000-0000-4000-8000-000000000002"],
+        "extractionRunIds": [
+          "10000000-0000-4000-8000-000000000002"
+        ],
         "extractionState": {
           "attemptCount": 1,
           "errorCode": null,
@@ -102,7 +114,9 @@
           "10000000-0000-4000-8000-000000000301"
         ],
         "role": "user",
-        "successfulExtractionRunIds": ["10000000-0000-4000-8000-000000000002"],
+        "successfulExtractionRunIds": [
+          "10000000-0000-4000-8000-000000000002"
+        ],
         "text": "Changed oil on the Blue Wagon at 42000 miles. Remind me in 90 days."
       }
     ],
@@ -174,10 +188,16 @@
         "chatMessageId": "10000000-0000-4000-8000-000000000001",
         "completedAt": "2026-05-19T14:30:06Z",
         "createdEntities": {
-          "events": ["10000000-0000-4000-8000-000000000201"],
+          "events": [
+            "10000000-0000-4000-8000-000000000201"
+          ],
           "notes": [],
-          "rules": ["10000000-0000-4000-8000-000000000301"],
-          "things": ["10000000-0000-4000-8000-000000000101"]
+          "rules": [
+            "10000000-0000-4000-8000-000000000301"
+          ],
+          "things": [
+            "10000000-0000-4000-8000-000000000101"
+          ]
         },
         "createdEntityIds": [
           "10000000-0000-4000-8000-000000000101",
@@ -232,7 +252,9 @@
     ],
     "things": [
       {
-        "aliases": ["Blue Wagon"],
+        "aliases": [
+          "Blue Wagon"
+        ],
         "category": "vehicle",
         "createdAt": "2026-05-19T14:30:06Z",
         "eventCount": 1,

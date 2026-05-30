@@ -34,7 +34,6 @@ extension LocalJSONExportService {
         extractionRunIDs: Set<String>
     ) throws {
         for message in messages {
-            try validateReference(message.extractionRunId, existsIn: extractionRunIDs, label: "chat message extraction run")
             try validateReference(message.latestExtractionRunId, existsIn: extractionRunIDs, label: "latest chat message extraction run")
             for runID in message.extractionRunIds + message.successfulExtractionRunIds {
                 try validateReference(runID, existsIn: extractionRunIDs, label: "chat message extraction run")

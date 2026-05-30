@@ -27,7 +27,10 @@
             "type": "rule"
           }
         ],
-        "requiredText": ["registration", "renewal"],
+        "requiredText": [
+          "registration",
+          "renewal"
+        ],
         "sourceId": "40000000-0000-4000-8000-000000000101",
         "sourceType": "thing"
       }
@@ -51,14 +54,19 @@
         "surface": "log"
       },
       {
-        "requiredRecordIds": ["40000000-0000-4000-8000-000000000301"],
+        "requiredRecordIds": [
+          "40000000-0000-4000-8000-000000000301"
+        ],
         "surface": "reminders"
       }
     ],
     "reviewQueueExpectations": [],
     "searchExpectations": [
       {
-        "disallowedText": ["proposal", "dog"],
+        "disallowedText": [
+          "proposal",
+          "dog"
+        ],
         "expectedTargets": [
           {
             "id": "40000000-0000-4000-8000-000000000301",
@@ -116,7 +124,9 @@
       {
         "createdAt": "2026-04-10T10:05:00Z",
         "id": "40000000-0000-4000-8000-000000000601",
-        "linkedThingIds": ["40000000-0000-4000-8000-000000000101"],
+        "linkedThingIds": [
+          "40000000-0000-4000-8000-000000000101"
+        ],
         "source": {
           "chatMessageId": null,
           "extractionRunId": null,
@@ -153,7 +163,10 @@
     ],
     "things": [
       {
-        "aliases": ["registration", "vehicle documents"],
+        "aliases": [
+          "registration",
+          "vehicle documents"
+        ],
         "category": "admin",
         "createdAt": "2026-04-10T10:00:00Z",
         "eventCount": 1,

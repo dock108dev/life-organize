@@ -129,7 +129,6 @@ final class LocalJSONExportServiceTests: XCTestCase {
 
         XCTAssertEqual(records.chatMessages.first?.text, message.text)
         XCTAssertEqual(records.chatMessages.first?.role, "user")
-        XCTAssertEqual(records.chatMessages.first?.extractionRunId, attempt.id.uuidString)
         XCTAssertEqual(records.chatMessages.first?.extractionRunIds, [attempt.id.uuidString])
         XCTAssertEqual(records.chatMessages.first?.latestExtractionRunId, attempt.id.uuidString)
         XCTAssertEqual(records.chatMessages.first?.successfulExtractionRunIds, [attempt.id.uuidString])

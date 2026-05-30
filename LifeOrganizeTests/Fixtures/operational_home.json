@@ -37,7 +37,11 @@
             "type": "event"
           }
         ],
-        "requiredText": ["Bought dog food", "30 lb", "Corner Pet Supply"],
+        "requiredText": [
+          "Bought dog food",
+          "30 lb",
+          "Corner Pet Supply"
+        ],
         "sourceId": "70000000-0000-4000-8000-000000000102",
         "sourceType": "thing"
       },
@@ -48,7 +52,11 @@
             "type": "event"
           }
         ],
-        "requiredText": ["Harbor Warehouse", "$163.40", "9 items"],
+        "requiredText": [
+          "Harbor Warehouse",
+          "$163.40",
+          "9 items"
+        ],
         "sourceId": "70000000-0000-4000-8000-000000000105",
         "sourceType": "thing"
       }
@@ -80,7 +88,9 @@
         "surface": "things"
       },
       {
-        "requiredRecordIds": ["70000000-0000-4000-8000-000000000301"],
+        "requiredRecordIds": [
+          "70000000-0000-4000-8000-000000000301"
+        ],
         "surface": "reminders"
       },
       {
@@ -954,7 +964,11 @@
     ],
     "things": [
       {
-        "aliases": ["HVAC filters", "furnace filters", "return vent filters"],
+        "aliases": [
+          "HVAC filters",
+          "furnace filters",
+          "return vent filters"
+        ],
         "category": "home_maintenance",
         "createdAt": "2026-01-01T00:00:00Z",
         "eventCount": 3,
@@ -970,7 +984,10 @@
         "updatedAt": "2026-07-05T12:00:00Z"
       },
       {
-        "aliases": ["kibble", "pet food"],
+        "aliases": [
+          "kibble",
+          "pet food"
+        ],
         "category": "food",
         "createdAt": "2026-02-01T00:00:00Z",
         "eventCount": 5,
@@ -986,7 +1003,9 @@
         "updatedAt": "2026-07-05T12:00:00Z"
       },
       {
-        "aliases": ["daily driver"],
+        "aliases": [
+          "daily driver"
+        ],
         "category": "vehicle",
         "createdAt": "2026-01-10T00:00:00Z",
         "eventCount": 3,
@@ -1002,7 +1021,10 @@
         "updatedAt": "2026-07-05T12:00:00Z"
       },
       {
-        "aliases": ["attached garage", "storage bay"],
+        "aliases": [
+          "attached garage",
+          "storage bay"
+        ],
         "category": "home_maintenance",
         "createdAt": "2026-03-01T00:00:00Z",
         "eventCount": 2,
@@ -1018,7 +1040,11 @@
         "updatedAt": "2026-07-05T12:00:00Z"
       },
       {
-        "aliases": ["bulk supplies", "pantry restock", "Harbor Warehouse run"],
+        "aliases": [
+          "bulk supplies",
+          "pantry restock",
+          "Harbor Warehouse run"
+        ],
         "category": "purchase",
         "createdAt": "2026-04-01T00:00:00Z",
         "eventCount": 3,
@@ -1034,7 +1060,9 @@
         "updatedAt": "2026-07-05T12:00:00Z"
       },
       {
-        "aliases": ["laundry vent"],
+        "aliases": [
+          "laundry vent"
+        ],
         "category": "home_maintenance",
         "createdAt": "2026-01-01T00:00:00Z",
         "eventCount": 2,
@@ -1050,7 +1078,9 @@
         "updatedAt": "2026-07-05T12:00:00Z"
       },
       {
-        "aliases": ["smoke alarm batteries"],
+        "aliases": [
+          "smoke alarm batteries"
+        ],
         "category": "home_maintenance",
         "createdAt": "2026-01-01T00:00:00Z",
         "eventCount": 2,

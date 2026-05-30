@@ -126,6 +126,16 @@ async def test_request_route_persists_metadata_without_sensitive_fields(
     )
 
     try:
+        async with session_factory() as session:
+            session.add(
+                DeviceClient(
+                    token_hash=auth.hash_device_token(raw_device_token),
+                    request_count=0,
+                    status=auth.ACTIVE_DEVICE_STATUS,
+                )
+            )
+            await session.commit()
+
         response = await async_client.post(
             "/api/v1/extractions",
             headers=device_headers,

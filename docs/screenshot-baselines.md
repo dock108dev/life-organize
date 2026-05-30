@@ -31,7 +31,7 @@ The maintained light-appearance matrix is:
 
 The static iOS layout guard checks that each maintained light-appearance matrix cell contains the guard-required scenario set: `first_launch`, `timeline_empty`, `timeline`, `things`, `thing_detail`, `carry_forward`, `search`, `review_queue`, and `heavy_timeline`. The screenshot comparator also fails on unexpected actual PNGs, so `settings.png` is maintained in the current baseline directories even though `Scripts/ios_static_layout_guard.py` does not list it in `REQUIRED_SCREENSHOT_SCENARIOS`.
 
-Generated actual and diff artifacts stay under `BuildArtifacts/`, which is ignored by `.gitignore`. The older `Tests/ScreenshotBaselines/iPhone_16/light/` directory is not part of the required static guard matrix or iOS CI screenshot jobs. To intentionally accept a visual change, run:
+Generated actual and diff artifacts stay under `BuildArtifacts/`, which is ignored by `.gitignore`. Baselines are resolved only from the target, orientation, and appearance path shown above. To intentionally accept a visual change, run:
 
 ```sh
 Scripts/screenshots/run-screenshot-tests.sh update
@@ -75,7 +75,7 @@ SCREENSHOT_APPEARANCE=light \
 Scripts/screenshots/run-screenshot-tests.sh compare
 ```
 
-Replace `compare` with `update` in the same commands to refresh that one baseline cell. The runner still accepts a legacy `Tests/ScreenshotBaselines/<target-key>/<appearance>/` directory only for default portrait comparisons when no explicit target key or orientation override is provided.
+Replace `compare` with `update` in the same commands to refresh that one baseline cell.
 
 The default comparison thresholds are:
 

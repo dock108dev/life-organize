@@ -28,7 +28,9 @@
     },
     "requiredVisibleSurfaces": [
       {
-        "requiredRecordIds": ["20000000-0000-4000-8000-000000000401"],
+        "requiredRecordIds": [
+          "20000000-0000-4000-8000-000000000401"
+        ],
         "surface": "reviewQueue"
       }
     ],
@@ -46,7 +48,10 @@
     ],
     "searchExpectations": [
       {
-        "disallowedText": ["oil", "work"],
+        "disallowedText": [
+          "oil",
+          "work"
+        ],
         "expectedTargets": [
           {
             "id": "20000000-0000-4000-8000-000000000001",
@@ -68,7 +73,6 @@
     "chatMessages": [
       {
         "createdAt": "2026-05-20T12:00:00Z",
-        "extractionRunId": null,
         "extractionRunIds": [],
         "extractionState": {
           "attemptCount": 1,

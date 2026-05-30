@@ -71,6 +71,8 @@ def should_skip(path: Path) -> bool:
 
 
 def scan_file(path: Path) -> list[Finding]:
+    if not path.exists():
+        return []
     try:
         text = path.read_text(encoding="utf-8")
     except UnicodeDecodeError:

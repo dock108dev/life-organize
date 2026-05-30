@@ -138,7 +138,7 @@ final class LedgerFeedProjectionTests: XCTestCase {
         XCTAssertEqual(sections[3].items.map(\.id), [
             LedgerFeedItem.messageID(for: olderMessage.id),
             LedgerFeedItem.messageID(for: newerMessage.id),
-            "event-\(todayEvent.id.uuidString)",
+            "event-\(todayEvent.id.uuidString)"
         ])
         XCTAssertEqual(sections[4].items.map(\.id), [
             "reminder-\(reminder.id.uuidString)"

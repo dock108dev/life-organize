@@ -445,7 +445,6 @@ struct AppRuntimeConfiguration {
     }()
 }
 
-
 private struct FixedDateProvider: DateProvider {
     var now: Date
 }

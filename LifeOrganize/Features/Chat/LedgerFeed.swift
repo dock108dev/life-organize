@@ -405,7 +405,7 @@ struct LedgerFeedProjection {
                 + reminders.filter(shouldIncludeReminder).map(LedgerFeedItem.reminder)
                 + notes.map(LedgerFeedItem.note)
         )
-        .sorted { LedgerFeedItem.chronological($0, $1, calendar: calendar) }
+        .sorted { LedgerFeedItem.newestFirst($0, $1, calendar: calendar) }
     }
 
     func sections(
@@ -419,10 +419,23 @@ struct LedgerFeedProjection {
             by: { calendar.startOfDay(for: $0.timelineDate(calendar: calendar)) }
         )
 
-        return grouped.keys.sorted().compactMap { day in
+        return grouped.keys.sorted(by: sectionSort).compactMap { day in
             guard let items = grouped[day], !items.isEmpty else { return nil }
             return LedgerFeedSection(day: day, items: items, calendar: calendar, now: now)
         }
+    }
+
+    private func sectionSort(_ lhs: Date, _ rhs: Date) -> Bool {
+        let lhsGroup = LedgerFeedDateGrouping(calendar: calendar, now: now).group(for: lhs)
+        let rhsGroup = LedgerFeedDateGrouping(calendar: calendar, now: now).group(for: rhs)
+
+        if lhsGroup == .upcoming, rhsGroup != .upcoming {
+            return true
+        }
+        if lhsGroup != .upcoming, rhsGroup == .upcoming {
+            return false
+        }
+        return lhs > rhs
     }
 
     private func shouldIncludeReminder(_ reminder: LedgerRule) -> Bool {

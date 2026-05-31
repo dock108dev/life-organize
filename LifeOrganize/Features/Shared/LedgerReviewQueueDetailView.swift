@@ -154,7 +154,7 @@ struct LedgerReviewQueueDetailView: View {
 
     private var actionsPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
-            LedgerSectionHeader(title: "Next Steps")
+            LedgerSectionHeader(title: "Actions")
             VStack(alignment: .leading, spacing: 12) {
                 if let primary = presentation.actions.primary {
                     actionControl(primary)

@@ -24,7 +24,9 @@ struct ThingDetailSummarySection: View {
             if let continuitySummary = snapshot.continuitySummary {
                 operationalSummaryRow(continuitySummary)
             }
-            operationalSummaryRow(snapshot.reminderSummary)
+            if shouldShowReminderSummary {
+                operationalSummaryRow(snapshot.reminderSummary)
+            }
             if !snapshot.hasHistory {
                 operationalSummaryRow(
                     label: "Last activity",
@@ -32,7 +34,7 @@ struct ThingDetailSummarySection: View {
                     detail: "Add an event, reminder, or note to start this thing's history."
                 )
             }
-            if let reviewPresentation {
+            if let reviewPresentation, shouldShowReviewSummary(reviewPresentation) {
                 reviewSummaryRow(reviewPresentation)
             }
             if let reminderHistorySummary = snapshot.reminderHistorySummary {
@@ -98,5 +100,13 @@ struct ThingDetailSummarySection: View {
         [presentation.detail].compactMap { $0?.nilIfEmpty }.map {
             LedgerRowLine(text: $0, role: .contentPreview)
         }
+    }
+
+    private var shouldShowReminderSummary: Bool {
+        snapshot.reminderSummary.value != "No reminders" || !snapshot.hasHistory
+    }
+
+    private func shouldShowReviewSummary(_ presentation: LedgerReviewItemPresentation) -> Bool {
+        actionTitle(presentation.item.kind) != nil
     }
 }

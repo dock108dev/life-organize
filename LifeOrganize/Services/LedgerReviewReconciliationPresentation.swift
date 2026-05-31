@@ -18,7 +18,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
             title: item.title,
             source: source,
             suggestion: suggestion,
-            evidence: evidencePanel(for: item, entry: entry),
+            evidence: nil,
             actions: actions(
                 for: item,
                 entry: entry,
@@ -50,7 +50,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
 
         if item.targetType == .chatMessage,
            let targetRow = targetRow(for: item, messages: messages, things: things, events: events, rules: rules, notes: notes) {
-            return LedgerReviewReconciliationPanel(title: "Saved Entry", summary: nil, rows: [targetRow])
+            return LedgerReviewReconciliationPanel(title: "Original Entry", summary: nil, rows: [targetRow])
         }
 
         var rows = [LedgerReviewReconciliationRow]()
@@ -84,15 +84,6 @@ struct LedgerReviewReconciliationPresentationBuilder {
             )
         }
         return LedgerReviewReconciliationPanel(title: "Saved Items", summary: nil, rows: createdRows)
-    }
-
-    private func evidencePanel(for item: LedgerReviewItem, entry: LedgerReviewQueueEntry) -> LedgerReviewReconciliationPanel? {
-        guard !entry.createdRecords.isEmpty else { return nil }
-        return LedgerReviewReconciliationPanel(
-            title: "Next Step",
-            summary: confirmationSummary(for: item, entry: entry),
-            rows: []
-        )
     }
 
     private func actions(
@@ -375,7 +366,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
     private func sourceTitle(for type: LedgerReviewItemTargetType) -> String {
         switch type {
         case .chatMessage:
-            return "Saved Entry"
+            return "Original Entry"
         case .event, .thing, .rule, .none:
             return "Saved Items"
         }

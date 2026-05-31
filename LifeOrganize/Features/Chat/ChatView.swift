@@ -51,6 +51,14 @@ struct ChatView: View {
         feedSections.filter { !isDefaultTimelineSection($0) }
     }
 
+    private var visibleFutureFeedSections: [LedgerFeedSection] {
+        visibleFeedSections.filter { $0.group == .upcoming }
+    }
+
+    private var visibleCurrentFeedSections: [LedgerFeedSection] {
+        visibleFeedSections.filter { $0.group != .upcoming }
+    }
+
     private var feedItemIDs: [String] {
         visibleFeedSections.flatMap { $0.items.map(\.id) }
     }
@@ -99,20 +107,22 @@ struct ChatView: View {
                             .ledgerAdaptiveWidth(.readable)
                     } else {
                         LazyVStack(alignment: .leading, spacing: LedgerFeedTimelineLayout.sectionSpacing) {
+                            ForEach(visibleFutureFeedSections) { section in
+                                feedSectionView(section)
+                            }
+
+                            Color.clear
+                                .frame(height: 1)
+                                .id(ScrollAnchor.current)
+
                             if !isTimelineContextDismissed {
                                 LedgerContextPanel(content: .timeline) {
                                     isTimelineContextDismissed = true
                                 }
                             }
 
-                            ForEach(visibleFeedSections) { section in
-                                LedgerFeedSectionView(
-                                    section: section,
-                                    reviewItems: reviewItems,
-                                    deviceTokenStore: deviceTokenStore,
-                                    onAddKey: onAddKey,
-                                    onReviewItemError: { reviewItemErrorMessage = $0 }
-                                )
+                            ForEach(visibleCurrentFeedSections) { section in
+                                feedSectionView(section)
                             }
 
                             if !olderFeedSections.isEmpty {
@@ -167,10 +177,10 @@ struct ChatView: View {
                 }
                 .onAppear {
                     isComposerFocused = shouldAutofocusComposer
-                    scrollToTop(proxy: proxy, animated: false)
+                    scrollToDefaultPosition(proxy: proxy, animated: false)
                 }
                 .onChange(of: feedItemIDs) { _, _ in
-                    scrollToTop(proxy: proxy)
+                    scrollToDefaultPosition(proxy: proxy)
                 }
             }
         }
@@ -206,8 +216,16 @@ struct ChatView: View {
     }
 
     private func scrollToTop(proxy: ScrollViewProxy, animated: Bool = true) {
+        scroll(to: ScrollAnchor.top, proxy: proxy, animated: animated)
+    }
+
+    private func scrollToDefaultPosition(proxy: ScrollViewProxy, animated: Bool = true) {
+        scroll(to: visibleCurrentFeedSections.isEmpty ? ScrollAnchor.top : ScrollAnchor.current, proxy: proxy, animated: animated)
+    }
+
+    private func scroll(to anchor: String, proxy: ScrollViewProxy, animated: Bool = true) {
         let action = {
-            proxy.scrollTo(ScrollAnchor.top, anchor: .top)
+            proxy.scrollTo(anchor, anchor: .top)
         }
         if animated && !AppRuntimeConfiguration.current.disablesAnimations {
             withAnimation(.easeOut(duration: 0.2)) {
@@ -224,6 +242,17 @@ struct ChatView: View {
 
     private enum ScrollAnchor {
         static let top = "chat-top"
+        static let current = "chat-current"
+    }
+
+    private func feedSectionView(_ section: LedgerFeedSection) -> some View {
+        LedgerFeedSectionView(
+            section: section,
+            reviewItems: reviewItems,
+            deviceTokenStore: deviceTokenStore,
+            onAddKey: onAddKey,
+            onReviewItemError: { reviewItemErrorMessage = $0 }
+        )
     }
 }
 

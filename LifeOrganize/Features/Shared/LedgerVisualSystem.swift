@@ -370,13 +370,13 @@ struct LedgerRow<Badges: View, Accessory: View>: View {
     private var rowBackground: Color {
         switch emphasis {
         case .active:
-            return LedgerPalette.surfaceStrong.opacity(0.58)
+            return LedgerTone.link.background.opacity(0.62)
         case .attention:
-            return LedgerPalette.surfaceStrong.opacity(0.60)
+            return LedgerTone.attention.background.opacity(0.70)
         case .inactive:
-            return LedgerPalette.surface.opacity(0.44)
+            return LedgerPalette.surface.opacity(0.38)
         case .normal:
-            return LedgerPalette.surfaceStrong.opacity(0.54)
+            return LedgerPalette.surface.opacity(0.64)
         }
     }
 

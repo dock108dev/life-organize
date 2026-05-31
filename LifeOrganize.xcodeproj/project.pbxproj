@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 71;
 	objects = {
 
 /* Begin PBXContainerItemProxy section */
@@ -30,27 +30,33 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A70000000000000000000003 /* LifeOrganize */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = LifeOrganize;
-			sourceTree = "<group>";
-		};
-		A70000000000000000000012 /* LifeOrganizeTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = LifeOrganizeTests;
-			sourceTree = "<group>";
-		};
-		A70000000000000000000013 /* LifeOrganizeUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = LifeOrganizeUITests;
-			sourceTree = "<group>";
-		};
+		A70000000000000000000003 /* LifeOrganize */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = LifeOrganize; sourceTree = "<group>"; };
+		A70000000000000000000012 /* LifeOrganizeTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = LifeOrganizeTests; sourceTree = "<group>"; };
+		A70000000000000000000013 /* LifeOrganizeUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = LifeOrganizeUITests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A60000000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-		A60000000000000000000002 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-		A60000000000000000000003 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A60000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A60000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A60000000000000000000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -85,9 +91,13 @@
 				A60000000000000000000001 /* Frameworks */,
 				A80000000000000000000002 /* Resources */,
 			);
-			buildRules = ();
-			dependencies = ();
-			fileSystemSynchronizedGroups = (A70000000000000000000003 /* LifeOrganize */);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A70000000000000000000003 /* LifeOrganize */,
+			);
 			name = LifeOrganize;
 			productName = LifeOrganize;
 			productReference = A20000000000000000000026 /* LifeOrganize.app */;
@@ -101,9 +111,14 @@
 				A60000000000000000000002 /* Frameworks */,
 				A80000000000000000000004 /* Resources */,
 			);
-			buildRules = ();
-			dependencies = (A30000000000000000000002 /* PBXTargetDependency */);
-			fileSystemSynchronizedGroups = (A70000000000000000000012 /* LifeOrganizeTests */);
+			buildRules = (
+			);
+			dependencies = (
+				A30000000000000000000002 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A70000000000000000000012 /* LifeOrganizeTests */,
+			);
 			name = LifeOrganizeTests;
 			productName = LifeOrganizeTests;
 			productReference = A20000000000000000000027 /* LifeOrganizeTests.xctest */;
@@ -117,9 +132,14 @@
 				A60000000000000000000003 /* Frameworks */,
 				A80000000000000000000006 /* Resources */,
 			);
-			buildRules = ();
-			dependencies = (A30000000000000000000004 /* PBXTargetDependency */);
-			fileSystemSynchronizedGroups = (A70000000000000000000013 /* LifeOrganizeUITests */);
+			buildRules = (
+			);
+			dependencies = (
+				A30000000000000000000004 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A70000000000000000000013 /* LifeOrganizeUITests */,
+			);
 			name = LifeOrganizeUITests;
 			productName = LifeOrganizeUITests;
 			productReference = A20000000000000000000028 /* LifeOrganizeUITests.xctest */;
@@ -135,19 +155,29 @@
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
-					A50000000000000000000001 = { CreatedOnToolsVersion = 26.2; };
-					A50000000000000000000002 = { CreatedOnToolsVersion = 26.2; TestTargetID = A50000000000000000000001; };
-					A50000000000000000000003 = { CreatedOnToolsVersion = 26.2; TestTargetID = A50000000000000000000001; };
+					A50000000000000000000001 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					A50000000000000000000002 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = A50000000000000000000001;
+					};
+					A50000000000000000000003 = {
+						CreatedOnToolsVersion = 26.2;
+						TestTargetID = A50000000000000000000001;
+					};
 				};
 			};
 			buildConfigurationList = A90000000000000000000001 /* Build configuration list for PBXProject "LifeOrganize" */;
 			compatibilityVersion = "Xcode 16.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
-			knownRegions = (en, Base);
+			knownRegions = (
+				en,
+				Base,
+			);
 			mainGroup = A70000000000000000000001;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			productRefGroup = A70000000000000000000002 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -160,20 +190,64 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		A80000000000000000000002 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-		A80000000000000000000004 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-		A80000000000000000000006 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A80000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A80000000000000000000004 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A80000000000000000000006 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		A80000000000000000000001 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-		A80000000000000000000003 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-		A80000000000000000000005 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		A80000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A80000000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A80000000000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		A30000000000000000000002 /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = A50000000000000000000001 /* LifeOrganize */; targetProxy = A30000000000000000000001 /* PBXContainerItemProxy */; };
-		A30000000000000000000004 /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = A50000000000000000000001 /* LifeOrganize */; targetProxy = A30000000000000000000003 /* PBXContainerItemProxy */; };
+		A30000000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A50000000000000000000001 /* LifeOrganize */;
+			targetProxy = A30000000000000000000001 /* PBXContainerItemProxy */;
+		};
+		A30000000000000000000004 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A50000000000000000000001 /* LifeOrganize */;
+			targetProxy = A30000000000000000000003 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -218,7 +292,10 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = ("DEBUG=1", "$(inherited)");
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -299,7 +376,7 @@
 				CODE_SIGN_ENTITLEMENTS = LifeOrganize/LifeOrganize.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = E3G5D247ZN;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -325,7 +402,7 @@
 				CODE_SIGN_ENTITLEMENTS = LifeOrganize/LifeOrganize.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = E3G5D247ZN;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -420,10 +497,42 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A90000000000000000000001 /* Build configuration list for PBXProject "LifeOrganize" */ = {isa = XCConfigurationList; buildConfigurations = (A91000000000000000000001 /* Debug */, A91000000000000000000002 /* Release */); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-		A90000000000000000000002 /* Build configuration list for PBXNativeTarget "LifeOrganize" */ = {isa = XCConfigurationList; buildConfigurations = (A91000000000000000000003 /* Debug */, A91000000000000000000004 /* Release */); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-		A90000000000000000000003 /* Build configuration list for PBXNativeTarget "LifeOrganizeTests" */ = {isa = XCConfigurationList; buildConfigurations = (A91000000000000000000005 /* Debug */, A91000000000000000000006 /* Release */); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-		A90000000000000000000004 /* Build configuration list for PBXNativeTarget "LifeOrganizeUITests" */ = {isa = XCConfigurationList; buildConfigurations = (A91000000000000000000007 /* Debug */, A91000000000000000000008 /* Release */); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		A90000000000000000000001 /* Build configuration list for PBXProject "LifeOrganize" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A91000000000000000000001 /* Debug */,
+				A91000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A90000000000000000000002 /* Build configuration list for PBXNativeTarget "LifeOrganize" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A91000000000000000000003 /* Debug */,
+				A91000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A90000000000000000000003 /* Build configuration list for PBXNativeTarget "LifeOrganizeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A91000000000000000000005 /* Debug */,
+				A91000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A90000000000000000000004 /* Build configuration list for PBXNativeTarget "LifeOrganizeUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A91000000000000000000007 /* Debug */,
+				A91000000000000000000008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 	};
 	rootObject = A40000000000000000000001 /* Project object */;

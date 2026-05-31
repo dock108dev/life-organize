@@ -55,7 +55,7 @@ struct ManualExtractionRetryButton: View {
 
     private func reloadDeviceTokenState() {
         do {
-            hasAIServiceCredential = try deviceTokenStore.ensureDeviceToken().isEmpty == false
+            hasAIServiceCredential = try deviceTokenStore.loadDeviceToken()?.nilIfEmpty != nil
         } catch {
             hasAIServiceCredential = false
         }

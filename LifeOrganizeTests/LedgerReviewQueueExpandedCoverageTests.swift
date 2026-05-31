@@ -65,9 +65,9 @@ final class LedgerReviewQueueExpandedCoverageTests: XCTestCase {
         })
         let importEntry = try reviewQueueService(context).entry(for: importItem)
 
-        XCTAssertEqual(item(for: failed, in: items)?.actionTitle, "Retry Now")
-        XCTAssertEqual(item(for: needsReview, in: items)?.actionTitle, "Retry Now")
-        XCTAssertEqual(items.first { $0.kind == .localRecovery && $0.targetID == retryable.id }?.actionTitle, "Retry Now")
+        XCTAssertEqual(item(for: failed, in: items)?.actionTitle, "Try Again")
+        XCTAssertEqual(item(for: needsReview, in: items)?.actionTitle, "Try Again")
+        XCTAssertEqual(items.first { $0.kind == .localRecovery && $0.targetID == retryable.id }?.actionTitle, "Try Again")
         XCTAssertTrue(items.contains { $0.kind == .overdueReminderReview && $0.targetID == staleReminder.id })
         XCTAssertTrue(items.contains { $0.kind == .duplicateThing && $0.evidence.map(\.sourceID).contains(duplicateA.id) })
         XCTAssertTrue(items.contains { $0.kind == .normalizationCandidate && $0.targetID == namingCandidate.id })

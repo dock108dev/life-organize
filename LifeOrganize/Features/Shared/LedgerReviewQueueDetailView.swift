@@ -154,7 +154,7 @@ struct LedgerReviewQueueDetailView: View {
 
     private var actionsPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
-            LedgerSectionHeader(title: "Actions")
+            LedgerSectionHeader(title: "Next Steps")
             VStack(alignment: .leading, spacing: 12) {
                 if let primary = presentation.actions.primary {
                     actionControl(primary)
@@ -260,7 +260,7 @@ struct LedgerReviewQueueDetailView: View {
             if let draft = try? service.reminderDraft(for: item) {
                 NavigationLink(action.title) {
                     RuleEditView(rule: nil, thing: targetThing, draft: draft) { _ in
-                        successMessage = "Reminder saved. Mark Reviewed when the timing looks right."
+                        successMessage = "Reminder saved. Mark it done when the timing looks right."
                     }
                 }
             }
@@ -384,7 +384,7 @@ struct LedgerReviewQueueDetailView: View {
     private func retry() async {
         do {
             try await service.retryEntry(item)
-            successMessage = "Retry finished. Check Review for the latest status."
+            successMessage = "Tried again. Check Review for the latest status."
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -395,7 +395,7 @@ struct LedgerReviewQueueDetailView: View {
             let previousSuccessMessage = successMessage
             try action()
             if successMessage == previousSuccessMessage {
-                successMessage = "Review updated."
+                successMessage = "Done."
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -445,7 +445,7 @@ struct LedgerReviewQueueDetailView: View {
             updateItem {
                 let note = try service.saveAsNote(item, body: presentation.saveAsNoteBody ?? "")
                 savedNoteID = note.id
-                successMessage = "Saved as note."
+                successMessage = "Kept as note."
             }
         }
     }

@@ -160,17 +160,17 @@ struct LedgerReviewItemGenerationService {
         switch message.extractionStatus {
         case .pendingToken:
             if message.extractionErrorCode == .invalidServiceToken {
-                detail = "The original entry is saved locally. Retry this entry to reconnect its details."
+                detail = "The entry is saved on this device. Paste a valid service token in Settings, then try again."
             } else {
-                detail = "The original entry is saved locally. Retry this entry to connect its details."
+                detail = "The entry is saved on this device. Add a service token in Settings when you want it organized."
             }
-            actionTitle = "Retry Now"
+            actionTitle = "Connect Service"
         case .pendingRetry:
             detail = pendingRetryDetail(for: message)
-            actionTitle = "Retry Now"
+            actionTitle = "Try Again"
         default:
-            detail = "The original entry is saved locally and can be reviewed."
-            actionTitle = "Review Entry"
+            detail = "The entry is saved on this device and can be reviewed."
+            actionTitle = "Review"
         }
         return ReviewItemDefinition(
             dedupeKey: key(.localRecovery, [message.id.uuidString, message.extractionStatus.rawValue]),
@@ -189,15 +189,15 @@ struct LedgerReviewItemGenerationService {
         let action: String
         switch message.extractionErrorCode {
         case .networkUnavailable, .timeout:
-            action = "Use Retry Now when your connection is working, or wait for the next automatic retry."
+            action = "Try again when your connection is working, or wait for the next automatic retry."
         case .rateLimited:
-            action = "Use Retry Now after the limit clears, or wait for the next automatic retry."
+            action = "Try again after the limit clears, or wait for the next automatic retry."
         case .serverError:
-            action = "Use Retry Now later, or wait for the next automatic retry."
+            action = "Try again later, or wait for the next automatic retry."
         default:
-            action = "Use Retry Now, or wait for the next automatic retry."
+            action = "Try again, or wait for the next automatic retry."
         }
-        return "The original entry is saved locally. \(action)"
+        return "The entry is saved on this device. \(action)"
     }
 
     private func reviewDefinition(for message: ChatMessage) -> ReviewItemDefinition {
@@ -216,16 +216,16 @@ struct LedgerReviewItemGenerationService {
                 : "This entry saved some details but needs review before retrying."
             actionTitle = count > 0 ? "Open" : "Review Entry"
         case .failed:
-            detail = "The original entry is saved locally. Retry this entry or mark the item reviewed."
-            actionTitle = "Retry Now"
+            detail = "The entry is saved on this device. Try again or mark it done."
+            actionTitle = "Try Again"
         case .failedNeedsReview, .needsReview:
             detail = createdRecordEvidence.isEmpty
-                ? "The original entry is saved locally. Retry this entry or review details."
+                ? "The entry is saved on this device. Try again or keep it as a note."
                 : "This entry created saved items and still needs review. Edit them instead of retrying."
-            actionTitle = createdRecordEvidence.isEmpty ? "Retry Now" : "Open"
+            actionTitle = createdRecordEvidence.isEmpty ? "Try Again" : "Open"
         case .notRequired, .pending, .pendingToken, .pendingRetry, .extracting, .succeeded:
-            detail = "The original entry is saved locally and can be reviewed."
-            actionTitle = "Review Entry"
+            detail = "The entry is saved on this device and can be reviewed."
+            actionTitle = "Review"
         }
         return ReviewItemDefinition(
             dedupeKey: key(.extractionReview, [message.id.uuidString, message.extractionStatus.rawValue]),
@@ -375,7 +375,7 @@ struct LedgerReviewItemGenerationService {
         case .pending, .extracting:
             return "Saving"
         case .pendingToken:
-            return "Saved locally"
+            return "Waiting for service"
         case .pendingRetry:
             return "Retry later"
         case .partiallySucceeded, .failed, .failedNeedsReview, .needsReview:

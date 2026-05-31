@@ -9,7 +9,7 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
             dedupeKey: "local_recovery|entry",
             kind: .localRecovery,
             title: "Entry recovery is available",
-            detail: "The original entry is saved locally.",
+            detail: "The entry is saved on this device.",
             targetType: .chatMessage,
             targetID: UUID(),
             evidence: []
@@ -254,9 +254,9 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
 
         let details = Set(try service(context).refresh().map(\.detail))
 
-        XCTAssertTrue(details.contains("The original entry is saved locally. Retry this entry to connect its details."))
-        XCTAssertTrue(details.contains("The original entry is saved locally. Retry this entry to reconnect its details."))
-        XCTAssertTrue(details.contains("The original entry is saved locally. Use Retry Now when your connection is working, or wait for the next automatic retry."))
+        XCTAssertTrue(details.contains("The entry is saved on this device. Add a service token in Settings when you want it organized."))
+        XCTAssertTrue(details.contains("The entry is saved on this device. Paste a valid service token in Settings, then try again."))
+        XCTAssertTrue(details.contains("The entry is saved on this device. Try again when your connection is working, or wait for the next automatic retry."))
         XCTAssertTrue(details.allSatisfy { !$0.localizedCaseInsensitiveContains("process") })
         XCTAssertTrue(details.allSatisfy { !$0.localizedCaseInsensitiveContains("assistant") })
     }

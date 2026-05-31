@@ -289,7 +289,12 @@ struct AppRootView: View {
 
     private func reloadAIServiceState() {
         do {
-            hasAIServiceCredential = try !deviceTokenStore.ensureDeviceToken().isEmpty
+            let runtime = AppRuntimeConfiguration.current
+            if runtime.usesDeterministicExtractor {
+                hasAIServiceCredential = true
+            } else {
+                hasAIServiceCredential = try deviceTokenStore.loadDeviceToken()?.nilIfEmpty != nil
+            }
         } catch {
             hasAIServiceCredential = false
         }

@@ -21,8 +21,8 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
         let entries = try queueService(context, tokenStore: InMemoryDeviceTokenStore()).entries(from: items)
 
         XCTAssertEqual(entries.filter { $0.correctionClass == .quickReview }.count, 6)
-        XCTAssertTrue(entries.contains { $0.title == "Entry recovery is available" && $0.primaryActionTitle == "Retry Now" })
-        XCTAssertTrue(entries.contains { $0.detail.contains("Retry this entry") })
+        XCTAssertTrue(entries.contains { $0.title == "Entry recovery is available" && $0.primaryActionTitle == "Try Again" })
+        XCTAssertTrue(entries.contains { $0.detail.contains("Try again") })
         XCTAssertTrue(entries.contains { $0.detail.contains("Edit them") || $0.detail.contains("needs review") })
     }
 
@@ -334,7 +334,7 @@ final class LedgerReviewQueueServiceTests: XCTestCase {
             dedupeKey: "local_recovery|entry",
             kind: .localRecovery,
             title: "Entry recovery is available",
-            detail: "The original entry is saved locally.",
+            detail: "The entry is saved on this device.",
             targetType: .chatMessage,
             targetID: UUID(),
             evidence: []

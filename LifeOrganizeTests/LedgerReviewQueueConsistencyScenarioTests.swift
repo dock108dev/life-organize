@@ -21,8 +21,8 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
             targetID: fixture.ambiguousMessage.id,
             confidence: 1,
             title: "Entry needs review",
-            actionTitle: "Retry Now",
-            detailContains: ["original entry is saved locally", "Retry this entry"],
+            actionTitle: "Try Again",
+            detailContains: ["entry is saved on this device", "Try again"],
             evidence: [(sourceType: .chatMessage, sourceID: fixture.ambiguousMessage.id)]
         )
 
@@ -53,8 +53,8 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
             targetID: fixture.recoveryMessage.id,
             confidence: 1,
             title: "Entry recovery is available",
-            actionTitle: "Retry Now",
-            detailContains: ["original entry is saved locally", "Retry this entry"],
+            actionTitle: "Try Again",
+            detailContains: ["entry is saved on this device", "Try again"],
             evidence: [(sourceType: .chatMessage, sourceID: fixture.recoveryMessage.id)]
         )
 
@@ -126,11 +126,11 @@ final class LedgerReviewQueueConsistencyScenarioTests: XCTestCase {
             "Entry recovery is available"
         ])
         XCTAssertEqual(presentations.map(\.nextActionTitle), [
-            "Retry Now",
+            "Try Again",
             "Open",
             "Review Things",
             "Review event",
-            "Retry Now"
+            "Try Again"
         ])
         XCTAssertEqual(presentations.map(\.isBlocked), [false, true, false, false, false])
 

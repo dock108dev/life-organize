@@ -289,7 +289,7 @@ struct LedgerReviewQueueService {
         if let reason = try ManualExtractionRetryService(modelContext: modelContext, deviceTokenStore: deviceTokenStore).canRetry(message) {
             return reason.message
         }
-        if try deviceTokenStore.ensureDeviceToken().isEmpty {
+        if try deviceTokenStore.loadDeviceToken()?.nilIfEmpty == nil {
             return ManualExtractionRetryError.missingServiceToken.errorDescription
         }
         return nil

@@ -179,13 +179,13 @@ struct LocalJSONExportService {
         switch message.extractionStatus {
         case .pendingToken:
             if message.extractionErrorCode == .invalidServiceToken {
-                return "Reconnect the AI service, then retry this entry."
+                return "Reconnect the AI service, then try this entry again."
             }
-            return "Connect the AI service, then retry this entry."
+            return "Connect the AI service, then try this entry again."
         case .pendingRetry:
-            return "Retry this entry now, or wait for the next automatic retry."
+            return "Try this entry again now, or wait for the next automatic retry."
         case .failed, .failedNeedsReview, .needsReview:
-            return "Retry this entry, or review the saved local text."
+            return "Try this entry again, or review the saved text."
         case .partiallySucceeded:
             return "Review or edit the saved items this entry already created."
         case .pending, .extracting:

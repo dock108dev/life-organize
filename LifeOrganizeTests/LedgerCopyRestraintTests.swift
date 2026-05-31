@@ -106,7 +106,7 @@ final class LedgerCopyRestraintTests: XCTestCase {
 
         XCTAssertNoNormalUICopyLeaks(visibleText)
         XCTAssertTrue(visibleText.contains("Needs review"))
-        XCTAssertTrue(visibleText.contains("Needs Confirmation"))
+        XCTAssertTrue(visibleText.contains("Next Step"))
         XCTAssertTrue(visibleText.contains("Saved items") || visibleText.contains("saved items"))
         XCTAssertTrue(visibleText.contains("Thing"))
         XCTAssertTrue(visibleText.contains("Reminder"))
@@ -150,7 +150,7 @@ final class LedgerCopyRestraintTests: XCTestCase {
             dedupeKey: "copy-restraint-\(UUID().uuidString)",
             kind: .extractionReview,
             title: "Entry needs review",
-            detail: "The original entry is saved locally.",
+            detail: "The entry is saved on this device.",
             targetType: .chatMessage,
             targetID: UUID(),
             evidence: []

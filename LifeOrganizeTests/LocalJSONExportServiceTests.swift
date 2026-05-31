@@ -228,7 +228,7 @@ final class LocalJSONExportServiceTests: XCTestCase {
         XCTAssertEqual(state.nextRetryAt, "2026-05-17T13:43:10Z")
         XCTAssertEqual(state.latestAttemptStatus, "failed")
         XCTAssertEqual(state.latestAttemptErrorCode, "network_unavailable")
-        XCTAssertEqual(state.recoveryAction, "Retry this entry now, or wait for the next automatic retry.")
+        XCTAssertEqual(state.recoveryAction, "Try this entry again now, or wait for the next automatic retry.")
         XCTAssertEqual(Set(exportedMessage.linkedEntityIds), Set([
             thingID.uuidString,
             eventID.uuidString,

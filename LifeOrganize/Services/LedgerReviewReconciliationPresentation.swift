@@ -50,7 +50,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
 
         if item.targetType == .chatMessage,
            let targetRow = targetRow(for: item, messages: messages, things: things, events: events, rules: rules, notes: notes) {
-            return LedgerReviewReconciliationPanel(title: "Original Entry", summary: nil, rows: [targetRow])
+            return LedgerReviewReconciliationPanel(title: "Saved Entry", summary: nil, rows: [targetRow])
         }
 
         var rows = [LedgerReviewReconciliationRow]()
@@ -78,7 +78,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
         let createdRows = entry.createdRecords.map { createdRecordRow($0, things: things, events: events, rules: rules, notes: notes) }
         if createdRows.isEmpty {
             return LedgerReviewReconciliationPanel(
-                title: "Needs Confirmation",
+                title: "Next Step",
                 summary: confirmationSummary(for: item, entry: entry),
                 rows: []
             )
@@ -89,7 +89,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
     private func evidencePanel(for item: LedgerReviewItem, entry: LedgerReviewQueueEntry) -> LedgerReviewReconciliationPanel? {
         guard !entry.createdRecords.isEmpty else { return nil }
         return LedgerReviewReconciliationPanel(
-            title: "Needs Confirmation",
+            title: "Next Step",
             summary: confirmationSummary(for: item, entry: entry),
             rows: []
         )
@@ -108,10 +108,10 @@ struct LedgerReviewReconciliationPresentationBuilder {
         let primary = primaryAction(for: item, entry: entry, rules: rules)
         var contextual = editActions(for: item, entry: entry, things: things, events: events, rules: rules, notes: notes, messages: messages)
         if canSaveAsNote {
-            contextual.append(action(.saveAsNote, "Save as Note", role: .note, detail: "Save the original entry as a note, then close this review."))
+            contextual.append(action(.saveAsNote, "Keep as Note", role: .note, detail: "Save the entry as a note, then close this review."))
         }
         let canMarkReviewed = primary?.kind != .confirm && primary?.kind != .blocked
-        let reviewState = canMarkReviewed ? [action(.confirm, "Mark Reviewed", role: .reviewState)] : []
+        let reviewState = canMarkReviewed ? [action(.confirm, "Done", role: .reviewState)] : []
         return LedgerReviewReconciliationActions(
             primary: primary,
             contextual: contextual,
@@ -129,11 +129,14 @@ struct LedgerReviewReconciliationPresentationBuilder {
             if entry.primaryActionTitle == "Connect Service" {
                 return action(.connectService, "Connect Service", role: .primary, detail: blockedMessage)
             }
-            return action(.blocked, "Needs Confirmation", role: .blocked, detail: blockedActionDetail(for: item, fallback: blockedMessage), isEnabled: false)
+            return action(.blocked, "Needs Attention", role: .blocked, detail: blockedActionDetail(for: item, fallback: blockedMessage), isEnabled: false)
         }
 
-        if entry.primaryActionTitle == "Retry Now" {
-            return action(.retry, "Retry Now", role: .primary)
+        if entry.primaryActionTitle == "Connect Service" {
+            return action(.connectService, "Connect Service", role: .primary)
+        }
+        if entry.primaryActionTitle == "Retry Now" || entry.primaryActionTitle == "Try Again" {
+            return action(.retry, "Try Again", role: .primary)
         }
         if item.kind == .intervalReminder {
             return action(.buildReminderDraft, entry.primaryActionTitle, role: .primary)
@@ -142,13 +145,13 @@ struct LedgerReviewReconciliationPresentationBuilder {
             let hasRule = targetRule(for: item, rules: rules) != nil
             return action(
                 hasRule ? .adjustReminderTiming : .blocked,
-                hasRule ? "Adjust Timing" : "Needs Confirmation",
+                hasRule ? "Adjust Timing" : "Needs Attention",
                 role: hasRule ? .primary : .blocked,
                 detail: hasRule ? nil : "This reminder is not available. Dismiss this review if you no longer need it, or restore the reminder first.",
                 isEnabled: hasRule
             )
         }
-        return action(.confirm, "Mark Reviewed", role: .primary)
+        return action(.confirm, "Done", role: .primary)
     }
 
     private func editActions(
@@ -205,7 +208,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
                 source.title + ":",
                 sourceText,
                 "",
-                "Needs Confirmation:",
+                "Next Step:",
                 suggestionText
             ].joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
             return body.nilIfEmpty
@@ -378,7 +381,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
     private func sourceTitle(for type: LedgerReviewItemTargetType) -> String {
         switch type {
         case .chatMessage:
-            return "Original Entry"
+            return "Saved Entry"
         case .event, .thing, .rule, .none:
             return "Saved Items"
         }
@@ -387,7 +390,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
     private func editActionTitle(for type: LedgerReviewItemTargetType) -> String {
         switch type {
         case .chatMessage:
-            return "Open Original Entry"
+            return "Open Entry"
         case .event:
             return "Edit Event"
         case .thing:
@@ -420,21 +423,21 @@ struct LedgerReviewReconciliationPresentationBuilder {
         }
         switch item.kind {
         case .localRecovery:
-            return "Try again, save as a note, or mark reviewed if no more follow-up is needed."
+            return "Connect the service, try again, or keep this entry as a note."
         case .extractionReview:
             return entry.createdRecords.isEmpty
-                ? "Decide whether to try again, save as a note, or mark reviewed."
-                : "Check the saved items, edit anything that needs attention, then mark reviewed."
+                ? "Try again, keep this as a note, or mark it done."
+                : "Check the saved items, edit anything that needs attention, then mark it done."
         case .conflictingDate:
-            return "Check the date, edit the event if needed, then mark reviewed."
+            return "Check the date, edit the event if needed, then mark it done."
         case .duplicateThing:
             return "Choose the item to keep, or dismiss this if both should stay."
         case .normalizationCandidate:
-            return "Edit the name if needed, then mark reviewed."
+            return "Edit the name if needed, then mark it done."
         case .intervalReminder:
-            return "Review the reminder setup, then mark reviewed when the timing looks right."
+            return "Review the reminder setup, then mark it done when the timing looks right."
         case .overdueReminderReview:
-            return "Update the reminder date or status, then mark reviewed."
+            return "Update the reminder date or status, then mark it done."
         }
     }
 
@@ -453,7 +456,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
         case .pending, .extracting:
             return "Saving"
         case .pendingToken:
-            return "Saved locally"
+            return "Waiting for service"
         case .pendingRetry:
             return "Retry later"
         case .partiallySucceeded, .failedNeedsReview, .needsReview, .failed:

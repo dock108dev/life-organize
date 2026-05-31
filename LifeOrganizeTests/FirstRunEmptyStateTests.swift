@@ -244,7 +244,7 @@ final class FirstRunEmptyStateTests: XCTestCase {
         )
         XCTAssertEqual(
             ChatViewModel.userFacingSendErrorMessage(for: AppError.invalidServiceToken, didPersistRawMessage: true),
-            "Saved locally. Open Settings and reconnect when you want it organized."
+            "Saved on this device. Open Settings to connect the service."
         )
 
         let context = makeInMemoryModelContext()
@@ -271,7 +271,7 @@ final class FirstRunEmptyStateTests: XCTestCase {
         XCTAssertTrue(didClearOrganizationStatus)
         XCTAssertEqual(
             viewModel.sendError,
-            "Saved locally. Open Settings and reconnect when you want it organized."
+            "Saved on this device. Open Settings to connect the service."
         )
     }
 

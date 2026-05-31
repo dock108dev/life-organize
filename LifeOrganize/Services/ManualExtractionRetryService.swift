@@ -43,7 +43,7 @@ struct ManualExtractionRetryService {
             throw ManualExtractionRetryError.notRetryable(blockedReason)
         }
 
-        guard try deviceTokenStore.ensureDeviceToken().isEmpty == false else {
+        guard try deviceTokenStore.loadDeviceToken()?.nilIfEmpty != nil else {
             throw ManualExtractionRetryError.missingServiceToken
         }
 

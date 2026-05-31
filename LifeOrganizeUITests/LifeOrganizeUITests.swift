@@ -55,14 +55,15 @@ final class LifeOrganizeUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["device-token-status"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.buttons["device-token-save-button"].waitForFastExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["Refresh Token"].exists)
+        XCTAssertTrue(app.secureTextFields["device-token-input"].exists)
+        XCTAssertTrue(app.buttons["Save Token"].exists)
 
         app.terminate()
 
         let cleanApp = launchApp(resetStore: true)
         cleanApp.buttons["Settings"].tap()
         XCTAssertTrue(cleanApp.staticTexts["device-token-status"].waitForFastExistence(timeout: 5))
-        XCTAssertTrue(cleanApp.buttons["Refresh Token"].exists)
+        XCTAssertTrue(cleanApp.buttons["Save Token"].exists)
     }
 
     func testPrimaryTabToolbarActionsMatchEachSurface() throws {

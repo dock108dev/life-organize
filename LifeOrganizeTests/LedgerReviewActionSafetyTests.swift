@@ -30,7 +30,7 @@ final class LedgerReviewActionSafetyTests: XCTestCase {
         XCTAssertEqual(LedgerReviewPendingAction.applyReminderLifecycle("Mark Done").role, .destructive)
         XCTAssertNil(LedgerReviewPendingAction.saveAsNote.role)
         XCTAssertEqual(LedgerReviewPendingAction.retry.dialogTitle, "Try Again?")
-        XCTAssertEqual(LedgerReviewPendingAction.markReviewed.confirmTitle, "Mark Reviewed")
+        XCTAssertEqual(LedgerReviewPendingAction.markReviewed.confirmTitle, "Done")
         XCTAssertEqual(
             LedgerReviewPendingAction.snooze(fixedTestNow).message,
             "This hides it until tomorrow so you can decide later. Saved items stay as they are."
@@ -170,8 +170,8 @@ final class LedgerReviewActionSafetyTests: XCTestCase {
             kind: kind,
             state: state,
             title: "Entry recovery is available",
-            detail: "The original entry is saved locally.",
-            actionTitle: "Retry Now",
+            detail: "The entry is saved on this device.",
+            actionTitle: "Try Again",
             targetType: targetType,
             targetID: targetID,
             evidence: evidence,

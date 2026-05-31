@@ -13,6 +13,7 @@ struct SettingsView: View {
     let onLocalDataCleared: () -> Void
 
     @State private var savedTokenDescription: String?
+    @State private var serviceTokenDraft = ""
     @State private var feedback: SettingsFeedback?
     @State private var isShowingResetTokenConfirmation = false
     @State private var isShowingClearDataConfirmation = false
@@ -106,7 +107,7 @@ struct SettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("New entries will still be saved locally. The app will create a new token next time.")
+            Text("New entries will stay local until you paste a provisioned service token.")
         }
         .confirmationDialog(
             "Clear local data?",
@@ -161,8 +162,9 @@ struct SettingsView: View {
     @ViewBuilder private var missingTokenNotice: some View {
         if savedTokenDescription == nil {
             LedgerEmptyStateView(content: .settingsNoDeviceToken) {
-                Button("Prepare Service", action: prepareServiceToken)
+                Button("Save Service Token", action: saveServiceToken)
                     .buttonStyle(.borderedProminent)
+                    .disabled(serviceTokenDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     .accessibilityIdentifier("settings-no-device-token")
             }
         }
@@ -206,12 +208,27 @@ struct SettingsView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("device-token-status")
 
+            SecureField("Paste service token", text: $serviceTokenDraft)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .textContentType(.password)
+                .accessibilityIdentifier("device-token-input")
+
             HStack(spacing: 10) {
-                Button(savedTokenDescription == nil ? "Prepare Service" : "Refresh Token") {
-                    savedTokenDescription == nil ? prepareServiceToken() : (isShowingResetTokenConfirmation = true)
+                Button(savedTokenDescription == nil ? "Save Token" : "Replace Token") {
+                    saveServiceToken()
                 }
                 .buttonStyle(.borderedProminent)
+                .disabled(serviceTokenDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityIdentifier("device-token-save-button")
+
+                if savedTokenDescription != nil {
+                    Button("Remove Token", role: .destructive) {
+                        isShowingResetTokenConfirmation = true
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("device-token-remove-button")
+                }
             }
         }
         .settingsSurface(tint: savedTokenDescription == nil ? nil : .success)
@@ -347,6 +364,7 @@ extension SettingsView {
     private func reloadSavedTokenState() {
         do {
             savedTokenDescription = try deviceTokenStore.loadDeviceToken().map(maskedTokenDescription)
+            serviceTokenDraft = ""
         } catch {
             LocalDiagnosticEventStore().record(
                 severity: .error,
@@ -362,7 +380,6 @@ extension SettingsView {
     private func deleteDeviceToken() {
         do {
             try deviceTokenStore.deleteDeviceToken()
-            _ = try deviceTokenStore.ensureDeviceToken()
             reloadSavedTokenState()
             feedback = .deviceTokenReplaced
         } catch {
@@ -376,9 +393,9 @@ extension SettingsView {
         }
     }
 
-    private func prepareServiceToken() {
+    private func saveServiceToken() {
         do {
-            _ = try deviceTokenStore.ensureDeviceToken()
+            try deviceTokenStore.saveDeviceToken(serviceTokenDraft)
             reloadSavedTokenState()
             feedback = .deviceTokenSaved
 

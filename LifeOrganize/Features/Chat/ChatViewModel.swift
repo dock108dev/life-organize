@@ -89,9 +89,9 @@ final class ChatViewModel: ObservableObject {
     static func userFacingSendErrorMessage(for error: Error, didPersistRawMessage: Bool) -> String {
         if didPersistRawMessage {
             if error is AppError {
-                return "Saved locally. Open Settings and reconnect when you want it organized."
+                return "Saved on this device. Open Settings to connect the service."
             }
-            return "Saved locally. Some details may need attention in Review."
+            return "Saved on this device. Some details may need attention in Review."
         }
 
         if case AppError.missingServiceToken = error {

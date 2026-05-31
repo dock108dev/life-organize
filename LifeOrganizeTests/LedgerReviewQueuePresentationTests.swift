@@ -86,9 +86,9 @@ final class LedgerReviewQueuePresentationTests: XCTestCase {
             notes: []
         )
 
-        XCTAssertEqual(entry.primaryActionTitle, "Retry Now")
+        XCTAssertEqual(entry.primaryActionTitle, "Try Again")
         XCTAssertNil(entry.blockedMessage)
-        XCTAssertEqual(row.nextActionTitle, "Retry Now")
+        XCTAssertEqual(row.nextActionTitle, "Try Again")
         XCTAssertEqual(row.urgencyText, "Ready for decision")
         XCTAssertEqual(detail.actions.primary?.kind, .retry)
     }

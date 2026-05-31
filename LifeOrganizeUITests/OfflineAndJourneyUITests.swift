@@ -25,7 +25,7 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Review"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["review-queue-list"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any).matching(labelContaining: "Entry recovery is available").firstMatch.waitForFastExistence(timeout: 5))
-        XCTAssertTrue(app.descendants(matching: .any).matching(labelContaining: "Retry Now").firstMatch.waitForFastExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any).matching(labelContaining: "Try Again").firstMatch.waitForFastExistence(timeout: 5))
 
         let reviewRow = app.buttons.matching(identifierPrefix: "review-queue-row-").firstMatch
         XCTAssertTrue(reviewRow.waitForFastExistence(timeout: 5))

@@ -363,8 +363,8 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
 
         let reviewItems = try reviewGenerationService(context, now: now).refresh()
         XCTAssertEqual(reviewItems.filter { $0.kind == .localRecovery }.count, 3)
-        XCTAssertTrue(reviewItems.contains { $0.detail.contains("original entry is saved locally") && $0.actionTitle == "Retry Now" })
-        XCTAssertTrue(reviewItems.contains { $0.detail.contains("Use Retry Now later") && $0.actionTitle == "Retry Now" })
+        XCTAssertTrue(reviewItems.contains { $0.detail.contains("entry is saved on this device") && $0.actionTitle == "Try Again" })
+        XCTAssertTrue(reviewItems.contains { $0.detail.contains("Try again later") && $0.actionTitle == "Try Again" })
 
         let search = SearchService()
         let searchResults = search.search("dog food", in: search.records(things: [], messages: userMessages))
@@ -383,7 +383,7 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
         XCTAssertEqual(exportedUsers.count, 3)
         XCTAssertTrue(exportedUsers.contains { $0.text == "Replaced Home Air Filters." && $0.extractionState?.recoveryAction?.contains("Connect the AI service") == true })
         XCTAssertTrue(exportedUsers.contains { $0.text == "Changed car oil at 40,000 miles." && $0.extractionState?.recoveryAction?.contains("Reconnect the AI service") == true })
-        XCTAssertTrue(exportedUsers.contains { $0.text == "Bought dog food." && $0.extractionState?.recoveryAction?.contains("Retry this entry") == true })
+        XCTAssertTrue(exportedUsers.contains { $0.text == "Bought dog food." && $0.extractionState?.recoveryAction?.contains("Try this entry again") == true })
 
         var clearFlow = SettingsClearDataFlow()
         XCTAssertTrue(clearFlow.offersExportBeforeClear)

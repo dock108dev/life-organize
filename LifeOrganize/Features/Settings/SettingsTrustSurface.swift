@@ -4,7 +4,7 @@ enum SettingsTrustCopy {
     Entries stay local. This device uses a private service token to connect new timeline details through the \
     LifeOrganize backend.
     """
-    static let noTokenDetail = "Local-only mode is available if the service cannot be reached."
+    static let noTokenDetail = "Paste a provisioned service token to connect new entries. Local-only capture still works without one."
     static let savedTokenDetail = """
     This device token is stored in Keychain and is not included in local data exports. The shared cloud credential \
     stays on the backend.
@@ -88,7 +88,7 @@ enum SettingsFeedback: Equatable {
         case .deviceTokenSavedRetryDeferred:
             "Service token is ready. Some saved entries will retry later."
         case .deviceTokenReplaced:
-            "Service token refreshed. Future timeline connections will use the new token."
+            "Service token removed. Paste a provisioned token to reconnect."
         case .deviceTokenRemoved:
             "Service token removed. Timeline capture still works locally."
         case .exportReady:

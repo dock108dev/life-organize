@@ -39,7 +39,7 @@ enum LedgerReviewPendingAction: Identifiable, Equatable {
         case .retry:
             "Try Again?"
         case .markReviewed:
-            "Mark Reviewed?"
+            "Mark Done?"
         case .dismiss:
             "Dismiss?"
         case .snooze:
@@ -53,16 +53,16 @@ enum LedgerReviewPendingAction: Identifiable, Equatable {
         case .applyReminderLifecycle(let title):
             "\(title)?"
         case .saveAsNote:
-            "Save as Note?"
+            "Keep as Note?"
         }
     }
 
     var confirmTitle: String {
         switch self {
         case .retry:
-            "Retry Now"
+            "Try Again"
         case .markReviewed:
-            "Mark Reviewed"
+            "Done"
         case .dismiss:
             "Dismiss"
         case .snooze:
@@ -74,7 +74,7 @@ enum LedgerReviewPendingAction: Identifiable, Equatable {
         case .adjustReminderTiming(_, let title), .applyReminderLifecycle(let title):
             title
         case .saveAsNote:
-            "Save as Note"
+            "Keep as Note"
         }
     }
 
@@ -97,7 +97,7 @@ enum LedgerReviewPendingAction: Identifiable, Equatable {
         case .applyReminderLifecycle:
             "This updates the reminder status, then closes the review."
         case .saveAsNote:
-            "This saves the original entry as a note, then closes the review."
+            "This saves the entry as a note, then closes the review."
         }
     }
 

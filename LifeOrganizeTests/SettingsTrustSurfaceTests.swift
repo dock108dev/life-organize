@@ -6,7 +6,7 @@ final class SettingsTrustSurfaceTests: XCTestCase {
         XCTAssertEqual(SettingsTrustCopy.deviceTokenTitle, "AI service")
         XCTAssertTrue(SettingsTrustCopy.deviceTokenBody.contains("Entries stay local"))
         XCTAssertTrue(SettingsTrustCopy.deviceTokenBody.contains("connect new timeline details"))
-        XCTAssertTrue(SettingsTrustCopy.noTokenDetail.contains("Local-only mode"))
+        XCTAssertTrue(SettingsTrustCopy.noTokenDetail.contains("provisioned service token"))
         XCTAssertTrue(SettingsTrustCopy.savedTokenDetail.contains("Keychain"))
         XCTAssertTrue(SettingsTrustCopy.savedTokenDetail.contains("not included in local data exports"))
     }
@@ -128,6 +128,7 @@ final class SettingsTrustSurfaceTests: XCTestCase {
         )
 
         XCTAssertTrue(source.contains("@State private var savedTokenDescription: String?"))
+        XCTAssertTrue(source.contains("@State private var serviceTokenDraft"))
         XCTAssertTrue(source.contains("map(maskedTokenDescription)"))
         XCTAssertFalse(source.contains("@State private var savedToken: String"))
         XCTAssertFalse(source.contains("Text(token)"))

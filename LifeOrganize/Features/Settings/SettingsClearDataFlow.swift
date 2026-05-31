@@ -89,7 +89,7 @@ struct SettingsClearDataSheet: View {
                         finalConfirmationSection
                     }
                 }
-                .frame(maxWidth: 520, alignment: .leading)
+                .frame(maxWidth: LedgerAdaptiveLayout.Width.sheetMax, alignment: .leading)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.horizontal, LedgerAdaptiveLayout.Gutter.regular)
                 .padding(.vertical, 20)

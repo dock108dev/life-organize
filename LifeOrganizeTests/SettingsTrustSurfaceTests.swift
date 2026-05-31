@@ -168,7 +168,7 @@ final class SettingsTrustSurfaceTests: XCTestCase {
             encoding: .utf8
         )
 
-        XCTAssertTrue(source.contains(".frame(maxWidth: 520"))
+        XCTAssertTrue(source.contains(".frame(maxWidth: LedgerAdaptiveLayout.Width.sheetMax"))
         XCTAssertTrue(source.contains("ViewThatFits(in: .horizontal)"))
     }
 

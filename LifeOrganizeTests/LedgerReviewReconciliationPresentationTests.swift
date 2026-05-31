@@ -36,12 +36,11 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
             notes: []
         )
 
-        XCTAssertEqual(presentation.source.title, "Saved Entry")
+        XCTAssertEqual(presentation.source.title, "Original Entry")
         XCTAssertEqual(presentation.source.rows.first?.title, "Changed the cabin filter.")
         XCTAssertEqual(presentation.suggestion.title, "Saved Items")
         XCTAssertEqual(presentation.suggestion.rows.map(\.title), ["Car", "Changed cabin filter"])
-        XCTAssertEqual(presentation.evidence?.title, "Next Step")
-        XCTAssertEqual(presentation.evidence?.summary, "Check the saved items, edit anything that needs attention, then mark it done.")
+        XCTAssertNil(presentation.evidence)
         XCTAssertTrue(presentation.actions.contextual.contains { $0.kind == .openRecord(.thing, thingID) && $0.title == "Edit Thing" })
         XCTAssertTrue(presentation.actions.contextual.contains { $0.kind == .openRecord(.event, eventID) && $0.title == "Edit Event" })
         XCTAssertEqual(presentation.actions.primary?.title, "Done")
@@ -352,7 +351,7 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.suggestion.rows.first?.title, "Changed filter")
         XCTAssertEqual(presentation.suggestion.rows.first?.isMissing, true)
         XCTAssertTrue(presentation.suggestion.rows.first?.detail?.contains("no longer exists") == true)
-        XCTAssertEqual(presentation.evidence?.summary, "Check the saved items, edit anything that needs attention, then mark it done.")
+        XCTAssertNil(presentation.evidence)
     }
 
     func testSaveAsNoteCreatesNoteAndAcceptsReviewItem() throws {
@@ -380,7 +379,7 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
             deviceTokenStore: InMemoryDeviceTokenStore(),
             dateProvider: TestDateProvider(now: fixedTestNow)
         )
-        .saveAsNote(item, body: "Saved Entry:\nGarage code changed.")
+        .saveAsNote(item, body: "Original Entry:\nGarage code changed.")
 
         let savedNotes = try context.fetch(FetchDescriptor<LedgerNote>())
         XCTAssertEqual(savedNotes.map(\.id), [note.id])

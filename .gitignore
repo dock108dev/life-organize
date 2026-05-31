@@ -6,6 +6,8 @@
 .derivedData/
 .deriveddata/
 BuildArtifacts/
+*.xcuserstate
+xcuserdata/
 
 # Backend local state
 Backend/.venv/

@@ -61,12 +61,6 @@ struct ChatInputBar: View {
                     .font(LedgerVisualSystem.Typography.rowPrimary)
                     .accessibilityIdentifier("chat-input")
                     .padding(.vertical, 6)
-                    .submitLabel(.done)
-                    .onSubmit {
-                        if canSend {
-                            onSend()
-                        }
-                    }
 
                 if isFocused {
                     Button {
@@ -85,7 +79,7 @@ struct ChatInputBar: View {
                 }
 
                 Button(action: onSend) {
-                    Image(systemName: "plus")
+                    Image(systemName: "paperplane.fill")
                         .font(.system(size: 17, weight: .semibold))
                         .frame(width: 36, height: 36)
                         .foregroundStyle(canSend ? Color.white : Color.secondary)
@@ -97,7 +91,7 @@ struct ChatInputBar: View {
                         }
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Add to Timeline")
+                .accessibilityLabel("Send to Timeline")
                 .accessibilityIdentifier("chat-send-button")
                 .disabled(!canSend)
                 .padding(.vertical, 4)

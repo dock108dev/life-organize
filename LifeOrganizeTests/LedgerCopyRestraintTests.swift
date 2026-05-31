@@ -226,11 +226,14 @@ final class LedgerCopyRestraintTests: XCTestCase {
         let expectedCopy = [
             "Add anything or ask what’s due",
             "Saved. Organizing details",
-            "Add to Timeline"
+            "Send to Timeline"
         ]
         for copy in expectedCopy {
             XCTAssertTrue(source.contains(copy), "Missing composer copy: \(copy)")
         }
+        XCTAssertFalse(source.contains(".submitLabel(.done)"))
+        XCTAssertFalse(source.contains("Image(systemName: \"plus\")"))
+        XCTAssertTrue(source.contains("Image(systemName: \"paperplane.fill\")"))
         return expectedCopy
     }
 

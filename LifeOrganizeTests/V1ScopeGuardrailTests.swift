@@ -275,8 +275,6 @@ final class V1ScopeGuardrailTests: XCTestCase {
             feedCopy.sourceLabel,
             feedCopy.secondaryText,
             appCopy.sourceLabel,
-            SettingsTrustCopy.deviceTokenBody,
-            SettingsTrustCopy.savedTokenDetail,
             SettingsTrustCopy.exportBody,
             SettingsFeedback.deviceTokenReplaced.message,
             SettingsFeedback.exportReady.message,

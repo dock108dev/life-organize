@@ -1,22 +1,12 @@
 enum SettingsTrustCopy {
-    static let deviceTokenTitle = "AI service"
-    static let deviceTokenBody = """
-    Entries stay local. This device uses a private service token to connect new timeline details through the \
-    LifeOrganize backend.
-    """
-    static let noTokenDetail = "Paste a provisioned service token to connect new entries. Local-only capture still works without one."
-    static let savedTokenDetail = """
-    This device token is stored in Keychain and is not included in local data exports. The shared cloud credential \
-    stays on the backend.
-    """
-    static let exportTitle = "Local data copy"
+    static let exportTitle = "Export local data"
     static let exportBody = "Export saved entries, links, and local history for backup or review."
     static let clearTitle = "Clear local data"
-    static let clearBody = "Remove saved entries and related timeline history from this device. Your service token stays in Keychain."
+    static let clearBody = "Remove saved entries and related timeline history from this device."
     static let clearDeletes = """
     Deletes saved entries, Things, reminders, notes, links, review tasks, and timeline history from this device.
     """
-    static let clearKeeps = "Keeps the service token so new entries can still connect later."
+    static let clearKeeps = "Keeps the app connection so new entries can still organize later."
     static let clearPhrase = "CLEAR MY DATA"
 }
 
@@ -36,7 +26,7 @@ struct SettingsSafetyRowContent: Equatable {
     )
 
     static let keepsSavedToken = SettingsSafetyRowContent(
-        title: "Keeps service token",
+        title: "Keeps app connection",
         detail: SettingsTrustCopy.clearKeeps,
         pillText: "Keeps",
         symbolName: "checkmark.circle",
@@ -84,25 +74,25 @@ enum SettingsFeedback: Equatable {
     var message: String {
         switch self {
         case .deviceTokenSaved:
-            "Service token is ready. New entries can connect across your timeline."
+            "App connection is ready. New entries can organize across your timeline."
         case .deviceTokenSavedRetryDeferred:
-            "Service token is ready. Some saved entries will retry later."
+            "App connection is ready. Some saved entries will retry later."
         case .deviceTokenReplaced:
-            "Service token removed. Paste a provisioned token to reconnect."
+            "App connection reset. New entries will reconnect automatically."
         case .deviceTokenRemoved:
-            "Service token removed. Timeline capture still works locally."
+            "App connection reset. Timeline capture still works locally."
         case .exportReady:
             "Export ready. Choose where to save or share the local data copy."
         case .localDataCleared:
-            "Local entries cleared from this device. Your service token stayed in place."
+            "Local entries cleared from this device."
         case .deviceTokenReadFailed:
-            "Could not read the service token. Reopen Settings and try again."
+            "Could not read the app connection. Reopen Settings and try again."
         case .deviceTokenEmpty:
-            "Service token cannot be empty."
+            "App connection could not be prepared."
         case .deviceTokenSaveFailed:
-            "Could not save the service token. Check device Keychain access and try again."
+            "Could not save the app connection. Check device Keychain access and try again."
         case .deviceTokenRemoveFailed:
-            "Could not remove the service token. Try again."
+            "Could not reset the app connection. Try again."
         case .exportFailed:
             "Could not create the export. Your local data was not changed. Try again."
         case .clearDataFailed:

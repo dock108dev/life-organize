@@ -2,17 +2,8 @@ import XCTest
 @testable import LifeOrganize
 
 final class SettingsTrustSurfaceTests: XCTestCase {
-    func testTrustCopyFramesServiceTokenAsOptionalTimelineConnection() {
-        XCTAssertEqual(SettingsTrustCopy.deviceTokenTitle, "AI service")
-        XCTAssertTrue(SettingsTrustCopy.deviceTokenBody.contains("Entries stay local"))
-        XCTAssertTrue(SettingsTrustCopy.deviceTokenBody.contains("connect new timeline details"))
-        XCTAssertTrue(SettingsTrustCopy.noTokenDetail.contains("provisioned service token"))
-        XCTAssertTrue(SettingsTrustCopy.savedTokenDetail.contains("Keychain"))
-        XCTAssertTrue(SettingsTrustCopy.savedTokenDetail.contains("not included in local data exports"))
-    }
-
     func testExportCopyExplainsLocalDataCopyWithoutDebugLanguage() {
-        XCTAssertEqual(SettingsTrustCopy.exportTitle, "Local data copy")
+        XCTAssertEqual(SettingsTrustCopy.exportTitle, "Export local data")
         XCTAssertTrue(SettingsTrustCopy.exportBody.contains("backup or review"))
         XCTAssertTrue(SettingsTrustCopy.exportBody.contains("saved entries, links, and local history"))
     }
@@ -23,22 +14,22 @@ final class SettingsTrustSurfaceTests: XCTestCase {
         XCTAssertTrue(SettingsTrustCopy.clearDeletes.contains("Things"))
         XCTAssertTrue(SettingsTrustCopy.clearDeletes.contains("review tasks"))
         XCTAssertTrue(SettingsTrustCopy.clearDeletes.contains("timeline history"))
-        XCTAssertTrue(SettingsTrustCopy.clearKeeps.contains("service token"))
+        XCTAssertTrue(SettingsTrustCopy.clearKeeps.contains("app connection"))
         XCTAssertEqual(SettingsTrustCopy.clearPhrase, "CLEAR MY DATA")
         XCTAssertEqual(SettingsSafetyRowContent.clearsLocalRecords.title, "Clears local entries")
         XCTAssertEqual(SettingsSafetyRowContent.clearsLocalRecords.pillText, "Clears")
         XCTAssertEqual(SettingsSafetyRowContent.clearsLocalRecords.tone, .danger)
-        XCTAssertEqual(SettingsSafetyRowContent.keepsSavedToken.title, "Keeps service token")
+        XCTAssertEqual(SettingsSafetyRowContent.keepsSavedToken.title, "Keeps app connection")
         XCTAssertEqual(SettingsSafetyRowContent.keepsSavedToken.pillText, "Keeps")
         XCTAssertEqual(SettingsSafetyRowContent.keepsSavedToken.tone, .success)
     }
 
     func testFeedbackMessagesGiveConfirmationAndNextSteps() {
         XCTAssertFalse(SettingsFeedback.deviceTokenSaved.isError)
-        XCTAssertTrue(SettingsFeedback.deviceTokenSaved.message.contains("connect across your timeline"))
+        XCTAssertTrue(SettingsFeedback.deviceTokenSaved.message.contains("organize across your timeline"))
         XCTAssertTrue(SettingsFeedback.deviceTokenRemoved.message.contains("Timeline capture still works locally"))
         XCTAssertTrue(SettingsFeedback.exportReady.message.contains("save or share"))
-        XCTAssertTrue(SettingsFeedback.localDataCleared.message.contains("service token stayed in place"))
+        XCTAssertTrue(SettingsFeedback.localDataCleared.message.contains("Local entries cleared"))
 
         XCTAssertTrue(SettingsFeedback.exportFailed.isError)
         XCTAssertTrue(SettingsFeedback.exportFailed.message.contains("local data was not changed"))
@@ -48,10 +39,6 @@ final class SettingsTrustSurfaceTests: XCTestCase {
 
     func testPrimarySettingsCopyAvoidsInternalProcessLanguage() {
         let copy = [
-            SettingsTrustCopy.deviceTokenTitle,
-            SettingsTrustCopy.deviceTokenBody,
-            SettingsTrustCopy.noTokenDetail,
-            SettingsTrustCopy.savedTokenDetail,
             SettingsTrustCopy.exportTitle,
             SettingsTrustCopy.exportBody,
             SettingsTrustCopy.clearTitle,
@@ -87,12 +74,7 @@ final class SettingsTrustSurfaceTests: XCTestCase {
 
     func testLockedSettingsCopyDoesNotExposeDiagnosticsEntry() {
         let normalSettingsCopy = [
-            "Trust & Preferences",
-            "Local controls for what carries forward.",
-            SettingsTrustCopy.deviceTokenTitle,
-            SettingsTrustCopy.deviceTokenBody,
-            SettingsTrustCopy.noTokenDetail,
-            SettingsTrustCopy.savedTokenDetail,
+            "Settings",
             SettingsTrustCopy.exportTitle,
             SettingsTrustCopy.exportBody,
             SettingsTrustCopy.clearTitle,
@@ -120,16 +102,18 @@ final class SettingsTrustSurfaceTests: XCTestCase {
         )
     }
 
-    func testSettingsViewOnlyKeepsDisplaySafeTokenState() throws {
+    func testSettingsViewDoesNotExposeTokenManagement() throws {
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
         let source = try String(
             contentsOf: root.appendingPathComponent("LifeOrganize/Features/Settings/SettingsView.swift"),
             encoding: .utf8
         )
 
-        XCTAssertTrue(source.contains("@State private var savedTokenDescription: String?"))
-        XCTAssertTrue(source.contains("@State private var serviceTokenDraft"))
-        XCTAssertTrue(source.contains("map(maskedTokenDescription)"))
+        XCTAssertFalse(source.contains("@State private var savedTokenDescription"))
+        XCTAssertFalse(source.contains("@State private var serviceTokenDraft"))
+        XCTAssertFalse(source.contains("map(maskedTokenDescription)"))
+        XCTAssertFalse(source.contains(#""device-token-status""#))
+        XCTAssertFalse(source.contains(#""device-token-save-button""#))
         XCTAssertFalse(source.contains("@State private var savedToken: String"))
         XCTAssertFalse(source.contains("Text(token)"))
         XCTAssertFalse(source.contains("LedgerPill(text: token"))
@@ -142,8 +126,6 @@ final class SettingsTrustSurfaceTests: XCTestCase {
             encoding: .utf8
         )
 
-        XCTAssertTrue(source.contains(#""device-token-status""#))
-        XCTAssertTrue(source.contains(#""device-token-save-button""#))
         XCTAssertTrue(source.contains(#""settings-export-button""#))
         XCTAssertTrue(source.contains(#""settings-clear-data-button""#))
         XCTAssertTrue(source.contains(#""settings-version-footer""#))
@@ -186,7 +168,7 @@ final class SettingsTrustSurfaceTests: XCTestCase {
             encoding: .utf8
         )
 
-        XCTAssertTrue(source.contains(".ledgerAdaptiveWidth(.sheet)"))
+        XCTAssertTrue(source.contains(".frame(maxWidth: 520"))
         XCTAssertTrue(source.contains("ViewThatFits(in: .horizontal)"))
     }
 

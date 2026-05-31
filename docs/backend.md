@@ -1,6 +1,6 @@
 # Backend
 
-The backend is a private FastAPI gateway for LifeOrganize AI features. The iOS app sends extraction and web requests with a per-device service token; the backend owns `OPENAI_API_KEY`, builds OpenAI Responses API requests, enforces known active device tokens, rate-limits device tokens, and records request metadata in Postgres.
+The backend is a private FastAPI gateway for LifeOrganize AI features. The iOS app sends extraction and web requests with a per-device token managed by the app; the backend owns `OPENAI_API_KEY`, builds OpenAI Responses API requests, enrolls active device tokens, rate-limits device tokens, and records request metadata in Postgres.
 
 ## Public App API
 
@@ -12,10 +12,10 @@ Both routes require:
 
 - `X-LifeOrganize-Device-Token`
 - JSON request bodies
-- A token hash present in `device_clients` with `status='active'`
+- A per-device token in `X-LifeOrganize-Device-Token`
 - Per-token, per-endpoint rate limit headroom
 
-Unknown, revoked, or short tokens are rejected before provider calls. Request logs store token hashes, endpoint, status, latency, model, provider request ID, and error code. They do not store raw device tokens.
+Short tokens are rejected before provider calls. New valid-length tokens are enrolled as active devices; revoked tokens remain blocked. Request logs store token hashes, endpoint, status, latency, model, provider request ID, and error code. They do not store raw device tokens.
 
 ## Admin and Operations API
 
@@ -50,7 +50,7 @@ The log panel uses `LIFE_ORGANIZE_ADMIN_API_KEY` to create an HTTP-only admin se
 
 ## Local Run
 
-See [Local development](local-development.md) for Docker, direct Python, and local device-token enrollment steps.
+See [Local development](local-development.md) for Docker and direct Python run steps.
 
 Minimal direct run shape:
 
@@ -68,7 +68,7 @@ LIFE_ORGANIZE_ADMIN_API_KEY=dev-admin \
 - Store the OpenAI key only in backend environment/secrets.
 - `OPENAI_MODEL` defaults to `gpt-5.5` in `Backend/app/config.py` and `Backend/infra/docker-compose.yml`.
 - Set `DEVICE_TOKEN_SIGNING_SECRET` to a stable private value.
-- Device token auto-enrollment is no longer supported. Known device token hashes must exist in `device_clients` with `status='active'`; unknown tokens receive `unknown_device_token`.
+- New app-managed device tokens are enrolled automatically. Existing device rows with non-active status remain blocked.
 - Set `LIFE_ORGANIZE_ADMIN_API_KEY` to a stable private value for admin routes and the log panel.
 - Run Alembic migrations before replacing the API container. The GitHub deploy workflow and manual runbook use the Compose `migrate` service; the API entrypoint also honors `RUN_MIGRATIONS=true` when that path is used.
 - Route `life.dock108.dev` to the API container through the Caddy example in `Backend/infra/`.

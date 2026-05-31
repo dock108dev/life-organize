@@ -27,7 +27,7 @@ struct AIServiceWebRequestClient: WebRequestClient {
     }
 
     init(deviceTokenStore: any DeviceTokenStore, serviceBaseURL: URL = AppRuntimeConfiguration.defaultAIServiceBaseURL, client: (any AIServiceWebSending)? = nil) {
-        self.deviceTokenProvider = { try deviceTokenStore.loadDeviceToken() }
+        self.deviceTokenProvider = { try deviceTokenStore.ensureDeviceToken() }
         self.serviceBaseURL = serviceBaseURL
         self.client = client
     }

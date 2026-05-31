@@ -16,11 +16,11 @@ enum DeviceTokenStoreError: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .emptyToken:
-            "Service token cannot be empty."
+            "App connection cannot be empty."
         case .invalidTokenData:
-            "Saved service token could not be read."
+            "Saved app connection could not be read."
         case .keychainFailure:
-            "Could not update the saved service token."
+            "Could not update the saved app connection."
         }
     }
 }

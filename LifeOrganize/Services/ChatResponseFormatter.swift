@@ -62,7 +62,7 @@ struct ChatResponseFormatter {
     }
 
     func webLookupUnavailable() -> String {
-        "Web results:\nConnect to the AI service to look up current web information."
+        "Web results:\nThe service is unavailable for current web information."
     }
 
     func webLookupAnswer(_ text: String?) -> String {

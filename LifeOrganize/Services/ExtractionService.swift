@@ -17,7 +17,7 @@ struct AIServiceMessageExtractionClient: MessageExtractionClient {
     }
 
     init(deviceTokenStore: any DeviceTokenStore, serviceBaseURL: URL = AppRuntimeConfiguration.defaultAIServiceBaseURL, client: (any AIServiceExtractionSending)? = nil) {
-        self.deviceTokenProvider = { try deviceTokenStore.loadDeviceToken() }
+        self.deviceTokenProvider = { try deviceTokenStore.ensureDeviceToken() }
         self.serviceBaseURL = serviceBaseURL
         self.client = client
     }

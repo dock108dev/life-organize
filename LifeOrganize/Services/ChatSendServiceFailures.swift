@@ -14,17 +14,17 @@ extension ChatSendService {
                 .pendingToken,
                 .missingServiceToken,
                 formatter.extractionUnavailable(
-                    reason: "Connect to the AI service when you want it organized across your timeline."
+                    reason: "The service is unavailable. This will stay saved locally."
                 ),
-                "AI service credential is missing."
+                "Service credential could not be prepared."
             )
         }
         if case AppError.invalidServiceToken = error {
             return (
                 .pendingToken,
                 .invalidServiceToken,
-                formatter.extractionUnavailable(reason: "Reconnect the AI service in Settings."),
-                "AI service credential was rejected."
+                formatter.extractionUnavailable(reason: "The service rejected this device. This will stay saved locally."),
+                "Service credential was rejected."
             )
         }
         if case AppError.networkUnavailable = error {
@@ -40,7 +40,7 @@ extension ChatSendService {
                 .pendingRetry,
                 .timeout,
                 formatter.delayedOrganization("Timeline connections will retry when the connection works."),
-                "The AI service request timed out."
+                "The service request timed out."
             )
         }
         if case AppError.rateLimited = error {
@@ -48,7 +48,7 @@ extension ChatSendService {
                 .pendingRetry,
                 .rateLimited,
                 formatter.delayedOrganization("Timeline connections are delayed and will retry."),
-                "AI service rate limit reached."
+                "Service rate limit reached."
             )
         }
         if case AppError.serverError = error {
@@ -56,7 +56,7 @@ extension ChatSendService {
                 .pendingRetry,
                 .serverError,
                 formatter.delayedOrganization("Timeline connections will retry later."),
-                "AI service error."
+                "Service error."
             )
         }
         if case AppError.invalidResponse = error {
@@ -64,7 +64,7 @@ extension ChatSendService {
                 .failedNeedsReview,
                 .schemaValidationFailed,
                 formatter.extractionFailed(),
-                "AI service returned an invalid response."
+                "Service returned an invalid response."
             )
         }
 

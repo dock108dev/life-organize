@@ -381,8 +381,8 @@ final class ContinuityScenarioRegressionTests: XCTestCase {
         ).envelope()
         let exportedUsers = export.records.chatMessages.filter { $0.role == "user" }
         XCTAssertEqual(exportedUsers.count, 3)
-        XCTAssertTrue(exportedUsers.contains { $0.text == "Replaced Home Air Filters." && $0.extractionState?.recoveryAction?.contains("Connect the AI service") == true })
-        XCTAssertTrue(exportedUsers.contains { $0.text == "Changed car oil at 40,000 miles." && $0.extractionState?.recoveryAction?.contains("Reconnect the AI service") == true })
+        XCTAssertTrue(exportedUsers.contains { $0.text == "Replaced Home Air Filters." && $0.extractionState?.recoveryAction?.contains("Try this entry again when the service is available") == true })
+        XCTAssertTrue(exportedUsers.contains { $0.text == "Changed car oil at 40,000 miles." && $0.extractionState?.recoveryAction?.contains("Try this entry again when the service is available") == true })
         XCTAssertTrue(exportedUsers.contains { $0.text == "Bought dog food." && $0.extractionState?.recoveryAction?.contains("Try this entry again") == true })
 
         var clearFlow = SettingsClearDataFlow()

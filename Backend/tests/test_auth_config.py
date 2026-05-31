@@ -89,17 +89,9 @@ def test_production_settings_require_secrets_and_remote_database() -> None:
     development_settings = Settings(_env_file=None)
 
     assert production_settings.environment == "production"
-    assert not hasattr(production_settings, "auto_" + "enroll_device_tokens")
     assert development_settings.environment == "development"
     assert development_settings.openai_api_key is None
     assert "localhost" in development_settings.database_url
-
-
-def test_removed_auto_enrollment_config_fails_hard(monkeypatch) -> None:
-    monkeypatch.setenv("AUTO_" + "ENROLL_DEVICE_TOKENS", "true")
-
-    with pytest.raises(RuntimeError, match="Legacy path removed"):
-        Settings(_env_file=None)
 
 
 async def test_device_token_auth_has_no_expiration_claim_contract() -> None:

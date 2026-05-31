@@ -32,7 +32,7 @@ On launch and scene activation, the app runs local maintenance through `LaunchMa
 - Carry Forward: `LedgerRule` reminder continuity grouped into Now, Coming Up, Review, and Paused lanes by `ReminderContinuityPresentationService`.
 - Search: local substring search across things, events, reminders, notes, user messages, and timeline slices. Search is not a remote or semantic search service.
 - Review: `LedgerReviewItem` queue for local recovery, extraction review, interval candidates, overdue reminders, duplicate Things, conflicting dates, and normalization candidates.
-- Settings: AI service token state, local JSON export, local data clearing, and gated developer diagnostics.
+- Settings: local JSON export, local data clearing, and gated developer diagnostics.
 
 ## AI and Web Request Flow
 
@@ -41,13 +41,13 @@ The iOS app talks to the backend through `AIServiceClient`:
 - `POST /api/v1/extractions` for extraction requests.
 - `POST /api/v1/web-requests` for web lookup answer mode or web import extraction mode.
 
-The app sends a per-device service token in the `X-LifeOrganize-Device-Token` header. The backend hashes the token with `DEVICE_TOKEN_SIGNING_SECRET`, requires a matching active `device_clients` row, rate-limits per token and endpoint, then sends provider requests through `OpenAIGateway`.
+The app sends an app-managed per-device token in the `X-LifeOrganize-Device-Token` header. The backend hashes the token with `DEVICE_TOKEN_SIGNING_SECRET`, enrolls first-seen valid-length tokens as active `device_clients` rows, rate-limits per token and endpoint, then sends provider requests through `OpenAIGateway`.
 
 The backend returns either raw extraction payloads or assistant text for web answer mode. The app parses extraction payloads through `ExtractionService`, applies `TemporalPriorityResolver`, creates SwiftData records, records extraction attempts, and refreshes review items.
 
 ## Local-First Behavior
 
-The ledger is stored locally in SwiftData. If the backend is unavailable or no device token is configured, the app keeps the user message locally and marks extraction as pending service setup or retryable depending on the error class. The AI service device token is stored separately in Keychain through `KeychainDeviceTokenStore`; local data clearing does not remove it.
+The ledger is stored locally in SwiftData. If the backend is unavailable, the app keeps the user message locally and marks extraction as retryable. The app-managed device token is stored separately in Keychain through `KeychainDeviceTokenStore`; local data clearing does not remove it.
 
 Network, timeout, rate-limit, invalid credential, server, invalid JSON, schema validation, and partial validation failures are mapped to explicit extraction states and error metadata. Retry is blocked for assistant/system messages, already-running extraction, succeeded extraction, messages that do not need extraction, and messages that already created records.
 
@@ -57,4 +57,4 @@ Developer diagnostics are gated by `DeveloperModeState` and `DebugAccessPolicy`.
 
 Automation and screenshot modes use isolated `UserDefaults`, deterministic store paths under Application Support unless in-memory storage is requested, deterministic extraction when requested, and optional fixed date/locale/time zone/calendar/appearance overrides.
 
-Legacy double-dash automation aliases and backend device-token auto-enrollment are intentionally unsupported.
+Legacy double-dash automation aliases are intentionally unsupported.

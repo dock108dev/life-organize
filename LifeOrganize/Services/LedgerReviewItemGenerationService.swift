@@ -160,11 +160,11 @@ struct LedgerReviewItemGenerationService {
         switch message.extractionStatus {
         case .pendingToken:
             if message.extractionErrorCode == .invalidServiceToken {
-                detail = "The entry is saved on this device. Paste a valid service token in Settings, then try again."
+                detail = "The entry is saved on this device. Try again to reconnect it."
             } else {
-                detail = "The entry is saved on this device. Add a service token in Settings when you want it organized."
+                detail = "The entry is saved on this device. Try again when the service is reachable."
             }
-            actionTitle = "Connect Service"
+            actionTitle = "Try Again"
         case .pendingRetry:
             detail = pendingRetryDetail(for: message)
             actionTitle = "Try Again"

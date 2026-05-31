@@ -67,7 +67,7 @@ The old singular chat-message `extractionRunId` compatibility field is not part 
 
 `LocalDataClearService` deletes local ledger data from SwiftData: entity links, review items, extraction attempts, events, reminders, notes, things, and chat messages. It then saves the model context.
 
-The AI service token is not stored in SwiftData and is not cleared by `LocalDataClearService`.
+The app-managed device token is not stored in SwiftData and is not cleared by `LocalDataClearService`.
 
 ## Backend Database
 

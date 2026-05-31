@@ -43,7 +43,7 @@ struct ManualExtractionRetryButton: View {
             return "No source message is available."
         }
         if !hasAIServiceCredential {
-            return "Connect to the AI service in Settings to retry."
+            return "The service is unavailable right now."
         }
         do {
             let service = ManualExtractionRetryService(modelContext: modelContext, deviceTokenStore: deviceTokenStore)
@@ -55,7 +55,7 @@ struct ManualExtractionRetryButton: View {
 
     private func reloadDeviceTokenState() {
         do {
-            hasAIServiceCredential = try deviceTokenStore.loadDeviceToken()?.nilIfEmpty != nil
+            hasAIServiceCredential = try deviceTokenStore.ensureDeviceToken().nilIfEmpty != nil
         } catch {
             hasAIServiceCredential = false
         }

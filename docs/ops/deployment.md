@@ -44,7 +44,7 @@ DEVICE_RATE_LIMIT_WINDOW_SECONDS=3600
 ```
 
 The Compose file uses the internal database URL automatically, so `DATABASE_URL` is optional for Docker deploys.
-Device token auto-enrollment is no longer supported. Populate expected device token hashes in `device_clients` with `status='active'`; unknown tokens are rejected.
+Device tokens are app-managed and enrolled on first use. Existing `device_clients` rows with non-active status remain blocked.
 
 ## Caddy
 

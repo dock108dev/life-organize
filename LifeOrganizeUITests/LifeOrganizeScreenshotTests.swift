@@ -115,8 +115,6 @@ extension LifeOrganizeScenarioUITests {
         waitUntilReady(in: app)
         XCTAssertTrue(app.navigationBars["Settings"].waitForFastExistence(timeout: 10))
         XCTAssertTrue(app.descendants(matching: .any)["settings-workspace"].waitForFastExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["device-token-status"].waitForFastExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["device-token-save-button"].waitForFastExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["Developer Diagnostics"].exists)
         XCTAssertFalse(app.buttons["Internal QA Lab"].exists)
 

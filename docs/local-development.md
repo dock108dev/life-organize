@@ -73,31 +73,7 @@ Production and staging reject missing required secrets and localhost database UR
 
 ## Device Tokens
 
-Backend device-token auto-enrollment is not supported. The backend accepts only tokens whose HMAC hash already exists in `device_clients` with `status='active'`.
-
-For local manual testing with Docker, choose a raw token with at least 16 characters, compute the hash with the same signing secret used by the backend, then insert it:
-
-```sh
-export DEVICE_TOKEN_SIGNING_SECRET=<dev-signing-secret>
-export DEVICE_TOKEN=local-device-token-0001
-python3 - <<'PY'
-import hashlib
-import hmac
-import os
-
-secret = os.environ["DEVICE_TOKEN_SIGNING_SECRET"]
-token = os.environ["DEVICE_TOKEN"]
-print(hmac.new(secret.encode(), token.encode(), hashlib.sha256).hexdigest())
-PY
-```
-
-```sh
-docker compose -f Backend/infra/docker-compose.yml --profile dev exec postgres \
-  psql -U lifeorganize -d lifeorganize \
-  -c "insert into device_clients (token_hash, status) values ('<hash>', 'active') on conflict (token_hash) do update set status = 'active', revoked_at = null;"
-```
-
-Use the raw token in the app's AI service token setting. The backend stores only the HMAC hash.
+The app manages its device token silently in Keychain. The backend hashes that token, enrolls first-seen valid-length tokens as active devices, and stores only the HMAC hash. Users do not need to paste or manage a token in the app.
 
 ## Admin Log Panel
 

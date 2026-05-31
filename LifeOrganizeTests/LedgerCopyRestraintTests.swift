@@ -16,7 +16,7 @@ final class LedgerCopyRestraintTests: XCTestCase {
 
         XCTAssertNoImplementationLanguage(searchText)
         XCTAssertNoImplementationLanguage(settingsText)
-        XCTAssertTrue(settingsText.localizedCaseInsensitiveContains("service token"))
+        XCTAssertTrue(settingsText.localizedCaseInsensitiveContains("app connection"))
         XCTAssertTrue(settingsText.localizedCaseInsensitiveContains("local"))
         XCTAssertFalse(settingsText.localizedCaseInsensitiveContains("OpenAI"))
     }
@@ -200,10 +200,6 @@ final class LedgerCopyRestraintTests: XCTestCase {
 
     private func settingsTrustText() -> [String] {
         [
-            SettingsTrustCopy.deviceTokenTitle,
-            SettingsTrustCopy.deviceTokenBody,
-            SettingsTrustCopy.noTokenDetail,
-            SettingsTrustCopy.savedTokenDetail,
             SettingsTrustCopy.exportTitle,
             SettingsTrustCopy.exportBody,
             SettingsTrustCopy.clearTitle,

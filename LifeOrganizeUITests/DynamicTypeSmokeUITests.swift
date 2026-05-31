@@ -79,14 +79,8 @@ final class DynamicTypeSmokeUITests: XCTestCase {
         settingsButton.tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForFastExistence(timeout: 10))
 
-        let tokenStatus = app.staticTexts["device-token-status"]
-        XCTAssertTrue(tokenStatus.waitForFastExistence(timeout: 10))
-
-        XCTAssertTrue(app.buttons["device-token-save-button"].waitForFastExistence(timeout: 10))
-        let tokenActionButton = firstUsableButton(
-            matching: app.buttons.matching(NSPredicate(format: "label IN %@", ["Save Token", "Replace Token"]))
-        )
-        assertReachable(tokenActionButton, in: app)
+        assertReachable(app.buttons["settings-export-button"], in: app)
+        assertReachable(app.buttons["settings-clear-data-button"], in: app)
 
         let doneButton = app.buttons["settings-done-button"]
         assertReachable(doneButton, in: app)

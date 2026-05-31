@@ -89,16 +89,16 @@ final class ChatViewModel: ObservableObject {
     static func userFacingSendErrorMessage(for error: Error, didPersistRawMessage: Bool) -> String {
         if didPersistRawMessage {
             if error is AppError {
-                return "Saved on this device. Open Settings to connect the service."
+                return "Saved on this device. The service is unavailable right now."
             }
             return "Saved on this device. Some details may need attention in Review."
         }
 
         if case AppError.missingServiceToken = error {
-            return "Open Settings and reconnect, then try again."
+            return "The service is unavailable right now."
         }
         if case AppError.invalidServiceToken = error {
-            return "Open Settings and reconnect, then try again."
+            return "The service rejected this device."
         }
         if error is AppError {
             return "Couldn't save that. Check your connection and try again."

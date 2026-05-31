@@ -38,8 +38,8 @@ extension LedgerEmptyStateContent {
 
     static let settingsNoDeviceToken = LedgerEmptyStateContent(
         symbolName: "server.rack",
-        title: "AI service token",
-        body: "Entries stay local on this device. A private token lets the service organize new details."
+        title: "App connection",
+        body: "Entries stay local on this device and organize when the service is available."
     )
 
     static let searchLanding = LedgerEmptyStateContent(

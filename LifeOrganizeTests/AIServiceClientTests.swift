@@ -223,13 +223,13 @@ final class AIServiceClientTests: XCTestCase {
             service.mapExtractionError(AppError.missingServiceToken),
             status: .pendingToken,
             code: .missingServiceToken,
-            detail: "AI service credential is missing."
+            detail: "Service credential could not be prepared."
         )
         assertRecoveryMapping(
             service.mapExtractionError(AppError.invalidServiceToken),
             status: .pendingToken,
             code: .invalidServiceToken,
-            detail: "AI service credential was rejected."
+            detail: "Service credential was rejected."
         )
         assertRecoveryMapping(
             service.mapExtractionError(AppError.networkUnavailable),
@@ -241,25 +241,25 @@ final class AIServiceClientTests: XCTestCase {
             service.mapExtractionError(AppError.timeout),
             status: .pendingRetry,
             code: .timeout,
-            detail: "The AI service request timed out."
+            detail: "The service request timed out."
         )
         assertRecoveryMapping(
             service.mapExtractionError(AppError.rateLimited),
             status: .pendingRetry,
             code: .rateLimited,
-            detail: "AI service rate limit reached."
+            detail: "Service rate limit reached."
         )
         assertRecoveryMapping(
             service.mapExtractionError(AppError.serverError),
             status: .pendingRetry,
             code: .serverError,
-            detail: "AI service error."
+            detail: "Service error."
         )
         assertRecoveryMapping(
             service.mapExtractionError(AppError.invalidResponse),
             status: .failedNeedsReview,
             code: .schemaValidationFailed,
-            detail: "AI service returned an invalid response."
+            detail: "Service returned an invalid response."
         )
     }
 

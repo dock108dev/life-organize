@@ -14,9 +14,7 @@ struct PendingExtractionRetryService {
 
     @discardableResult
     func markPendingTokenMessagesRetryable() throws -> Int {
-        guard try deviceTokenStore.loadDeviceToken() != nil else {
-            return 0
-        }
+        _ = try deviceTokenStore.ensureDeviceToken()
 
         let messages = try modelContext.fetch(FetchDescriptor<ChatMessage>())
         let pendingMessages = messages.filter { message in
@@ -38,9 +36,7 @@ struct PendingExtractionRetryService {
     }
 
     func retryRecentPendingMessages(limit: Int = 10) async throws {
-        guard let deviceToken = try deviceTokenStore.loadDeviceToken() else {
-            return
-        }
+        let deviceToken = try deviceTokenStore.ensureDeviceToken()
 
         let now = dateProvider.now
         let messages = try modelContext.fetch(FetchDescriptor<ChatMessage>())

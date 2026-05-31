@@ -97,7 +97,7 @@ final class ChatSendServicePersistenceTests: XCTestCase {
         XCTAssertEqual(attempt.errorCode, .missingServiceToken)
         XCTAssertEqual(
             try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .assistant }?.text,
-            "Saved on this device. Connect to the AI service when you want it organized across your timeline."
+            "Saved on this device. The service is unavailable. This will stay saved locally."
         )
         XCTAssertTrue(attempt.normalizedJSONText.contains("missing_service_token"))
     }
@@ -110,7 +110,7 @@ final class ChatSendServicePersistenceTests: XCTestCase {
             role: .user,
             text: "Book dentist.",
             extractionStatus: .pendingToken,
-            extractionError: "AI service credential is missing.",
+            extractionError: "Service credential could not be prepared.",
             extractionErrorCode: .missingServiceToken
         )
         let assistantMessage = ChatMessage(
@@ -140,27 +140,35 @@ final class ChatSendServicePersistenceTests: XCTestCase {
     }
 
     @MainActor
-    func testRetryRecentPendingMessagesDoesNotAttemptWithoutSavedToken() async throws {
+    func testRetryRecentPendingMessagesPreparesAppConnectionAndRetries() async throws {
         let context = makeInMemoryModelContext()
         let message = ChatMessage(role: .user, text: "Changed filter.", extractionStatus: .pendingRetry)
+        let tokenStore = InMemoryDeviceTokenStore()
+        var retryToken: String?
 
         context.insert(message)
         try context.save()
 
         try await PendingExtractionRetryService(
             modelContext: context,
-            deviceTokenStore: InMemoryDeviceTokenStore(),
-            extractorFactory: { _ in
-                XCTFail("Extraction should not start without a service token.")
+            deviceTokenStore: tokenStore,
+            extractorFactory: { token in
+                retryToken = token
                 return StaticMessageExtractionClient(
-                    payload: ExtractionResponsePayload(rawResponseText: #"{"events":[]}"#)
+                    payload: ExtractionResponsePayload(
+                        rawResponseText: canonicalExtractionJSON(
+                            events: [canonicalEvent("event_1", title: "Changed filter", thingRef: nil, occurredAt: "2027-01-15")]
+                        )
+                    )
                 )
             }
         )
         .retryRecentPendingMessages()
 
-        XCTAssertEqual(try context.fetch(FetchDescriptor<ExtractionAttempt>()).count, 0)
-        XCTAssertEqual(message.extractionStatus, .pendingRetry)
+        XCTAssertEqual(try context.fetch(FetchDescriptor<ExtractionAttempt>()).count, 1)
+        XCTAssertEqual(message.extractionStatus, .succeeded)
+        XCTAssertEqual(retryToken, try tokenStore.loadDeviceToken())
+        XCTAssertFalse(retryToken?.isEmpty ?? true)
     }
 
     @MainActor

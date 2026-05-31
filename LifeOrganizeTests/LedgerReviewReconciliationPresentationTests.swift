@@ -74,7 +74,7 @@ final class LedgerReviewReconciliationPresentationTests: XCTestCase {
         XCTAssertEqual(presentation.actions.primary?.kind, .retry)
         XCTAssertEqual(presentation.actions.reviewState.first?.title, "Done")
         XCTAssertEqual(presentation.suggestion.title, "Next Step")
-        XCTAssertEqual(presentation.suggestion.summary, "Connect the service, try again, or keep this entry as a note.")
+        XCTAssertEqual(presentation.suggestion.summary, "Try again, or keep this entry as a note.")
         XCTAssertTrue(presentation.actions.contextual.contains { $0.kind == .saveAsNote })
         XCTAssertTrue(presentation.saveAsNoteBody?.contains("Remember the paint color.") == true)
         XCTAssertFalse(presentation.saveAsNoteBody?.contains("Suggested interpretation") == true)

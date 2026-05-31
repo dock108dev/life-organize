@@ -35,8 +35,9 @@ final class LifeOrganizeUITests: XCTestCase {
 
         app.buttons["Settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForFastExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["AI service"].exists)
-        XCTAssertTrue(app.staticTexts["device-token-status"].exists)
+        XCTAssertTrue(app.buttons["settings-export-button"].exists)
+        XCTAssertTrue(app.buttons["settings-clear-data-button"].exists)
+        XCTAssertFalse(app.staticTexts["AI service"].exists)
         app.buttons["Done"].tap()
 
         send("No buying domains for 30 days.", in: app)
@@ -47,23 +48,31 @@ final class LifeOrganizeUITests: XCTestCase {
         )
     }
 
-    func testSettingsShowsDeviceServiceToken() throws {
+    func testSettingsShowsLocalDataControls() throws {
         let app = launchApp(resetStore: true)
 
         app.buttons["Settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForFastExistence(timeout: 5))
 
-        XCTAssertTrue(app.staticTexts["device-token-status"].waitForFastExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["device-token-save-button"].waitForFastExistence(timeout: 5))
-        XCTAssertTrue(app.secureTextFields["device-token-input"].exists)
-        XCTAssertTrue(app.buttons["Save Token"].exists)
+        XCTAssertTrue(app.buttons["settings-export-button"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["settings-clear-data-button"].exists)
+        XCTAssertFalse(app.secureTextFields["device-token-input"].exists)
+
+        app.buttons["settings-clear-data-button"].tap()
+        XCTAssertTrue(app.buttons["Continue"].waitForFastExistence(timeout: 5))
+        app.buttons["Continue"].tap()
+        XCTAssertTrue(app.staticTexts["Clear local data?"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Export Local Copy"].exists)
+        XCTAssertTrue(app.buttons["Continue to Confirmation"].exists)
+        app.buttons["Cancel"].tap()
+        XCTAssertTrue(app.navigationBars["Settings"].waitForFastExistence(timeout: 5))
 
         app.terminate()
 
         let cleanApp = launchApp(resetStore: true)
         cleanApp.buttons["Settings"].tap()
-        XCTAssertTrue(cleanApp.staticTexts["device-token-status"].waitForFastExistence(timeout: 5))
-        XCTAssertTrue(cleanApp.buttons["Save Token"].exists)
+        XCTAssertTrue(cleanApp.buttons["settings-export-button"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(cleanApp.buttons["settings-clear-data-button"].exists)
     }
 
     func testPrimaryTabToolbarActionsMatchEachSurface() throws {
@@ -299,7 +308,7 @@ final class LifeOrganizeUITests: XCTestCase {
         XCTAssertTrue(settingsButton.waitForFastExistence(timeout: 5))
         settingsButton.tap()
         XCTAssertTrue(relaunchedApp.navigationBars["Settings"].waitForFastExistence(timeout: 5))
-        XCTAssertTrue(relaunchedApp.staticTexts["device-token-status"].waitForFastExistence(timeout: 5))
+        XCTAssertTrue(relaunchedApp.buttons["settings-export-button"].waitForFastExistence(timeout: 5))
         relaunchedApp.buttons["settings-done-button"].tap()
         XCTAssertTrue(relaunchedApp.navigationBars["Timeline"].waitForFastExistence(timeout: 5))
     }

@@ -82,7 +82,7 @@ struct ChatView: View {
     var body: some View {
         VStack(spacing: 0) {
             if !hasAIServiceCredential {
-                DeviceTokenNotice(onAddKey: onAddKey)
+                DeviceTokenNotice()
                     .padding(.top, 8)
                     .ledgerAdaptiveWidth(.readable)
             }
@@ -267,15 +267,11 @@ private struct TimelineOlderHistoryToggle: View {
 }
 
 private struct DeviceTokenNotice: View {
-    let onAddKey: () -> Void
-
     var body: some View {
         LedgerNoticeBanner(
             icon: "wifi.exclamationmark",
-            message: "Timeline capture is local on this device until the AI service is reachable.",
-            actionTitle: "Settings",
-            accessibilityIdentifier: "device-token-notice",
-            action: onAddKey
+            message: "Timeline capture is local on this device until the service is reachable.",
+            accessibilityIdentifier: "device-token-notice"
         )
     }
 }

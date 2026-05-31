@@ -50,8 +50,8 @@ final class LifeOrganizeOfflineJourneyUITests: XCTestCase {
 
         app.buttons["settings-entry"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForFastExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["AI service"].exists)
-        XCTAssertTrue(app.staticTexts["device-token-status"].exists)
+        XCTAssertTrue(app.buttons["settings-export-button"].exists)
+        XCTAssertTrue(app.buttons["settings-clear-data-button"].exists)
         app.buttons["settings-done-button"].tap()
 
         XCTAssertTrue(app.buttons["review-queue-button"].waitForFastExistence(timeout: 5))

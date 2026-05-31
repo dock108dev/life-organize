@@ -43,7 +43,7 @@ struct ManualExtractionRetryService {
             throw ManualExtractionRetryError.notRetryable(blockedReason)
         }
 
-        guard try deviceTokenStore.loadDeviceToken()?.nilIfEmpty != nil else {
+        guard try deviceTokenStore.ensureDeviceToken().nilIfEmpty != nil else {
             throw ManualExtractionRetryError.missingServiceToken
         }
 
@@ -78,7 +78,7 @@ enum ManualExtractionRetryError: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .missingServiceToken:
-            return "This entry is saved on this device. Connect to the AI service, then retry it."
+            return "This entry is saved on this device. The service is unavailable right now."
         case .notRetryable(let reason):
             return reason.message
         }

@@ -60,7 +60,7 @@ final class ChatSendWebReliabilityTests: XCTestCase {
 
         XCTAssertEqual(lookupUser.text, "Saturday I need the 5 best college football games to watch with kickoff times.")
         XCTAssertEqual(lookupUser.extractionStatus, .notRequired)
-        XCTAssertEqual(lookupAssistant.text, "Web results:\nConnect to the AI service to look up current web information.")
+        XCTAssertEqual(lookupAssistant.text, "Web results:\nThe service is unavailable for current web information.")
         XCTAssertEqual(try lookupContext.fetch(FetchDescriptor<ExtractionAttempt>()).count, 0)
 
         let importContext = makeInMemoryModelContext()

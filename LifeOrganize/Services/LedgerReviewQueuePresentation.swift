@@ -78,7 +78,7 @@ struct LedgerReviewQueueRowPresentation: Equatable {
     ) -> String {
         _ = now
         if entry.isActionBlocked {
-            return entry.primaryActionTitle == "Connect Service" ? "Service connection needed" : "Review in detail"
+            return "Review in detail"
         }
         switch item.state {
         case .snoozed:

@@ -19,7 +19,7 @@ Backend settings are loaded by `Backend/app/config.py` from process environment 
 | `DEVICE_RATE_LIMIT_REQUESTS` | `60` | Per-device, per-endpoint request limit. |
 | `DEVICE_RATE_LIMIT_WINDOW_SECONDS` | `3600` | Rate-limit window in seconds. |
 
-`AUTO_ENROLL_DEVICE_TOKENS` is removed. If present, backend startup raises `RuntimeError("Legacy path removed — use SSOT implementation")`.
+Device tokens are app-managed and enrolled by the backend on first use. `AUTO_ENROLL_DEVICE_TOKENS` is ignored.
 
 ## Docker Compose Environment
 

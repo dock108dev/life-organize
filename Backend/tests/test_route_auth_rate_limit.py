@@ -130,7 +130,7 @@ def test_extractions_accept_valid_device_token_and_redact_persistence(
     assert raw_token not in json.dumps(logs_response.json(), sort_keys=True)
 
 
-def test_device_routes_reject_unknown_tokens(
+def test_device_routes_enroll_unknown_tokens(
     db_client: TestClient,
     sqlite_route_session: SyncRouteSession,
     install_gateway_stub,
@@ -144,12 +144,11 @@ def test_device_routes_reject_unknown_tokens(
         json=extraction_body(),
     )
 
-    assert response.status_code == 401
-    assert response.json()["detail"]["code"] == "unknown_device_token"
-    assert gateway.extraction_requests == []
-    assert sqlite_route_session.count(DeviceClient) == 0
+    assert response.status_code == 200
+    assert len(gateway.extraction_requests) == 1
+    assert sqlite_route_session.count(DeviceClient) == 1
     security_events = [event for event in admin_events.recent(50) if event.category == "security"]
-    assert security_events[-1].message == "Unknown device token rejected"
+    assert security_events[-1].message == "New device token enrolled"
 
 
 def test_device_routes_reject_revoked_tokens(

@@ -31,10 +31,10 @@ final class FirstRunEmptyStateTests: XCTestCase {
             LedgerEmptyStateContent.rules.secondaryBody,
             "Add a reminder, or capture something that should resurface later."
         )
-        XCTAssertEqual(LedgerEmptyStateContent.settingsNoDeviceToken.title, "AI service token")
+        XCTAssertEqual(LedgerEmptyStateContent.settingsNoDeviceToken.title, "App connection")
         XCTAssertEqual(
             LedgerEmptyStateContent.settingsNoDeviceToken.body,
-            "Entries stay local on this device. A private token lets the service organize new details."
+            "Entries stay local on this device and organize when the service is available."
         )
         XCTAssertEqual(LedgerEmptyStateContent.searchLanding.title, "Search")
         XCTAssertEqual(LedgerEmptyStateContent.searchLanding.body, "Look up a detail, date, place, or note.")
@@ -244,7 +244,7 @@ final class FirstRunEmptyStateTests: XCTestCase {
         )
         XCTAssertEqual(
             ChatViewModel.userFacingSendErrorMessage(for: AppError.invalidServiceToken, didPersistRawMessage: true),
-            "Saved on this device. Open Settings to connect the service."
+            "Saved on this device. The service is unavailable right now."
         )
 
         let context = makeInMemoryModelContext()
@@ -271,7 +271,7 @@ final class FirstRunEmptyStateTests: XCTestCase {
         XCTAssertTrue(didClearOrganizationStatus)
         XCTAssertEqual(
             viewModel.sendError,
-            "Saved on this device. Open Settings to connect the service."
+            "Saved on this device. The service is unavailable right now."
         )
     }
 

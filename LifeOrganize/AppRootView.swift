@@ -293,7 +293,7 @@ struct AppRootView: View {
             if runtime.usesDeterministicExtractor {
                 hasAIServiceCredential = true
             } else {
-                hasAIServiceCredential = try deviceTokenStore.loadDeviceToken()?.nilIfEmpty != nil
+                hasAIServiceCredential = try deviceTokenStore.ensureDeviceToken().nilIfEmpty != nil
             }
         } catch {
             hasAIServiceCredential = false

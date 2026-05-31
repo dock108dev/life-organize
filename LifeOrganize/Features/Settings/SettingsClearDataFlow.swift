@@ -66,6 +66,10 @@ struct SettingsClearDataSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
+                    Text("Clear local data?")
+                        .font(.largeTitle.weight(.bold))
+                        .fixedSize(horizontal: false, vertical: true)
+
                     LedgerNoticeBanner(
                         icon: "exclamationmark.triangle",
                         message: SettingsClearDataCopy.finalWarning,
@@ -85,11 +89,14 @@ struct SettingsClearDataSheet: View {
                         finalConfirmationSection
                     }
                 }
-                .ledgerAdaptiveWidth(.sheet)
+                .frame(maxWidth: 520, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.horizontal, LedgerAdaptiveLayout.Gutter.regular)
                 .padding(.vertical, 20)
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Clear local data?")
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {

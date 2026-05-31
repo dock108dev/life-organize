@@ -12,19 +12,19 @@ enum AppError: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .missingServiceToken:
-            "AI service credential is missing."
+            "Service credential could not be prepared."
         case .invalidServiceToken:
-            "AI service credential was rejected."
+            "Service credential was rejected."
         case .networkUnavailable:
             "The network is unavailable."
         case .timeout:
-            "The AI service request timed out."
+            "The service request timed out."
         case .rateLimited:
-            "AI service rate limit reached."
+            "Service rate limit reached."
         case .serverError:
-            "AI service error."
+            "Service error."
         case .invalidResponse:
-            "AI service returned an invalid response."
+            "Service returned an invalid response."
         }
     }
 }

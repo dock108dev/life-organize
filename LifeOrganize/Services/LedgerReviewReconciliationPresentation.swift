@@ -126,15 +126,9 @@ struct LedgerReviewReconciliationPresentationBuilder {
         rules: [LedgerRule]
     ) -> LedgerReviewReconciliationAction? {
         if let blockedMessage = entry.blockedMessage {
-            if entry.primaryActionTitle == "Connect Service" {
-                return action(.connectService, "Connect Service", role: .primary, detail: blockedMessage)
-            }
             return action(.blocked, "Needs Attention", role: .blocked, detail: blockedActionDetail(for: item, fallback: blockedMessage), isEnabled: false)
         }
 
-        if entry.primaryActionTitle == "Connect Service" {
-            return action(.connectService, "Connect Service", role: .primary)
-        }
         if entry.primaryActionTitle == "Retry Now" || entry.primaryActionTitle == "Try Again" {
             return action(.retry, "Try Again", role: .primary)
         }
@@ -423,7 +417,7 @@ struct LedgerReviewReconciliationPresentationBuilder {
         }
         switch item.kind {
         case .localRecovery:
-            return "Connect the service, try again, or keep this entry as a note."
+            return "Try again, or keep this entry as a note."
         case .extractionReview:
             return entry.createdRecords.isEmpty
                 ? "Try again, keep this as a note, or mark it done."

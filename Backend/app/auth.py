@@ -84,13 +84,16 @@ async def enforce_active_device_token(session: AsyncSession, token_hash: str) ->
     )
     if existing is None:
         admin_events.emit(
-            "warning",
+            "info",
             "security",
-            "Unknown device token rejected",
+            "New device token enrolled",
         )
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={"code": "unknown_device_token", "detail": "Unknown device token."},
+        session.add(
+            DeviceClient(
+                token_hash=token_hash,
+                request_count=1,
+                status=ACTIVE_DEVICE_STATUS,
+            )
         )
     elif existing.status != ACTIVE_DEVICE_STATUS:
         admin_events.emit(

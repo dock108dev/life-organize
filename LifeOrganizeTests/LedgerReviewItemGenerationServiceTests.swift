@@ -254,8 +254,8 @@ final class LedgerReviewItemGenerationServiceTests: XCTestCase {
 
         let details = Set(try service(context).refresh().map(\.detail))
 
-        XCTAssertTrue(details.contains("The entry is saved on this device. Add a service token in Settings when you want it organized."))
-        XCTAssertTrue(details.contains("The entry is saved on this device. Paste a valid service token in Settings, then try again."))
+        XCTAssertTrue(details.contains("The entry is saved on this device. Try again when the service is reachable."))
+        XCTAssertTrue(details.contains("The entry is saved on this device. Try again to reconnect it."))
         XCTAssertTrue(details.contains("The entry is saved on this device. Try again when your connection is working, or wait for the next automatic retry."))
         XCTAssertTrue(details.allSatisfy { !$0.localizedCaseInsensitiveContains("process") })
         XCTAssertTrue(details.allSatisfy { !$0.localizedCaseInsensitiveContains("assistant") })

@@ -12,7 +12,7 @@ LifeOrganize is a local-first iOS app with a small private backend for AI-backed
 - `Tests/ScreenshotBaselines/`: committed visual regression baselines.
 - `.github/workflows/`: backend CI/CD, iOS CI, and selected-image backend deploy workflows.
 
-There are no widget, watch, TestFlight, App Store, or iOS deploy targets in this repository.
+Unsupported targets and intentionally absent workflows are tracked in [Known limitations and unsupported paths](known-limitations.md).
 
 ## iOS App
 
@@ -33,6 +33,7 @@ On launch and scene activation, the app runs local maintenance through `LaunchMa
 - Search: local substring search across things, events, reminders, notes, user messages, and timeline slices. Search is not a remote or semantic search service.
 - Review: `LedgerReviewItem` queue for local recovery, extraction review, interval candidates, overdue reminders, duplicate Things, conflicting dates, and normalization candidates.
 - Settings: local JSON export, local data clearing, and gated developer diagnostics.
+- Automation and screenshots: deterministic launch arguments, isolated test stores, seed scenarios, screenshot routes, and visual baselines.
 
 ## AI and Web Request Flow
 
@@ -58,3 +59,5 @@ Developer diagnostics are gated by `DeveloperModeState` and `DebugAccessPolicy`.
 Automation and screenshot modes use isolated `UserDefaults`, deterministic store paths under Application Support unless in-memory storage is requested, deterministic extraction when requested, and optional fixed date/locale/time zone/calendar/appearance overrides.
 
 Legacy double-dash automation aliases are intentionally unsupported.
+
+See [Known limitations and unsupported paths](known-limitations.md) for current non-goals and intentionally unsupported workflows.

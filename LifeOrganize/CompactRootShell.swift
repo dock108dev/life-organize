@@ -8,7 +8,6 @@ struct CompactRootShell: View {
     @Binding var isShowingSearch: Bool
     @Binding var isShowingReviewQueue: Bool
     let toolbarState: AppToolbarState
-    let hasAIServiceCredential: Bool
     let deviceTokenStore: any DeviceTokenStore
     let resetToken: UUID
     let onOpenLog: () -> Void
@@ -20,7 +19,6 @@ struct CompactRootShell: View {
                 isShowingSearch: $isShowingSearch,
                 isShowingReviewQueue: $isShowingReviewQueue,
                 toolbarState: toolbarState,
-                hasAIServiceCredential: hasAIServiceCredential,
                 deviceTokenStore: deviceTokenStore
             )
             .appTabItem(.log, resetToken: resetToken)
@@ -61,7 +59,6 @@ struct RegularRootShell: View {
 
     @Binding var selectedSection: AppSection
     let toolbarState: AppToolbarState
-    let hasAIServiceCredential: Bool
     let deviceTokenStore: any DeviceTokenStore
     let searchText: String
     let resetToken: UUID
@@ -140,9 +137,7 @@ struct RegularRootShell: View {
         switch section {
         case .timeline:
             ChatView(
-                hasAIServiceCredential: hasAIServiceCredential,
-                deviceTokenStore: deviceTokenStore,
-                onAddKey: { selectedSection = .settings }
+                deviceTokenStore: deviceTokenStore
             )
             .navigationTitle(section.title)
             .toolbar {
@@ -179,7 +174,6 @@ struct RegularRootShell: View {
         case .review:
             LedgerReviewQueueView(
                 deviceTokenStore: deviceTokenStore,
-                onAddKey: { selectedSection = .settings },
                 onClose: nil
             )
         case .settings:
@@ -271,15 +265,12 @@ private struct LogNavigationRoot: View {
     @Binding var isShowingSearch: Bool
     @Binding var isShowingReviewQueue: Bool
     let toolbarState: AppToolbarState
-    let hasAIServiceCredential: Bool
     let deviceTokenStore: any DeviceTokenStore
 
     var body: some View {
         NavigationStack {
             ChatView(
-                hasAIServiceCredential: hasAIServiceCredential,
-                deviceTokenStore: deviceTokenStore,
-                onAddKey: { isShowingSettings = true }
+                deviceTokenStore: deviceTokenStore
             )
             .navigationTitle(AppTab.log.title)
             .toolbar {

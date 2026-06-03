@@ -1,12 +1,16 @@
 # Large File Follow-Up List
 
-Generated: 2026-05-30
+Generated: 2026-06-03
 
 This list tracks non-binary repository files still above roughly 500 lines after the documentation consolidation pass. Screenshot baseline PNGs are binary visual assets and are excluded from this source/documentation LOC review.
 
 ## Source Code
 
-No Swift or Python source file is currently above 500 lines.
+No production Swift or Python source file is currently above 500 lines.
+
+## Tests
+
+No Swift test source file is currently above 500 lines.
 
 ## Fixtures
 
@@ -20,3 +24,9 @@ No Swift or Python source file is currently above 500 lines.
 ## Documentation
 
 No maintained Markdown file is currently above 500 lines.
+
+## Generated Project Files
+
+| Lines | File | Disposition |
+| ---: | --- | --- |
+| 539 | `LifeOrganize.xcodeproj/project.pbxproj` | Retain. Xcode project metadata; not hand-refactored for LOC. |

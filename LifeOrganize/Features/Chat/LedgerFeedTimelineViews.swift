@@ -30,7 +30,6 @@ struct LedgerFeedSectionView: View {
     let section: LedgerFeedSection
     let reviewItems: [LedgerReviewItem]
     let deviceTokenStore: any DeviceTokenStore
-    let onAddKey: () -> Void
     let onReviewItemError: (String) -> Void
     @ScaledMetric(relativeTo: .caption2) private var timestampWidth = LedgerFeedTimelineLayout.timestampWidth
     @ScaledMetric(relativeTo: .caption2) private var markerSize = LedgerFeedTimelineLayout.markerSize
@@ -49,7 +48,6 @@ struct LedgerFeedSectionView: View {
                         item: item,
                         reviewPresentation: reviewPresentation,
                         deviceTokenStore: deviceTokenStore,
-                        onAddKey: onAddKey,
                         onReviewItemError: onReviewItemError
                     )
                     .id(item.id)
@@ -88,7 +86,6 @@ private struct LedgerFeedRowLink: View {
     let item: LedgerFeedItem
     let reviewPresentation: LedgerReviewItemPresentation?
     let deviceTokenStore: any DeviceTokenStore
-    let onAddKey: () -> Void
     let onReviewItemError: (String) -> Void
 
     var body: some View {
@@ -97,8 +94,7 @@ private struct LedgerFeedRowLink: View {
                 LedgerReviewQueueView(
                     origin: origin,
                     focusedItemID: reviewPresentation.item.id,
-                    deviceTokenStore: deviceTokenStore,
-                    onAddKey: onAddKey
+                    deviceTokenStore: deviceTokenStore
                 )
             } label: {
                 LedgerFeedRow(item: item, reviewPresentation: reviewPresentation)

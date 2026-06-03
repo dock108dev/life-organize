@@ -15,7 +15,6 @@ struct LedgerReviewQueueDetailView: View {
     let rules: [LedgerRule]
     let notes: [LedgerNote]
     let deviceTokenStore: any DeviceTokenStore
-    let onAddKey: () -> Void
 
     @State private var reminderDate = DateFormatting.normalizedDateOnly(Date())
     @State private var errorMessage: String?
@@ -229,8 +228,6 @@ struct LedgerReviewQueueDetailView: View {
     @ViewBuilder
     private func actionControl(_ action: LedgerReviewReconciliationAction) -> some View {
         switch action.kind {
-        case .connectService:
-            Button(action.title, action: onAddKey)
         case .retry:
             Button(action.title) {
                 pendingAction = .retry

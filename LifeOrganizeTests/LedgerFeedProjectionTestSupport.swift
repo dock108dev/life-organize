@@ -19,15 +19,6 @@ extension LedgerFeedProjectionTests {
         try XCTUnwrap(calendar.date(from: DateComponents(year: year, month: month, day: day, hour: hour)))
     }
 
-    static func utcDate(
-        _ year: Int,
-        _ month: Int,
-        _ day: Int,
-        _ hour: Int
-    ) throws -> Date {
-        try XCTUnwrap(DateFormatting.utcGregorianCalendar.date(from: DateComponents(year: year, month: month, day: day, hour: hour)))
-    }
-
     static func timeFormatter(calendar: Calendar) -> DateFormatter {
         let formatter = DateFormatter()
         formatter.calendar = calendar
@@ -36,24 +27,6 @@ extension LedgerFeedProjectionTests {
         formatter.dateStyle = .none
         formatter.timeStyle = .short
         return formatter
-    }
-
-    static func section(day: Date, calendar: Calendar, now: Date) throws -> LedgerFeedSection {
-        LedgerFeedSection(
-            day: day,
-            items: [
-                .event(
-                    LedgerEvent(
-                        title: "Test event",
-                        occurredAt: day,
-                        rawText: "Test event",
-                        createdAt: day
-                    )
-                )
-            ],
-            calendar: calendar,
-            now: now
-        )
     }
 }
 

@@ -123,15 +123,6 @@ final class AbendHardeningTests: XCTestCase {
         )
     }
 
-    func testSettingsFeedbackDistinguishesDeferredRetryFromCleanTokenReady() {
-        XCTAssertFalse(SettingsFeedback.deviceTokenSavedRetryDeferred.isError)
-        XCTAssertNotEqual(
-            SettingsFeedback.deviceTokenSavedRetryDeferred.message,
-            SettingsFeedback.deviceTokenSaved.message
-        )
-        XCTAssertTrue(SettingsFeedback.deviceTokenSavedRetryDeferred.message.contains("retry later"))
-    }
-
     private func makeIsolatedDefaults() throws -> UserDefaults {
         let suiteName = "LifeOrganizeTests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))

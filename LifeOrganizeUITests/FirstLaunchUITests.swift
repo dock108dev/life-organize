@@ -13,7 +13,6 @@ final class LifeOrganizeScenarioUITests: XCTestCase {
         XCTAssertTrue(app.tabBars.buttons["Things"].exists)
         XCTAssertTrue(app.tabBars.buttons["Carry Forward"].exists)
         XCTAssertTrue(app.descendants(matching: .any)["timeline-feed"].exists)
-        XCTAssertFalse(app.descendants(matching: .any)["device-token-notice"].exists)
         XCTAssertTrue(app.staticTexts["Timeline"].exists)
         XCTAssertTrue(app.staticTexts["Capture anything worth remembering. LifeOrganize turns it into history, Things, and follow-up reminders."].exists)
         XCTAssertTrue(app.buttons["Save note"].exists)

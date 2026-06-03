@@ -57,9 +57,9 @@ Device tokens are app-managed and enrolled by the backend on first use. `AUTO_EN
 | `-fixed-now=<iso8601>` | Uses a fixed date provider when parsing succeeds. |
 | `-ai-service-base-url=<url>` | Overrides the backend base URL. Non-loopback HTTP URLs are accepted only in automation. |
 | `-seed-scenario=<id>` | Loads a seed scenario in automation. Can be repeated. |
-| `-initial-tab=<tab>` | Selects the initial app tab. |
-| `-screenshot-seed=<seed>` | Selects screenshot seed data. |
-| `-screenshot-start=<route>` | Selects the screenshot start route. |
+| `-initial-tab=<tab>` | Selects the initial compact app tab. Accepted values are `timeline`/`log`, `things`, and `carry-forward`/`rules`. |
+| `-screenshot-seed=<seed>` | Selects screenshot seed data. Accepted values are `empty`, `default`, `review`, `search`, `carry-forward`, and `heavy`. |
+| `-screenshot-start=<route>` | Selects the screenshot start route. Accepted values are `timeline`/`log`, `things`, `carry-forward`/`rules`, `settings`, `search`, and `review`/`review-queue`. |
 | `-screenshot-search-query=<text>` | Preloads search text for screenshot mode. |
 | `-screenshot-locale=<identifier>` | Overrides locale for screenshots. |
 | `-screenshot-time-zone=<identifier>` | Overrides time zone and process default time zone for screenshots. |
@@ -68,6 +68,8 @@ Device tokens are app-managed and enrolled by the backend on first use. `AUTO_EN
 | `-disable-animations` | Disables animations. Screenshot mode also disables animations. |
 
 Legacy double-dash aliases are not supported.
+
+See [Known limitations and unsupported paths](known-limitations.md) for intentionally removed or unsupported runtime paths.
 
 ## UI Test Environment
 

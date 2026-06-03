@@ -163,7 +163,6 @@ struct AppRootView: View {
     @State private var selectedSection: AppSection
     @State private var activeSheet: AppRootSheet?
     @State private var pendingInitialSection: AppSection?
-    @State private var hasAIServiceCredential = false
     @State private var maintenanceErrorMessage: String?
     private let deviceTokenStore: any DeviceTokenStore
     private let searchText: String
@@ -193,13 +192,12 @@ struct AppRootView: View {
         .environmentObject(developerModeState)
         .environment(\.debugAccessPolicy, developerModeState.policy)
         .tint(LedgerPalette.accent)
-        .sheet(item: $activeSheet, onDismiss: reloadAIServiceState) { sheet in
+        .sheet(item: $activeSheet) { sheet in
             sheetView(for: sheet)
         }
         .onAppear {
             consumeInitialSectionIfNeeded()
             moveFromUnavailableReviewIfNeeded()
-            reloadAIServiceState()
             repairDerivedFields()
         }
         .onChange(of: scenePhase) { _, phase in
@@ -212,11 +210,6 @@ struct AppRootView: View {
         }
         .onChange(of: toolbarState) { _, _ in
             moveFromUnavailableReviewIfNeeded()
-        }
-        .onChange(of: selectedSection) { oldValue, newValue in
-            if oldValue == .settings || newValue == .settings {
-                reloadAIServiceState()
-            }
         }
         .alert(
             "Couldn’t Refresh Ledger",
@@ -248,7 +241,6 @@ struct AppRootView: View {
             RegularRootShell(
                 selectedSection: sectionBinding,
                 toolbarState: toolbarState,
-                hasAIServiceCredential: hasAIServiceCredential,
                 deviceTokenStore: deviceTokenStore,
                 searchText: searchText,
                 resetToken: sessionState.resetToken,
@@ -262,7 +254,6 @@ struct AppRootView: View {
                 isShowingSearch: sheetBinding(for: .search),
                 isShowingReviewQueue: sheetBinding(for: .reviewQueue),
                 toolbarState: toolbarState,
-                hasAIServiceCredential: hasAIServiceCredential,
                 deviceTokenStore: deviceTokenStore,
                 resetToken: sessionState.resetToken,
                 onOpenLog: { selectSection(.timeline) }
@@ -284,19 +275,6 @@ struct AppRootView: View {
             maintenanceErrorMessage = nil
         } else {
             maintenanceErrorMessage = "Some cached ledger fields could not be refreshed."
-        }
-    }
-
-    private func reloadAIServiceState() {
-        do {
-            let runtime = AppRuntimeConfiguration.current
-            if runtime.usesDeterministicExtractor {
-                hasAIServiceCredential = true
-            } else {
-                hasAIServiceCredential = try deviceTokenStore.ensureDeviceToken().nilIfEmpty != nil
-            }
-        } catch {
-            hasAIServiceCredential = false
         }
     }
 
@@ -389,8 +367,6 @@ struct AppRootView: View {
         case .reviewQueue:
             NavigationStack {
                 LedgerReviewQueueView(deviceTokenStore: deviceTokenStore) {
-                    activeSheet = .settings
-                } onClose: {
                     activeSheet = nil
                 }
             }

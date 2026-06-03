@@ -29,7 +29,9 @@ xcodebuild test -project LifeOrganize.xcodeproj \
 Start the local backend and Postgres from the repo root:
 
 ```sh
-docker compose -f Backend/infra/docker-compose.yml --profile dev up --build
+docker compose -f Backend/infra/docker-compose.yml --profile dev up -d postgres
+docker compose -f Backend/infra/docker-compose.yml --profile dev run --rm migrate
+docker compose -f Backend/infra/docker-compose.yml --profile dev up --build api
 ```
 
 Default local bindings:
@@ -42,6 +44,8 @@ The API container proxies Uvicorn on container port `8000`. Health check:
 ```sh
 curl -fsS http://127.0.0.1:8787/healthz
 ```
+
+The migration step is required for `/api/v1/extractions`, `/api/v1/web-requests`, and admin usage logging because those routes read or write `device_clients` and `ai_request_logs`.
 
 Point the app at the local backend with:
 
@@ -66,6 +70,7 @@ export DATABASE_URL=postgresql+asyncpg://lifeorganize:lifeorganize@localhost:543
 export DEVICE_TOKEN_SIGNING_SECRET=<dev-signing-secret>
 export OPENAI_API_KEY=<provider-key>
 export LIFE_ORGANIZE_ADMIN_API_KEY=<dev-admin-key>
+.venv/bin/alembic upgrade head
 .venv/bin/python -m uvicorn main:app --reload --port 8787
 ```
 
@@ -73,7 +78,7 @@ Production and staging reject missing required secrets and localhost database UR
 
 ## Device Tokens
 
-The app manages its device token silently in Keychain. The backend hashes that token, enrolls first-seen valid-length tokens as active devices, and stores only the HMAC hash. Users do not need to paste or manage a token in the app.
+The app manages its device token silently in Keychain. The backend hashes that token, enrolls first-seen valid-length tokens as active devices, and stores only the HMAC hash. Users do not need to paste or manage a token in the app. Direct iOS OpenAI/API-key configuration and manual token entry are not supported.
 
 ## Admin Log Panel
 

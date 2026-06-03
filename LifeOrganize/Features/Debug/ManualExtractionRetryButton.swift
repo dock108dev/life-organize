@@ -8,7 +8,6 @@ struct ManualExtractionRetryButton: View {
     let message: ChatMessage?
     let deviceTokenStore: any DeviceTokenStore
 
-    @State private var hasAIServiceCredential = false
     @State private var isRetrying = false
     @State private var statusText: String?
 
@@ -26,9 +25,6 @@ struct ManualExtractionRetryButton: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .task {
-            reloadDeviceTokenState()
-        }
     }
 
     private var buttonTitle: String {
@@ -42,22 +38,11 @@ struct ManualExtractionRetryButton: View {
         guard let message else {
             return "No source message is available."
         }
-        if !hasAIServiceCredential {
-            return "The service is unavailable right now."
-        }
         do {
             let service = ManualExtractionRetryService(modelContext: modelContext, deviceTokenStore: deviceTokenStore)
             return try service.canRetry(message)?.message
         } catch {
             return "Retry availability could not be checked."
-        }
-    }
-
-    private func reloadDeviceTokenState() {
-        do {
-            hasAIServiceCredential = try deviceTokenStore.ensureDeviceToken().nilIfEmpty != nil
-        } catch {
-            hasAIServiceCredential = false
         }
     }
 
@@ -69,7 +54,6 @@ struct ManualExtractionRetryButton: View {
         Task {
             defer {
                 isRetrying = false
-                reloadDeviceTokenState()
             }
 
             do {

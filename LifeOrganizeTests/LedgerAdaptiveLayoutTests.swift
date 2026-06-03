@@ -135,7 +135,7 @@ final class LedgerAdaptiveLayoutTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(searchSource.occurrences(of: ".ledgerAdaptiveWidth(.readable)"), 2)
         XCTAssertTrue(searchSource.contains("LedgerNoSelectionPlaceholderView("))
         XCTAssertTrue(searchSource.contains("\"Select a result\""))
-        XCTAssertTrue(settingsSource.contains("LedgerEmptyStateView(content: .settingsNoDeviceToken)"))
+        XCTAssertFalse(settingsSource.contains("settingsNoDeviceToken"))
         XCTAssertTrue(settingsSource.contains(#""settings-workspace""#))
         XCTAssertTrue(reviewSource.contains("LedgerEmptyStateView(content: origin == nil"))
         XCTAssertGreaterThanOrEqual(reviewSource.occurrences(of: "LedgerNoSelectionPlaceholderView("), 1)
@@ -167,7 +167,7 @@ final class LedgerAdaptiveLayoutTests: XCTestCase {
         XCTAssertTrue(timelineSource.contains("LedgerReviewQueueView("))
         XCTAssertTrue(timelineSource.contains("focusedItemID: reviewPresentation.item.id"))
         XCTAssertTrue(timelineSource.contains("deviceTokenStore: deviceTokenStore"))
-        XCTAssertTrue(timelineSource.contains("onAddKey: onAddKey"))
+        XCTAssertFalse(timelineSource.contains("onAddKey"))
         XCTAssertTrue(timelineSource.contains("EventDetailView(event: event)"))
     }
 

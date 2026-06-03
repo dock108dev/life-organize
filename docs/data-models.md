@@ -37,15 +37,17 @@ The active app schema is `LifeOrganizeSchemaV3`. It includes:
 
 ## Important Status Enums
 
-Chat extraction statuses include pending, extracting, succeeded, failed-needs-review, not-required, pending-service-setup, retrying, partially-succeeded, and retryable-failed states.
+Chat extraction statuses are `not_required`, `pending`, `pending_token`, `pending_retry`, `extracting`, `succeeded`, `partially_succeeded`, `failed`, `failed_needs_review`, and `needs_review`.
 
-Extraction attempts include pending, running, succeeded, partially-succeeded, failed, failed-needs-review, and retrying states.
+Extraction attempts are `pending`, `succeeded`, `failed`, `partially_succeeded`, and `superseded`.
 
 Review item states include candidate, ready, presented, accepted, dismissed, snoozed, superseded, expired, and failed.
 
 Review item kinds include interval reminder, overdue reminder review, local recovery, extraction review, duplicate Thing, conflicting date, and normalization candidate.
 
 Ledger event types include generic, maintenance, purchase, visit, replacement, cleaning, renewal, appointment, project, note, reminder, measurement, status change, and other.
+
+Reminder rule types include restriction, reminder, preference, deadline, waiting period, and other. Reminder continuity behavior is persisted as ongoing, date-based reminder, time-limited window, or recurring text.
 
 Thing categories include admin, finance, food, health, home, home maintenance, maintenance, person, pet, place, project, purchase, rule topic, subscription, travel, vehicle, work, and other.
 

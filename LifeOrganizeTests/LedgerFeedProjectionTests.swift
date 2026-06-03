@@ -3,18 +3,6 @@ import XCTest
 @testable import LifeOrganize
 
 final class LedgerFeedProjectionTests: XCTestCase {
-    func testDateGroupingUsesLocalCalendarBuckets() throws {
-        let calendar = Self.newYorkCalendar
-        let now = try Self.date(2026, 5, 21, 10, calendar: calendar)
-        let grouping = LedgerFeedDateGrouping(calendar: calendar, now: now)
-
-        XCTAssertEqual(grouping.group(for: try Self.date(2026, 5, 21, 12, calendar: calendar)), .today)
-        XCTAssertEqual(grouping.group(for: try Self.date(2026, 5, 20, 12, calendar: calendar)), .yesterday)
-        XCTAssertEqual(grouping.group(for: try Self.date(2026, 5, 18, 12, calendar: calendar)), .thisWeek)
-        XCTAssertEqual(grouping.group(for: try Self.date(2026, 5, 16, 12, calendar: calendar)), .earlier)
-        XCTAssertEqual(grouping.group(for: try Self.date(2026, 6, 1, 12, calendar: calendar)), .upcoming)
-    }
-
     func testProjectionDisplaysLocalNoonDateOnlyRecordsOnIntendedLocalDay() throws {
         let calendar = Self.newYorkCalendar
         let now = try Self.date(2026, 5, 26, 21, calendar: calendar)
@@ -317,23 +305,6 @@ final class LedgerFeedProjectionTests: XCTestCase {
 
         XCTAssertEqual(sections.map(\.title), ["May 10", "May 1"])
         XCTAssertEqual(sections.map(\.summary.typeMixText), ["1 note", "1 event"])
-    }
-
-    func testDefaultTimelineVisibilityKeepsRecentDaysAndUpcomingOnly() throws {
-        let calendar = Self.newYorkCalendar
-        let now = try Self.date(2026, 5, 21, 12, calendar: calendar)
-        let visibility = TimelineDefaultVisibility(calendar: calendar, now: now)
-        let today = try Self.section(day: Self.date(2026, 5, 21, 12, calendar: calendar), calendar: calendar, now: now)
-        let yesterday = try Self.section(day: Self.date(2026, 5, 20, 12, calendar: calendar), calendar: calendar, now: now)
-        let twoDaysAgo = try Self.section(day: Self.date(2026, 5, 19, 12, calendar: calendar), calendar: calendar, now: now)
-        let earlierThisWeek = try Self.section(day: Self.date(2026, 5, 18, 12, calendar: calendar), calendar: calendar, now: now)
-        let upcoming = try Self.section(day: Self.date(2026, 6, 1, 12, calendar: calendar), calendar: calendar, now: now)
-
-        XCTAssertTrue(visibility.isVisibleByDefault(upcoming))
-        XCTAssertTrue(visibility.isVisibleByDefault(today))
-        XCTAssertTrue(visibility.isVisibleByDefault(yesterday))
-        XCTAssertTrue(visibility.isVisibleByDefault(twoDaysAgo))
-        XCTAssertFalse(visibility.isVisibleByDefault(earlierThisWeek))
     }
 
     func testProjectionUsesStructuredRecordsAsPrimaryRowsForSucceededMessages() throws {

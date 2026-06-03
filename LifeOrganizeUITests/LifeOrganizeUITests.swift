@@ -31,7 +31,6 @@ final class LifeOrganizeUITests: XCTestCase {
         let app = launchApp(resetStore: true)
 
         XCTAssertTrue(app.staticTexts["Timeline"].waitForFastExistence(timeout: 5))
-        XCTAssertFalse(app.descendants(matching: .any)["device-token-notice"].exists)
 
         app.buttons["Settings"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForFastExistence(timeout: 5))

@@ -65,7 +65,6 @@ struct LedgerReviewReconciliationAction: Identifiable, Equatable {
 }
 
 enum LedgerReviewReconciliationActionKind: Equatable {
-    case connectService
     case retry
     case confirm
     case openRecord(LedgerReviewItemTargetType, UUID)
@@ -80,8 +79,6 @@ enum LedgerReviewReconciliationActionKind: Equatable {
 
     var id: String {
         switch self {
-        case .connectService:
-            return "connect-service"
         case .retry:
             return "retry"
         case .confirm:

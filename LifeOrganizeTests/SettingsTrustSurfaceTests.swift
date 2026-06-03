@@ -25,15 +25,11 @@ final class SettingsTrustSurfaceTests: XCTestCase {
     }
 
     func testFeedbackMessagesGiveConfirmationAndNextSteps() {
-        XCTAssertFalse(SettingsFeedback.deviceTokenSaved.isError)
-        XCTAssertTrue(SettingsFeedback.deviceTokenSaved.message.contains("organize across your timeline"))
-        XCTAssertTrue(SettingsFeedback.deviceTokenRemoved.message.contains("Timeline capture still works locally"))
         XCTAssertTrue(SettingsFeedback.exportReady.message.contains("save or share"))
         XCTAssertTrue(SettingsFeedback.localDataCleared.message.contains("Local entries cleared"))
 
         XCTAssertTrue(SettingsFeedback.exportFailed.isError)
         XCTAssertTrue(SettingsFeedback.exportFailed.message.contains("local data was not changed"))
-        XCTAssertTrue(SettingsFeedback.deviceTokenReadFailed.message.contains("Reopen Settings"))
         XCTAssertTrue(SettingsFeedback.clearDataFailed.message.contains("Try again"))
     }
 
@@ -47,7 +43,6 @@ final class SettingsTrustSurfaceTests: XCTestCase {
             SettingsTrustCopy.clearKeeps,
             SettingsClearDataCopy.exportPrompt,
             SettingsClearDataCopy.exportFailedBody,
-            SettingsFeedback.deviceTokenReplaced.message,
             SettingsFeedback.exportReady.message,
             SettingsFeedback.localDataCleared.message
         ].joined(separator: " ")

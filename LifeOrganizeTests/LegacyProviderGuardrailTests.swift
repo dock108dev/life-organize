@@ -14,7 +14,23 @@ final class LegacyProviderGuardrailTests: XCTestCase {
             "loadOpenAIAPIKey",
             "saveOpenAIAPIKey",
             "deleteOpenAIAPIKey",
-            "screenshot-api-key"
+            "screenshot-api-key",
+            "hasAIServiceCredential",
+            "DeviceTokenNotice",
+            "Capture something locally",
+            "connectService",
+            "connect-service",
+            "onAddKey",
+            "ManualExtractionRetryError.missingServiceToken",
+            "settingsNoDeviceToken",
+            "deviceTokenSaved",
+            "deviceTokenSavedRetryDeferred",
+            "deviceTokenReplaced",
+            "deviceTokenRemoved",
+            "deviceTokenReadFailed",
+            "deviceTokenEmpty",
+            "deviceTokenSaveFailed",
+            "deviceTokenRemoveFailed"
         ]
 
         let offenders = legacySymbols.filter { combined.contains($0) }

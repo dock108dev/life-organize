@@ -11,7 +11,6 @@ extension LifeOrganizeScenarioUITests {
 
         XCTAssertTrue(app.staticTexts["Timeline"].waitForFastExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["timeline-feed"].exists)
-        XCTAssertFalse(app.descendants(matching: .any)["device-token-notice"].exists)
     }
 
     func testScreenshotModeRepeatedLaunchesReachSameFirstVisibleState() throws {

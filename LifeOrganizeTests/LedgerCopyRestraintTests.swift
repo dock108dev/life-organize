@@ -206,8 +206,6 @@ final class LedgerCopyRestraintTests: XCTestCase {
             SettingsTrustCopy.clearBody,
             SettingsTrustCopy.clearDeletes,
             SettingsTrustCopy.clearKeeps,
-            SettingsFeedback.deviceTokenSaved.message,
-            SettingsFeedback.deviceTokenRemoved.message,
             SettingsFeedback.exportReady.message,
             SettingsFeedback.localDataCleared.message
         ]

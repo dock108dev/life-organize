@@ -19,8 +19,7 @@ final class ChatViewModel: ObservableObject {
     private let sendAction: SendAction
 
     init(sendAction: SendAction? = nil) {
-        self.sendAction = sendAction ?? { text, modelContext, deviceTokenStore, dataGeneration, isDataGenerationCurrent,
-            onRawMessagePersisted in
+        self.sendAction = sendAction ?? { text, modelContext, deviceTokenStore, dataGeneration, isDataGenerationCurrent, onRawMessagePersisted in
             let service = ChatSendService(
                 modelContext: modelContext,
                 extractor: AppRuntimeConfiguration.current.messageExtractionClient(deviceTokenStore: deviceTokenStore),
@@ -41,8 +40,8 @@ final class ChatViewModel: ObservableObject {
         draft = suggestion.draftText
     }
 
-    func inputPlaceholder(hasAIServiceCredential: Bool) -> String {
-        hasAIServiceCredential ? "Add anything or ask what’s due" : "Capture something locally"
+    var inputPlaceholder: String {
+        "Add anything or ask what’s due"
     }
 
     func sendDraft(

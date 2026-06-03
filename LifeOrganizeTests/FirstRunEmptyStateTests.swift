@@ -31,11 +31,6 @@ final class FirstRunEmptyStateTests: XCTestCase {
             LedgerEmptyStateContent.rules.secondaryBody,
             "Add a reminder, or capture something that should resurface later."
         )
-        XCTAssertEqual(LedgerEmptyStateContent.settingsNoDeviceToken.title, "App connection")
-        XCTAssertEqual(
-            LedgerEmptyStateContent.settingsNoDeviceToken.body,
-            "Entries stay local on this device and organize when the service is available."
-        )
         XCTAssertEqual(LedgerEmptyStateContent.searchLanding.title, "Search")
         XCTAssertEqual(LedgerEmptyStateContent.searchLanding.body, "Look up a detail, date, place, or note.")
         XCTAssertNil(LedgerEmptyStateContent.searchLanding.secondaryBody)
@@ -80,14 +75,10 @@ final class FirstRunEmptyStateTests: XCTestCase {
     }
 
     @MainActor
-    func testChatInputPlaceholderExplainsLocalOnlyMode() {
+    func testChatInputPlaceholderUsesBackendServiceSSOT() {
         let viewModel = ChatViewModel()
 
-        XCTAssertEqual(viewModel.inputPlaceholder(hasAIServiceCredential: true), "Add anything or ask what’s due")
-        XCTAssertEqual(
-            viewModel.inputPlaceholder(hasAIServiceCredential: false),
-            "Capture something locally"
-        )
+        XCTAssertEqual(viewModel.inputPlaceholder, "Add anything or ask what’s due")
     }
 
     @MainActor
@@ -203,11 +194,12 @@ final class FirstRunEmptyStateTests: XCTestCase {
             modelContext: context,
             deviceTokenStore: InMemoryDeviceTokenStore(),
             dataGeneration: UUID(),
-            isDataGenerationCurrent: { _ in true }
-        ) { _ in
-            persistedCount += 1
-            firstMessagePersisted.fulfill()
-        }
+            isDataGenerationCurrent: { _ in true },
+            onRawMessagePersisted: { _ in
+                persistedCount += 1
+                firstMessagePersisted.fulfill()
+            }
+        )
         await fulfillment(of: [firstMessagePersisted], timeout: 2)
         XCTAssertEqual(viewModel.activeOrganizationCount, 1)
         XCTAssertFalse(viewModel.isCommittingSend)
@@ -217,11 +209,12 @@ final class FirstRunEmptyStateTests: XCTestCase {
             modelContext: context,
             deviceTokenStore: InMemoryDeviceTokenStore(),
             dataGeneration: UUID(),
-            isDataGenerationCurrent: { _ in true }
-        ) { _ in
-            persistedCount += 1
-            secondMessagePersisted.fulfill()
-        }
+            isDataGenerationCurrent: { _ in true },
+            onRawMessagePersisted: { _ in
+                persistedCount += 1
+                secondMessagePersisted.fulfill()
+            }
+        )
         await fulfillment(of: [secondMessagePersisted], timeout: 2)
         XCTAssertEqual(persistedCount, 2)
         XCTAssertEqual(viewModel.activeOrganizationCount, 2)

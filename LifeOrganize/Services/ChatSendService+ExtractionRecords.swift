@@ -224,7 +224,54 @@ extension ChatSendService {
             }
         }
 
-        for extractedNote in envelope.notes {
+        try createNotes(
+            from: envelope.notes,
+            sourceMessage: sourceMessage,
+            attempt: attempt,
+            createdRecords: &createdRecords,
+            createdThingIDs: &createdThingIDs,
+            siblingEntities: &siblingEntities,
+            resolvedThingsByKey: &resolvedThingsByKey,
+            resolver: resolver,
+            linkWriter: linkWriter
+        )
+
+        try linkWriter.linkSiblings(siblingEntities, sourceMessage: sourceMessage)
+        attempt.createdThingIDs = Array(createdThingIDs)
+        let linkedThingIDs = Set(
+            createdRecords.events.compactMap { $0.thing?.id }
+                + createdRecords.rules.compactMap { $0.thing?.id }
+                + createdRecords.notes.flatMap { $0.linkedThings.map(\.id) }
+        )
+        createdRecords.standaloneThings.removeAll { linkedThingIDs.contains($0.id) }
+        return createdRecords
+    }
+
+    private func createNotes(
+        from extractedNotes: [ExtractedNote],
+        sourceMessage: ChatMessage,
+        attempt: ExtractionAttempt,
+        createdRecords: inout ChatConfirmationRecords,
+        createdThingIDs: inout Set<UUID>,
+        siblingEntities: inout [(EntityLinkType, UUID)],
+        resolvedThingsByKey: inout [String: Thing],
+        resolver: ThingResolver,
+        linkWriter: EntityLinkWriter
+    ) throws {
+        func rememberResolvedThing(_ thing: Thing, values: [String]) {
+            for value in [thing.name] + thing.aliases + values {
+                let key = ThingNormalizer.normalizeKey(value)
+                if !key.isEmpty {
+                    resolvedThingsByKey[key] = thing
+                }
+            }
+        }
+
+        func knownResolvedThing(name: String) -> Thing? {
+            ThingNormalizer.normalizeKey(name).nilIfEmpty.flatMap { resolvedThingsByKey[$0] }
+        }
+
+        for extractedNote in extractedNotes {
             if let existingNote = try existingNote(for: sourceMessage, clientID: extractedNote.clientID) {
                 guard appendUnique(existingNote.id, to: &attempt.createdNoteIDs) else {
                     continue
@@ -281,16 +328,6 @@ extension ChatSendService {
                 try linkWriter.linkAbout(note: note, thing: thing, sourceMessage: sourceMessage)
             }
         }
-
-        try linkWriter.linkSiblings(siblingEntities, sourceMessage: sourceMessage)
-        attempt.createdThingIDs = Array(createdThingIDs)
-        let linkedThingIDs = Set(
-            createdRecords.events.compactMap { $0.thing?.id }
-                + createdRecords.rules.compactMap { $0.thing?.id }
-                + createdRecords.notes.flatMap { $0.linkedThings.map(\.id) }
-        )
-        createdRecords.standaloneThings.removeAll { linkedThingIDs.contains($0.id) }
-        return createdRecords
     }
 
     func recallAnswer(from envelope: ExtractionEnvelope) throws -> String? {

@@ -29,7 +29,6 @@ extension LifeOrganizeScenarioUITests {
         waitUntilReady(in: app)
         XCTAssertTrue(app.navigationBars["Timeline"].waitForFastExistence(timeout: 10))
         XCTAssertTrue(app.descendants(matching: .any)["timeline-feed"].exists)
-        XCTAssertFalse(app.descendants(matching: .any)["device-token-notice"].exists)
         if !isLandscapeScreenshot() {
             XCTAssertTrue(app.buttons["Log something"].exists)
         }

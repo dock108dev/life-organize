@@ -16,18 +16,12 @@ struct ChatView: View {
     @State private var reviewItemErrorMessage: String?
     @State private var showsOlderTimeline = false
     @AppStorage("ledger.context.timeline.dismissed") private var isTimelineContextDismissed = false
-    let hasAIServiceCredential: Bool
     let deviceTokenStore: any DeviceTokenStore
-    let onAddKey: () -> Void
 
     init(
-        hasAIServiceCredential: Bool = false,
-        deviceTokenStore: any DeviceTokenStore = KeychainDeviceTokenStore(),
-        onAddKey: @escaping () -> Void = {}
+        deviceTokenStore: any DeviceTokenStore = KeychainDeviceTokenStore()
     ) {
-        self.hasAIServiceCredential = hasAIServiceCredential
         self.deviceTokenStore = deviceTokenStore
-        self.onAddKey = onAddKey
     }
 
     private var feedSections: [LedgerFeedSection] {
@@ -89,12 +83,6 @@ struct ChatView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if !hasAIServiceCredential {
-                DeviceTokenNotice()
-                    .padding(.top, 8)
-                    .ledgerAdaptiveWidth(.readable)
-            }
-
             ScrollViewReader { proxy in
                 ScrollView {
                     Color.clear
@@ -156,7 +144,7 @@ struct ChatView: View {
 
                             ChatInputBar(
                                 text: $viewModel.draft,
-                                placeholder: viewModel.inputPlaceholder(hasAIServiceCredential: hasAIServiceCredential),
+                                placeholder: viewModel.inputPlaceholder,
                                 isCommittingSend: viewModel.isCommittingSend,
                                 isOrganizing: viewModel.isOrganizing,
                                 errorMessage: viewModel.sendError,
@@ -250,7 +238,6 @@ struct ChatView: View {
             section: section,
             reviewItems: reviewItems,
             deviceTokenStore: deviceTokenStore,
-            onAddKey: onAddKey,
             onReviewItemError: { reviewItemErrorMessage = $0 }
         )
     }
@@ -292,16 +279,6 @@ private struct TimelineOlderHistoryToggle: View {
         let sections = LedgerDisplayFormatting.count(hiddenSectionCount, singular: "older day", plural: "older days")
         let items = LedgerDisplayFormatting.count(hiddenItemCount, singular: "item", plural: "items")
         return "\(sections) · \(items)"
-    }
-}
-
-private struct DeviceTokenNotice: View {
-    var body: some View {
-        LedgerNoticeBanner(
-            icon: "wifi.exclamationmark",
-            message: "Timeline capture is local on this device until the service is reachable.",
-            accessibilityIdentifier: "device-token-notice"
-        )
     }
 }
 

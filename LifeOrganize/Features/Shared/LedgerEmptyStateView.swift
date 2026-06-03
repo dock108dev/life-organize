@@ -36,12 +36,6 @@ extension LedgerEmptyStateContent {
         secondaryBody: "Add a reminder, or capture something that should resurface later."
     )
 
-    static let settingsNoDeviceToken = LedgerEmptyStateContent(
-        symbolName: "server.rack",
-        title: "App connection",
-        body: "Entries stay local on this device and organize when the service is available."
-    )
-
     static let searchLanding = LedgerEmptyStateContent(
         symbolName: "magnifyingglass",
         title: "Search",

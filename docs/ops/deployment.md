@@ -19,8 +19,7 @@ See [Branch protection checks](branch-protection.md) for the status-check contra
 - `DEPLOY_SSH_KEY`: private SSH key for the deploy user.
 - `DEPLOY_PATH`: server checkout path, recommended `/opt/life-organize`.
 
-GHCR build and deploy authentication uses the built-in `GITHUB_TOKEN`; no
-custom `GHCR_TOKEN` repository secret is required.
+GHCR build and deploy authentication uses the built-in `GITHUB_TOKEN`; no custom `GHCR_TOKEN` repository secret is required.
 
 ## Required Server Files
 
@@ -43,7 +42,7 @@ DEVICE_RATE_LIMIT_REQUESTS=60
 DEVICE_RATE_LIMIT_WINDOW_SECONDS=3600
 ```
 
-The Compose file uses the internal database URL automatically, so `DATABASE_URL` is optional for Docker deploys.
+The Compose file uses the internal database URL automatically, so `DATABASE_URL` is optional for Docker deploys. If `DATABASE_URL` is set in `production` or `staging`, it must not point at localhost; backend startup validation rejects that shape.
 Device tokens are app-managed and enrolled on first use. Existing `device_clients` rows with non-active status remain blocked.
 
 ## Caddy

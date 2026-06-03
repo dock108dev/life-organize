@@ -2,6 +2,8 @@
 
 The backend is a private FastAPI gateway for LifeOrganize AI features. The iOS app sends extraction and web requests with a per-device token managed by the app; the backend owns `OPENAI_API_KEY`, builds OpenAI Responses API requests, enrolls active device tokens, rate-limits device tokens, and records request metadata in Postgres.
 
+The iOS app no longer supports direct provider credentials, manual API-key entry, or user-managed device-token setup. AI traffic must go through the backend gateway.
+
 ## Public App API
 
 `POST /api/v1/extractions` accepts extraction requests and returns raw provider response text, provider request JSON, and model name.
@@ -12,7 +14,6 @@ Both routes require:
 
 - `X-LifeOrganize-Device-Token`
 - JSON request bodies
-- A per-device token in `X-LifeOrganize-Device-Token`
 - Per-token, per-endpoint rate limit headroom
 
 Short tokens are rejected before provider calls. New valid-length tokens are enrolled as active devices; revoked tokens remain blocked. Request logs store token hashes, endpoint, status, latency, model, provider request ID, and error code. They do not store raw device tokens.
@@ -32,6 +33,7 @@ Short tokens are rejected before provider calls. New valid-length tokens are enr
 `GET /` returns a small service/ok payload. FastAPI docs, ReDoc, and OpenAPI JSON are available only outside production/staging.
 
 The log panel uses `LIFE_ORGANIZE_ADMIN_API_KEY` to create an HTTP-only admin session cookie. In production and staging, that cookie is marked secure.
+Admin log sessions are process-local and expire after eight hours. The current Compose deployment runs one API process, so shared session storage is not part of the production path.
 
 ## Middleware and Hardening
 
@@ -56,6 +58,12 @@ Minimal direct run shape:
 
 ```sh
 cd Backend
+DATABASE_URL=postgresql+asyncpg://lifeorganize:lifeorganize@localhost:5433/lifeorganize \
+DEVICE_TOKEN_SIGNING_SECRET=dev-secret \
+OPENAI_API_KEY=sk-... \
+LIFE_ORGANIZE_ADMIN_API_KEY=dev-admin \
+.venv/bin/alembic upgrade head
+
 DATABASE_URL=postgresql+asyncpg://lifeorganize:lifeorganize@localhost:5433/lifeorganize \
 DEVICE_TOKEN_SIGNING_SECRET=dev-secret \
 OPENAI_API_KEY=sk-... \

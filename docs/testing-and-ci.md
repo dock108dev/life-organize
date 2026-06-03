@@ -24,6 +24,8 @@ Scripts/verify-all.sh --with-production-smoke
 
 `Scripts/secret_scan.py` scans committed files for high-confidence private keys, OpenAI-style keys, and non-placeholder backend secret assignments.
 
+The backend Docker smoke path starts a fresh dev Compose stack, runs the Alembic migrator twice to prove idempotency, checks the expected migration head, verifies required tables and indexes, starts the API, and checks `/healthz`.
+
 ## iOS Visual and Layout Gates
 
 `Scripts/screenshots/run-screenshot-tests.sh compare` runs the deterministic screenshot comparator. `update` refreshes the selected baseline cell.
@@ -75,7 +77,7 @@ Jobs:
 - `ios / screenshots`: required iPhone 17 Pro portrait light screenshot comparison.
 - `ios / screenshots / iPad portrait`: manual workflow-dispatch screenshot job for `ipad_portrait` or `all_light`.
 
-iOS CI does not sign, archive, upload, deploy to TestFlight, deploy to the App Store, or deploy iOS through GitHub Actions.
+iOS CI is verification-only for the app. See [Known limitations and unsupported paths](known-limitations.md) for deploy paths intentionally absent from this repository.
 
 ## Selected Image Deploy
 

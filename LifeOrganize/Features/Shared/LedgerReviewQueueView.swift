@@ -15,7 +15,6 @@ struct LedgerReviewQueueView: View {
     let origin: LedgerReviewOrigin?
     let focusedItemID: UUID?
     let deviceTokenStore: any DeviceTokenStore
-    let onAddKey: () -> Void
     let onClose: (() -> Void)?
 
     @State private var errorMessage: String?
@@ -27,13 +26,11 @@ struct LedgerReviewQueueView: View {
         origin: LedgerReviewOrigin? = nil,
         focusedItemID: UUID? = nil,
         deviceTokenStore: any DeviceTokenStore = KeychainDeviceTokenStore(),
-        onAddKey: @escaping () -> Void = {},
         onClose: (() -> Void)? = nil
     ) {
         self.origin = origin
         self.focusedItemID = focusedItemID
         self.deviceTokenStore = deviceTokenStore
-        self.onAddKey = onAddKey
         self.onClose = onClose
     }
 
@@ -259,8 +256,7 @@ struct LedgerReviewQueueView: View {
             events: events,
             rules: rules,
             notes: notes,
-            deviceTokenStore: deviceTokenStore,
-            onAddKey: onAddKey
+            deviceTokenStore: deviceTokenStore
         )
     }
 

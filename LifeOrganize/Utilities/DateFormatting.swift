@@ -32,6 +32,22 @@ enum DateFormatting {
         calendar.date(bySettingHour: 12, minute: 0, second: 0, of: date) ?? date
     }
 
+    static func isNormalizedDateOnly(_ date: Date, calendar: Calendar = .current) -> Bool {
+        let components = calendar.dateComponents([.hour, .minute, .second, .nanosecond], from: date)
+        return components.hour == 12
+            && components.minute == 0
+            && components.second == 0
+            && components.nanosecond == 0
+    }
+
+    static func shouldDisplayTime(
+        for date: Date,
+        contextText: String,
+        calendar: Calendar = .current
+    ) -> Bool {
+        !isNormalizedDateOnly(date, calendar: calendar) || containsExplicitClockTimeCue(contextText)
+    }
+
     static func normalizedUndatedExtractionDateForDisplay(
         _ date: Date,
         sourceDate: Date,
@@ -64,12 +80,15 @@ enum DateFormatting {
         return lowercased.range(of: #"\b\d{1,2}([/-]\d{1,2}|:\d{2}| ?(am|pm))\b"#, options: .regularExpression) != nil
     }
 
-    private static func isNormalizedDateOnly(_ date: Date, calendar: Calendar) -> Bool {
-        let components = calendar.dateComponents([.hour, .minute, .second, .nanosecond], from: date)
-        return components.hour == 12
-            && components.minute == 0
-            && components.second == 0
-            && components.nanosecond == 0
+    static func containsExplicitClockTimeCue(_ text: String) -> Bool {
+        let lowercased = text.lowercased()
+        if lowercased.range(of: #"\b\d{1,2}(:\d{2})?\s?(am|pm)\b"#, options: .regularExpression) != nil {
+            return true
+        }
+        if lowercased.range(of: #"\b\d{1,2}:\d{2}\b"#, options: .regularExpression) != nil {
+            return true
+        }
+        return lowercased.range(of: #"\b(noon|midnight)\b"#, options: .regularExpression) != nil
     }
 
     static func dateOnlyString(

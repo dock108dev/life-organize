@@ -288,6 +288,7 @@ final class TimelineSliceReplayTests: XCTestCase {
             navigationTarget: navigationTarget(for: kind, id: id),
             displayLabel: label,
             summaryText: label,
+            hasDisplayTime: true,
             linkedThings: [],
             relationshipContext: nil,
             searchableText: label

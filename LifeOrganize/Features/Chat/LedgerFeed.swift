@@ -159,7 +159,12 @@ struct LedgerFeedSectionSummary: Equatable {
     init(items: [LedgerFeedItem], calendar: Calendar) {
         itemCountText = LedgerDisplayFormatting.count(items.count, singular: "item", plural: "items")
         timeRangeText = TimelineSectionSummaryFormatting.timeRangeText(
-            for: items.map { $0.timelineDate(calendar: calendar) },
+            for: items.map {
+                TimelineSectionSummaryMoment(
+                    date: $0.timelineDate(calendar: calendar),
+                    hasDisplayTime: $0.hasDisplayTime(calendar: calendar)
+                )
+            },
             calendar: calendar
         )
         typeMixText = Self.typeMixText(for: items)
@@ -270,6 +275,28 @@ enum LedgerFeedItem: Identifiable {
             )
         case .note(let note):
             return note.createdAt
+        }
+    }
+
+    func hasDisplayTime(calendar: Calendar) -> Bool {
+        switch self {
+        case .message, .note:
+            return true
+        case .event(let event):
+            return DateFormatting.shouldDisplayTime(
+                for: event.occurredAt,
+                contextText: [event.rawText, event.title, event.note].compactMap { $0?.nilIfEmpty }.joined(separator: " "),
+                calendar: calendar
+            )
+        case .reminder(let reminder):
+            if reminder.manuallyDeactivatedAt != nil {
+                return true
+            }
+            return DateFormatting.shouldDisplayTime(
+                for: reminder.startsAt,
+                contextText: [reminder.rawText, reminder.title, reminder.reason].compactMap { $0?.nilIfEmpty }.joined(separator: " "),
+                calendar: calendar
+            )
         }
     }
 

@@ -10,7 +10,7 @@ struct ChatInputBar: View {
     @FocusState.Binding var isFocused: Bool
 
     private var showsComposerStatus: Bool {
-        errorMessage?.isEmpty == false || isOrganizing
+        errorMessage?.isEmpty == false || isCommittingSend || isOrganizing
     }
 
     private var canSend: Bool {
@@ -43,9 +43,15 @@ struct ChatInputBar: View {
                     tone: .danger,
                     iconName: "exclamationmark.circle"
                 )
+            } else if isCommittingSend {
+                composerMessage(
+                    text: "Saving",
+                    tone: .muted,
+                    showsProgress: true
+                )
             } else if isOrganizing {
                 composerMessage(
-                    text: "Saved. Organizing details",
+                    text: "Organizing details",
                     tone: .muted,
                     showsProgress: true
                 )

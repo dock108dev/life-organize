@@ -156,6 +156,7 @@ struct TimelineSliceRow: Identifiable, Hashable {
     let navigationTarget: LocalSearchNavigationTarget
     let displayLabel: String
     let summaryText: String
+    let hasDisplayTime: Bool
     let linkedThings: [TimelineSliceThingContext]
     let relationshipContext: TimelineSliceRelationshipContext?
     let searchableText: String

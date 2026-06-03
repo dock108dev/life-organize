@@ -18,7 +18,7 @@ final class LedgerFeedRowContentTests: XCTestCase {
         XCTAssertEqual(content.sourceLabel, "You")
         XCTAssertEqual(content.sourceBadge.role, .source)
         XCTAssertEqual(content.primaryText, "Changed furnace filter.")
-        XCTAssertEqual(content.secondaryText, "Saving")
+        XCTAssertEqual(content.secondaryText, "Organizing")
         XCTAssertEqual(content.secondaryTone, .muted)
         XCTAssertEqual(content.secondaryBadge?.semantic, .statusSaving)
         XCTAssertEqual(content.primaryBadge()?.semantic, .statusSaving)
@@ -202,7 +202,7 @@ final class LedgerFeedRowContentTests: XCTestCase {
             dateFormatter: Self.dateFormatter
         )
 
-        XCTAssertEqual(TestTextNormalization.normalizedTimeText(content.timestampText), "12:00 PM")
+        XCTAssertEqual(content.timestampText, "Anytime")
         XCTAssertEqual(content.secondaryText, "Due July 21, 2026")
         XCTAssertEqual(content.detailText, "Captured May 18, 2026")
     }

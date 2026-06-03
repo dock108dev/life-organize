@@ -49,6 +49,7 @@ struct TimelineSliceProjection {
                 navigationTarget: .chatMessage(message.id),
                 displayLabel: "You",
                 summaryText: clean(message.text) ?? "Entry needs review",
+                hasDisplayTime: true,
                 linkedThings: relationshipIndex.thingContexts(for: .chatMessage(message.id)),
                 relationshipContext: relationshipIndex.relationshipContext(for: .chatMessage(message.id)),
                 textValues: [message.text, message.extractionStatus.rawValue]
@@ -73,6 +74,7 @@ struct TimelineSliceProjection {
                     navigationTarget: .thingDetail(thing.id),
                     displayLabel: clean(thing.name) ?? "Untitled Thing",
                     summaryText: clean(thing.details) ?? thing.category?.displayName ?? "Thing created",
+                    hasDisplayTime: true,
                     linkedThings: contexts,
                     relationshipContext: relationshipIndex.relationshipContext(for: .thing(thing.id)),
                     textValues: [thing.name, thing.details, thing.category?.displayName].compactMap { $0 } + thing.aliases
@@ -91,6 +93,7 @@ struct TimelineSliceProjection {
                         navigationTarget: .thingDetail(thing.id),
                         displayLabel: clean(thing.name) ?? "Untitled Thing",
                         summaryText: clean(thing.details) ?? "Thing updated",
+                        hasDisplayTime: true,
                         linkedThings: contexts,
                         relationshipContext: relationshipIndex.relationshipContext(for: .thing(thing.id)),
                         textValues: [thing.name, thing.details, thing.category?.displayName].compactMap { $0 } + thing.aliases
@@ -106,7 +109,8 @@ struct TimelineSliceProjection {
         relationshipIndex: TimelineSliceRelationshipIndex
     ) -> [TimelineSliceRow] {
         events.map { event in
-            row(
+            let contextText = eventTextValues(event).joined(separator: " ")
+            return row(
                 sourceID: event.id,
                 sourceKind: .event,
                 dateKind: .occurred,
@@ -116,6 +120,7 @@ struct TimelineSliceProjection {
                 navigationTarget: .eventDetail(event.id),
                 displayLabel: clean(event.title) ?? "Untitled Event",
                 summaryText: eventSummary(event),
+                hasDisplayTime: DateFormatting.shouldDisplayTime(for: event.occurredAt, contextText: contextText, calendar: calendar),
                 linkedThings: relationshipIndex.thingContexts(for: .event(event.id), fallback: event.thing.map { [$0] } ?? []),
                 relationshipContext: relationshipIndex.relationshipContext(for: .event(event.id)),
                 textValues: eventTextValues(event)
@@ -177,6 +182,7 @@ struct TimelineSliceProjection {
                         navigationTarget: .noteDetail(note.id),
                         displayLabel: LedgerDisplayFormatting.noteTitle(for: note.text),
                         summaryText: clean(note.text) ?? "Note created",
+                        hasDisplayTime: true,
                         linkedThings: relationshipIndex.thingContexts(for: .note(note.id), fallback: note.linkedThings),
                         relationshipContext: relationshipIndex.relationshipContext(for: .note(note.id)),
                     textValues: sharedValues
@@ -195,6 +201,7 @@ struct TimelineSliceProjection {
                         navigationTarget: .noteDetail(note.id),
                         displayLabel: LedgerDisplayFormatting.noteTitle(for: note.text),
                         summaryText: clean(note.text) ?? "Note updated",
+                        hasDisplayTime: true,
                         linkedThings: relationshipIndex.thingContexts(for: .note(note.id), fallback: note.linkedThings),
                         relationshipContext: relationshipIndex.relationshipContext(for: .note(note.id)),
                         textValues: sharedValues
@@ -225,6 +232,12 @@ struct TimelineSliceProjection {
             summaryText: [behaviorDisplay, presentation.primaryLine, reminder.reason, reminder.rawText]
                 .compactMap { clean($0) }
                 .joined(separator: " · "),
+            hasDisplayTime: dateKind == .completedDeactivated
+                || DateFormatting.shouldDisplayTime(
+                    for: timelineDate,
+                    contextText: [reminder.rawText, reminder.title, reminder.reason].compactMap { $0 }.joined(separator: " "),
+                    calendar: calendar
+                ),
             linkedThings: relationshipIndex.thingContexts(for: .rule(reminder.id), fallback: reminder.thing.map { [$0] } ?? []),
             relationshipContext: relationshipIndex.relationshipContext(for: .rule(reminder.id)),
             textValues: [reminder.title, reminder.reason, reminder.rawText, behaviorDisplay, presentation.lane.title, presentation.badge, reminder.thing?.name]
@@ -242,6 +255,7 @@ struct TimelineSliceProjection {
         navigationTarget: LocalSearchNavigationTarget,
         displayLabel: String,
         summaryText: String,
+        hasDisplayTime: Bool,
         linkedThings: [TimelineSliceThingContext],
         relationshipContext: TimelineSliceRelationshipContext?,
         textValues: [String]
@@ -270,6 +284,7 @@ struct TimelineSliceProjection {
             navigationTarget: navigationTarget,
             displayLabel: displayLabel,
             summaryText: clean(summaryText) ?? displayLabel,
+            hasDisplayTime: hasDisplayTime,
             linkedThings: linkedThings,
             relationshipContext: relationshipContext,
             searchableText: searchableText

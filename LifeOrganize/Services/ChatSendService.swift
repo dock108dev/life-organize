@@ -309,9 +309,9 @@ struct ChatSendService {
         now: Date,
         onRawMessagePersisted: ((ChatMessage) -> Void)?
     ) throws -> ChatMessage? {
-        guard let target = lifecyclePauseTarget(from: text) else { return nil }
+        guard let command = lifecycleCommand(from: text) else { return nil }
         let rules = try modelContext.fetch(FetchDescriptor<LedgerRule>())
-        guard let rule = bestLifecycleMatch(for: target, in: rules, now: now) else {
+        guard let rule = bestLifecycleMatch(for: command.target, in: rules, now: now) else {
             return nil
         }
 
@@ -334,14 +334,38 @@ struct ChatSendService {
         return message
     }
 
-    private func lifecyclePauseTarget(from text: String) -> String? {
+    private enum LocalLifecycleAction {
+        case complete
+        case pause
+    }
+
+    private struct LocalLifecycleCommand {
+        let action: LocalLifecycleAction
+        let target: String
+    }
+
+    private func lifecycleCommand(from text: String) -> LocalLifecycleCommand? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         let lowercased = trimmed.lowercased()
-        let prefixes = ["pause work on ", "pause ", "stop work on ", "stop "]
-        guard let prefix = prefixes.first(where: { lowercased.hasPrefix($0) }) else { return nil }
-        let target = String(trimmed.dropFirst(prefix.count))
+        let prefixedActions: [(String, LocalLifecycleAction)] = [
+            ("pause work on ", .pause),
+            ("pause ", .pause),
+            ("stop work on ", .pause),
+            ("stop ", .pause),
+            ("i completed ", .complete),
+            ("i finished ", .complete),
+            ("i'm done with ", .complete),
+            ("im done with ", .complete),
+            ("i am done with ", .complete),
+            ("completed ", .complete),
+            ("finished ", .complete),
+            ("done with ", .complete)
+        ]
+        guard let match = prefixedActions.first(where: { lowercased.hasPrefix($0.0) }) else { return nil }
+        let target = String(trimmed.dropFirst(match.0.count))
             .trimmingCharacters(in: .whitespacesAndNewlines.union(.punctuationCharacters))
-        return target.nilIfEmpty
+        guard let target = target.nilIfEmpty else { return nil }
+        return LocalLifecycleCommand(action: match.1, target: target)
     }
 
     private func bestLifecycleMatch(for target: String, in rules: [LedgerRule], now: Date) -> LedgerRule? {
@@ -369,8 +393,10 @@ struct ChatSendService {
     }
 
     private func lifecycleMatchScore(rule: LedgerRule, target: String) -> Int {
-        let targetTokens = Set(ThingNormalizer.normalizeKey(target).split(separator: " ").map(String.init))
+        let normalizedTarget = ThingNormalizer.normalizeKey(target)
+        let targetTokens = Set(normalizedTarget.split(separator: " ").map(String.init))
         guard !targetTokens.isEmpty else { return 0 }
+        let thingName = rule.thing.map { ThingNormalizer.normalizeKey($0.name) }
         let searchable = ThingNormalizer.normalizeKey(
             [rule.title, rule.rawText, rule.reason, rule.thing?.name]
                 .compactMap { $0 }
@@ -378,7 +404,8 @@ struct ChatSendService {
         )
         let searchableTokens = Set(searchable.split(separator: " ").map(String.init))
         let overlap = targetTokens.intersection(searchableTokens).count
-        let titleContainsTarget = searchable.contains(ThingNormalizer.normalizeKey(target))
-        return overlap + (titleContainsTarget ? 4 : 0)
+        let titleContainsTarget = searchable.contains(normalizedTarget)
+        let thingMatch = thingName.map { normalizedTarget.contains($0) || $0.contains(normalizedTarget) } ?? false
+        return overlap + (titleContainsTarget ? 4 : 0) + (thingMatch ? 4 : 0)
     }
 }

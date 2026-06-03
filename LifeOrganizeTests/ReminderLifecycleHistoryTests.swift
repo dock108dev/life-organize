@@ -157,6 +157,45 @@ final class ReminderLifecycleHistoryTests: XCTestCase {
     }
 
     @MainActor
+    func testCompletionCommandClosesMatchingCarryForwardReminderWithoutExtraction() async throws {
+        let context = makeInMemoryModelContext()
+        let now = try Self.date(2026, 6, 2)
+        let thing = Thing(name: "Auto Detect", category: .vehicle, updatedAt: now.addingTimeInterval(-86_400))
+        let rule = LedgerRule(
+            title: "Update auto detect to compare to current main, not last commit",
+            ruleType: .reminder,
+            continuityBehavior: .dateBasedReminder,
+            rawText: "Update auto detect to compare to current main, not last commit",
+            startsAt: now,
+            createdAt: now.addingTimeInterval(-86_400),
+            updatedAt: now.addingTimeInterval(-86_400),
+            thing: thing
+        )
+        let service = ChatSendService(
+            modelContext: context,
+            extractor: InspectingExtractionClient { _, _ in
+                XCTFail("A matching completion command should not call extraction.")
+                return ExtractionResponsePayload(rawResponseText: canonicalExtractionJSON())
+            },
+            dateProvider: TestDateProvider(now: now)
+        )
+        context.insert(thing)
+        context.insert(rule)
+        try context.save()
+
+        let sentMessage = try await service.send("Finished testing and deploying auto detect")
+        let message = try XCTUnwrap(sentMessage)
+
+        XCTAssertEqual(message.extractionStatus, .notRequired)
+        XCTAssertEqual(rule.manuallyDeactivatedAt, now)
+        XCTAssertEqual(rule.lifecycleState, .deactivated)
+        XCTAssertFalse(rule.isActive)
+        XCTAssertEqual(RuleStatusService().status(for: rule, at: now), .inactive)
+        XCTAssertTrue(try context.fetch(FetchDescriptor<LedgerEvent>()).isEmpty)
+        XCTAssertEqual(try context.fetch(FetchDescriptor<ChatMessage>()).first { $0.role == .assistant }?.text, "Saved.")
+    }
+
+    @MainActor
     func testMoveDueDateReopensInactiveRemindersForPastTodayAndFutureDates() throws {
         let context = makeInMemoryModelContext()
         let now = try Self.date(2026, 5, 21)

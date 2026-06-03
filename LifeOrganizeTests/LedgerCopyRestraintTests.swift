@@ -106,7 +106,7 @@ final class LedgerCopyRestraintTests: XCTestCase {
 
         XCTAssertNoNormalUICopyLeaks(visibleText)
         XCTAssertTrue(visibleText.contains("Needs review"))
-        XCTAssertTrue(visibleText.contains("Next Step"))
+        XCTAssertTrue(visibleText.contains("Saved Items"))
         XCTAssertTrue(visibleText.contains("Saved items") || visibleText.contains("saved items"))
         XCTAssertTrue(visibleText.contains("Thing"))
         XCTAssertTrue(visibleText.contains("Reminder"))
@@ -221,7 +221,8 @@ final class LedgerCopyRestraintTests: XCTestCase {
         )
         let expectedCopy = [
             "Add anything or ask what’s due",
-            "Saved. Organizing details",
+            "Saving",
+            "Organizing details",
             "Send to Timeline"
         ]
         for copy in expectedCopy {

@@ -61,7 +61,11 @@ struct LedgerFeedRowContent {
         dateFormatter: DateFormatter = DateFormatting.fullDate,
         ruleStatus: RuleStatusService = RuleStatusService()
     ) {
-        timestampText = timeFormatter.string(from: item.timelineDate)
+        let calendar = timeFormatter.calendar ?? .current
+        let timelineDate = item.timelineDate(calendar: calendar)
+        timestampText = item.hasDisplayTime(calendar: calendar)
+            ? timeFormatter.string(from: timelineDate)
+            : "Anytime"
         let continuityService = ReminderContinuityPresentationService(statusService: ruleStatus)
 
         switch item {
@@ -195,7 +199,7 @@ struct LedgerFeedRowContent {
         guard message.role == .user else { return nil }
         switch message.extractionStatus {
         case .pending, .extracting:
-            return LedgerBadgePresentation(semantic: .statusSaving)
+            return LedgerBadgePresentation(semantic: .statusSaving, label: "Organizing")
         case .pendingToken:
             return LedgerBadgePresentation(semantic: .statusSavedLocal)
         case .pendingRetry:

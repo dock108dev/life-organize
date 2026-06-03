@@ -30,9 +30,22 @@ struct TimelineSectionSummaryText: Equatable {
     }
 }
 
+struct TimelineSectionSummaryMoment: Equatable {
+    let date: Date
+    let hasDisplayTime: Bool
+}
+
 enum TimelineSectionSummaryFormatting {
     static func timeRangeText(for dates: [Date], calendar: Calendar) -> String {
-        guard let first = dates.min(), let last = dates.max() else { return "" }
+        timeRangeText(
+            for: dates.map { TimelineSectionSummaryMoment(date: $0, hasDisplayTime: true) },
+            calendar: calendar
+        )
+    }
+
+    static func timeRangeText(for moments: [TimelineSectionSummaryMoment], calendar: Calendar) -> String {
+        let displayDates = moments.filter(\.hasDisplayTime).map(\.date)
+        guard let first = displayDates.min(), let last = displayDates.max() else { return "" }
 
         if calendar.isDate(first, inSameDayAs: last) {
             if first == last {

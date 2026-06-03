@@ -112,7 +112,10 @@ struct TimelineSliceReplaySectionSummary: Equatable {
 
     init(rows: [TimelineSliceRow], calendar: Calendar) {
         itemCountText = LedgerDisplayFormatting.count(rows.count, singular: "item", plural: "items")
-        timeRangeText = TimelineSectionSummaryFormatting.timeRangeText(for: rows.map(\.timelineDate), calendar: calendar)
+        timeRangeText = TimelineSectionSummaryFormatting.timeRangeText(
+            for: rows.map { TimelineSectionSummaryMoment(date: $0.timelineDate, hasDisplayTime: $0.hasDisplayTime) },
+            calendar: calendar
+        )
         typeMixText = TimelineSliceReplayContext.typeMixText(for: rows)
     }
 
@@ -139,7 +142,7 @@ struct TimelineSliceReplayRowContent: Equatable {
     let navigationTarget: LocalSearchNavigationTarget
 
     init(row: TimelineSliceRow, timeFormatter: DateFormatter = DateFormatting.ledgerTime) {
-        timestampText = timeFormatter.string(from: row.timelineDate)
+        timestampText = row.hasDisplayTime ? timeFormatter.string(from: row.timelineDate) : "Anytime"
         sourceBadge = LedgerBadgePresentation.timelineCategory(for: row.sourceKind)
         sourceLabel = sourceBadge.label
         sourceTone = sourceBadge.tone

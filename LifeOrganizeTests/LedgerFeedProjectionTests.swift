@@ -41,7 +41,7 @@ final class LedgerFeedProjectionTests: XCTestCase {
 
         XCTAssertEqual(sections.map(\.title), ["May 30", "Today"])
         XCTAssertEqual(sections.map(\.subtitle), ["Upcoming · Saturday", "Tue, May 26"])
-        XCTAssertEqual(sections.map(\.summary.timeRangeText), ["12:00 PM", "12:00 PM"])
+        XCTAssertEqual(sections.map(\.summary.timeRangeText), ["", ""])
         XCTAssertEqual(sections[0].items.map(\.id), ["event-\(monaco.id.uuidString)"])
         XCTAssertEqual(sections[1].items.map(\.id), ["reminder-\(hotKnife.id.uuidString)"])
     }
@@ -70,7 +70,7 @@ final class LedgerFeedProjectionTests: XCTestCase {
 
         XCTAssertEqual(section.title, "Today")
         XCTAssertEqual(section.subtitle, "Tue, May 26")
-        XCTAssertEqual(section.summary.timeRangeText, "12:00 PM")
+        XCTAssertEqual(section.summary.timeRangeText, "")
     }
 
     func testProjectionGroupsLedgerRecordsWithTodayBetweenPastAndFuture() throws {
@@ -262,6 +262,33 @@ final class LedgerFeedProjectionTests: XCTestCase {
         XCTAssertEqual(section.summary.text, "4 items · 8:00 AM-11:00 AM · 1 event, 1 reminder, 1 note, 1 timeline entry")
         XCTAssertEqual(section.summary.displayText(mode: .compact), "4 items · 8:00 AM-11:00 AM")
         XCTAssertEqual(section.summary.displayText(mode: .full), section.summary.text)
+    }
+
+    func testDateOnlyItemsRenderAnytimeWithoutPollutingSectionSummary() throws {
+        let calendar = Self.newYorkCalendar
+        let now = try Self.date(2026, 5, 21, 12, calendar: calendar)
+        let event = LedgerEvent(
+            title: "Finished testing and deploying auto detect",
+            occurredAt: DateFormatting.normalizedDateOnly(now, calendar: calendar),
+            rawText: "Finished testing and deploying auto detect",
+            createdAt: now
+        )
+        let content = LedgerFeedRowContent(
+            item: .event(event),
+            timeFormatter: Self.timeFormatter(calendar: calendar)
+        )
+        let section = try XCTUnwrap(
+            LedgerFeedProjection(calendar: calendar, now: now).sections(
+                messages: [],
+                events: [event],
+                reminders: [],
+                notes: []
+            ).first
+        )
+
+        XCTAssertEqual(content.timestampText, "Anytime")
+        XCTAssertEqual(section.summary.timeRangeText, "")
+        XCTAssertEqual(section.summary.displayText(mode: .compact), "1 item")
     }
 
     func testOlderMultiDayHistoryUsesSeparateCalendarSections() throws {

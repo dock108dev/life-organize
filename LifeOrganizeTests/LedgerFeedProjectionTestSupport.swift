@@ -28,6 +28,16 @@ extension LedgerFeedProjectionTests {
         try XCTUnwrap(DateFormatting.utcGregorianCalendar.date(from: DateComponents(year: year, month: month, day: day, hour: hour)))
     }
 
+    static func timeFormatter(calendar: Calendar) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = calendar.timeZone
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        return formatter
+    }
+
     static func section(day: Date, calendar: Calendar, now: Date) throws -> LedgerFeedSection {
         LedgerFeedSection(
             day: day,

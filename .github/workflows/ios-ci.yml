@@ -70,7 +70,7 @@ jobs:
       IOS_DESTINATION: "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2"
       IOS_DERIVED_DATA: "BuildArtifacts/DerivedData"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Show Xcode and simulator inventory
         run: |
           xcodebuild -version
@@ -113,7 +113,7 @@ jobs:
       IOS_COVERAGE_THRESHOLD: "0.80"
       IOS_SKIP_COVERAGE_GATE: "1"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Show Xcode and simulator inventory
         run: |
           xcodebuild -version
@@ -159,7 +159,7 @@ jobs:
       IOS_RESULT_PACKAGE: "BuildArtifacts/LifeOrganizeTests.xcresult.tar.gz"
       IOS_COVERAGE_THRESHOLD: "0.80"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Download iOS test result bundle
         uses: actions/download-artifact@v4
         with:
@@ -195,7 +195,7 @@ jobs:
       SCREENSHOT_DIFF_DIR: "BuildArtifacts/screenshots/diff/iPhone_17_Pro/portrait/light"
       SCREENSHOT_BASELINE_DIR: "Tests/ScreenshotBaselines/iPhone_17_Pro/portrait/light"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Show Xcode and simulator inventory
         run: |
           xcodebuild -version
@@ -253,7 +253,7 @@ jobs:
       SCREENSHOT_DIFF_DIR: "BuildArtifacts/screenshots/diff/iPad_Pro_13-inch_M5/portrait/light"
       SCREENSHOT_BASELINE_DIR: "Tests/ScreenshotBaselines/iPad_Pro_13-inch_M5/portrait/light"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Show Xcode and simulator inventory
         run: |
           xcodebuild -version
